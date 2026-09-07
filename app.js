@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 rotation: 0,
                 animation: 'pulse',
                 animDuration: 1.5,
+                tooltip: 'Primary call-to-action button for initiating workflows',
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
                 logic: {
@@ -90,22 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return defaultData;
   }
 
-  // Hardcoded API Key embedded here:
-  let userSettings = { 
-    theme: 'dark', 
-    mode: 'quality', 
-    apiKey: 'AQ.Ab8RN6KgcARR5EQoLybokBppMhqZJ_gV3C15p3PgZXHF7Bh4UA' 
-  };
+  let userSettings = { theme: 'dark', mode: 'quality' };
   try {
     const s = localStorage.getItem(STORAGE_SETTINGS);
-    if (s) {
-      const parsed = JSON.parse(s);
-      // Ensure hardcoded key is used if local settings lack it
-      if (!parsed.apiKey) parsed.apiKey = userSettings.apiKey;
-      userSettings = parsed;
-    } else {
-      localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
-    }
+    if (s) userSettings = JSON.parse(s);
   } catch (e) {}
 
   let currentProject = JSON.parse(JSON.stringify(getStoredProjects()[0]));
@@ -206,6 +195,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const trackMenu = document.getElementById('trackMenu');
   const courseStage = document.getElementById('courseStage');
+
+  // ================= 2-SECOND HOVER TOOLTIP SYSTEM =================
+  const tooltipElem = document.createElement('div');
+  tooltipElem.className = 'app-tooltip hidden';
+  document.body.appendChild(tooltipElem);
+
+  let hoverTimer = null;
+
+  function setupTooltips(node, model) {
+    node.addEventListener('mouseenter', (e) => {
+      const desc = model.tooltip || `Layer: ${model.name} (${model.type})`;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      hoverTimer = setTimeout(() => {
+        tooltipElem.innerText = desc;
+        tooltipElem.style.left = `${clientX + 14}px`;
+        tooltipElem.style.top = `${clientY + 14}px`;
+        tooltipElem.classList.remove('hidden');
+      }, 2000); // 2-second delay
+    });
+
+    node.addEventListener('mousemove', (e) => {
+      if (!tooltipElem.classList.contains('hidden')) {
+        tooltipElem.style.left = `${e.clientX + 14}px`;
+        tooltipElem.style.top = `${e.clientY + 14}px`;
+      }
+    });
+
+    node.addEventListener('mouseleave', () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      tooltipElem.classList.add('hidden');
+    });
+
+    node.addEventListener('mousedown', () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      tooltipElem.classList.add('hidden');
+    });
+  }
 
   function applyGlobalSettings() {
     document.documentElement.setAttribute('data-theme', userSettings.theme);
@@ -373,98 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   };
-
-  // ================= AI ASSISTANT / CO-PILOT INTEGRATION =================
-  const aiAssistantDrawer = document.createElement('div');
-  aiAssistantDrawer.className = 'ai-assistant-drawer hidden';
-  aiAssistantDrawer.innerHTML = `
-    <div class="ai-drawer-header">
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 1.2rem;">✨</span>
-        <h4>AppLab AI Co-Pilot</h4>
-      </div>
-      <button class="btn-icon" id="closeAiDrawer">&times;</button>
-    </div>
-    <div class="ai-drawer-body" id="aiChatLog">
-      <div class="ai-msg ai-bot">Hello! I am your AI assistant. Tell me what to build (e.g. <em>"Create a login form"</em> or <em>"Write script for button click"</em>).</div>
-    </div>
-    <div class="ai-drawer-footer">
-      <input type="text" class="control-input" id="aiPromptInput" placeholder="Ask AI to design UI or write code...">
-      <button class="btn-top btn-primary" id="aiSendBtn">Send</button>
-    </div>
-  `;
-  document.body.appendChild(aiAssistantDrawer);
-
-  const actionsSec = document.querySelector('.actions-section');
-  if (actionsSec) {
-    const aiBtn = document.createElement('button');
-    aiBtn.className = 'btn-top';
-    aiBtn.id = 'toggleAiDrawerBtn';
-    aiBtn.innerHTML = '✨ AI Assistant';
-    actionsSec.insertBefore(aiBtn, actionsSec.firstChild);
-    aiBtn.onclick = () => aiAssistantDrawer.classList.toggle('hidden');
-  }
-
-  document.getElementById('closeAiDrawer').onclick = () => aiAssistantDrawer.classList.add('hidden');
-
-  const aiSendBtn = document.getElementById('aiSendBtn');
-  const aiPromptInput = document.getElementById('aiPromptInput');
-  const aiChatLog = document.getElementById('aiChatLog');
-
-  async function handleAiPrompt() {
-    const promptText = aiPromptInput.value.trim();
-    if (!promptText) return;
-
-    const userBubble = document.createElement('div');
-    userBubble.className = 'ai-msg ai-user';
-    userBubble.innerText = promptText;
-    aiChatLog.appendChild(userBubble);
-    aiPromptInput.value = '';
-    aiChatLog.scrollTop = aiChatLog.scrollHeight;
-
-    const botBubble = document.createElement('div');
-    botBubble.className = 'ai-msg ai-bot';
-    botBubble.innerText = 'Thinking...';
-    aiChatLog.appendChild(botBubble);
-    aiChatLog.scrollTop = aiChatLog.scrollHeight;
-
-    try {
-      let reply = '';
-      if (userSettings.apiKey) {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userSettings.apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `You are an AI assistant for AppLab, a visual mobile/desktop app builder. The user wants: "${promptText}". Give helpful UI guidance or code snippets.` }] }]
-          })
-        });
-        const data = await res.json();
-        reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
-      } else {
-        const lower = promptText.toLowerCase();
-        if (lower.includes('login') || lower.includes('form')) {
-          const page = getCurrentPage();
-          page.elements.push(
-            { id: 'el_' + Date.now().toString().slice(-4), name: 'Login Title', type: 'label', x: 50, y: 80, width: 240, height: 40, text: 'Welcome Back', fontSize: 24, fontWeight: '700', textColor: '#fff', bgColor: 'transparent', borderColor: 'transparent', shape: 'rect' },
-            { id: 'el_' + (Date.now()+1).toString().slice(-4), name: 'Email Input', type: 'input', x: 50, y: 150, width: 240, height: 44, text: 'Enter email...', textColor: '#fff', bgColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.2)', shape: 'rounded', borderRadius: 8 },
-            { id: 'el_' + (Date.now()+2).toString().slice(-4), name: 'Login Button', type: 'button', x: 50, y: 220, width: 240, height: 48, text: 'Sign In', textColor: '#fff', bgColor: '#7b2cbf', borderColor: '#9d4edd', shape: 'pill', borderRadius: 9999, animation: 'pulse' }
-          );
-          renderCanvas();
-          renderLayersTree();
-          reply = 'I have automatically generated a login form onto your active screen canvas!';
-        } else {
-          reply = `That sounds like a great feature! To build "${promptText}", use the component palette on the left to drag items onto your phone canvas, then style them using the right inspector.`;
-        }
-      }
-      botBubble.innerText = reply;
-    } catch (err) {
-      botBubble.innerText = 'Error connecting to AI: ' + err.message;
-    }
-    aiChatLog.scrollTop = aiChatLog.scrollHeight;
-  }
-
-  aiSendBtn.onclick = handleAiPrompt;
-  aiPromptInput.onkeydown = (e) => { if (e.key === 'Enter') handleAiPrompt(); };
 
   // View Routing
   async function switchMainView(viewId) {
@@ -727,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentProject.viewport = btn.dataset.device;
-      if (deviceFrame) deviceFrame.className = `device-mockup device-${currentProject.viewport}`;
+      if (deviceFrame) deviceFrame.className = `device-mockup device-${btn.dataset.device}`;
       markDirty();
     });
   });
@@ -883,6 +819,9 @@ document.addEventListener('DOMContentLoaded', () => {
         attachResizer(node, el);
         attachContextMenu(node, el);
       }
+
+      // Attach 2-second hover tooltip
+      setupTooltips(node, el);
 
       attachRuntimeExecution(node, el);
 
@@ -1667,11 +1606,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Component Drag & Drop Palette
-  document.querySelectorAll('.draggable-card').forEach(card => {
-    card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
-  });
-
   // Academy Workspace Render
   let activeTrackId = 'track_shapes';
   let currentCoursePageIndex = 0;
@@ -1795,7 +1729,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: 'Chapter 2: Multi-Action Block Chaining',
           desc: 'Multiple actions can be stacked on a single component. When fired, the runtime loops down the action stack sequentially, applying mutations to target layers.',
           type: 'theory',
-          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action;\n}`,
+          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action);\n}`,
           quiz: null
         },
         {
