@@ -913,6 +913,135 @@ header {
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
+/* ================= CUSTOM APPLAB DROPDOWN & PICKER SYSTEM ================= */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  background: var(--input-bg);
+  border: 1px solid var(--glass-border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.custom-select-trigger:hover,
+.custom-select-wrapper.open .custom-select-trigger {
+  border-color: var(--accent-purple);
+  background: rgba(157, 78, 221, 0.12);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.custom-select-trigger .arrow-icon {
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  transition: transform 0.2s ease;
+}
+
+.custom-select-wrapper.open .arrow-icon {
+  transform: rotate(180deg);
+  color: var(--accent-purple);
+}
+
+.custom-select-options {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(22, 17, 36, 0.95);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 16px var(--accent-glow);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 500;
+  padding: 4px;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.custom-select-wrapper.open .custom-select-options {
+  display: flex;
+}
+
+.custom-select-option {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.custom-select-option:hover {
+  background: rgba(157, 78, 221, 0.25);
+  color: #ffffff;
+}
+
+.custom-select-option.selected {
+  background: var(--accent-purple);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Animation Picker Grid */
+.anim-grid-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.anim-chip-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 8px 4px;
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.72rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.anim-chip-btn .chip-icon {
+  font-size: 1.1rem;
+}
+
+.anim-chip-btn:hover {
+  background: rgba(157, 78, 221, 0.18);
+  border-color: var(--accent-purple);
+  transform: translateY(-2px);
+}
+
+.anim-chip-btn.active {
+  background: rgba(157, 78, 221, 0.35);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 14px var(--accent-glow);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* Preview Mode State */
 body.preview-mode .sidebar-left,
 body.preview-mode .sidebar-right,
@@ -927,7 +1056,7 @@ body.preview-mode #exportBtn {
 body.preview-mode .placed-item { cursor: pointer !important; outline: none !important; }
 body.preview-mode .resize-handle { display: none !important; }
 
-/* ================= COMPREHENSIVE KEYFRAME ANIMATIONS ================= */
+/* ================= KEYFRAME ANIMATIONS ================= */
 @keyframes animFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes animSlideUp { from { transform: translateY(35px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes animScalePop { 
