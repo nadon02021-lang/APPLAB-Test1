@@ -56,17 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 fontFamily: "'Poppins', sans-serif",
                 fontSize: 15,
                 fontWeight: '600',
-                letterSpacing: 0.5,
-                lineHeight: 1.2,
-                textTransform: 'none',
-                textDecoration: 'none',
                 textAlign: 'center',
-                padding: 10,
                 textColor: '#ffffff',
                 bgColor: '#7b2cbf',
                 borderColor: '#9d4edd',
                 borderWidth: 1,
-                borderStyle: 'solid',
                 shape: 'pill',
                 borderRadius: 9999,
                 backdropBlur: 10,
@@ -96,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return defaultData;
   }
 
-  let userSettings = { theme: 'dark', mode: 'quality' };
+  let userSettings = { theme: 'dark', mode: 'quality', apiKey: '' };
   try {
     const s = localStorage.getItem(STORAGE_SETTINGS);
     if (s) userSettings = JSON.parse(s);
@@ -368,6 +362,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // ================= AI ASSISTANT / CO-PILOT INTEGRATION =================
+  const aiAssistantDrawer = document.createElement('div');
+  aiAssistantDrawer.className = 'ai-assistant-drawer hidden';
+  aiAssistantDrawer.innerHTML = `
+    <div class="ai-drawer-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 1.2rem;">✨</span>
+        <h4>AppLab AI Co-Pilot</h4>
+      </div>
+      <button class="btn-icon" id="closeAiDrawer">&times;</button>
+    </div>
+    <div class="ai-drawer-body" id="aiChatLog">
+      <div class="ai-msg ai-bot">Hello! I am your AI assistant. Tell me what to build (e.g. <em>"Create a login form"</em> or <em>"Write script for button click"</em>), or configure your Gemini API key in Settings!</div>
+    </div>
+    <div class="ai-drawer-footer">
+      <input type="text" class="control-input" id="aiPromptInput" placeholder="Ask AI to design UI or write code...">
+      <button class="btn-top btn-primary" id="aiSendBtn">Send</button>
+    </div>
+  `;
+  document.body.appendChild(aiAssistantDrawer);
+
+  // Add AI Assistant button to header controls
+  const actionsSec = document.querySelector('.actions-section');
+  if (actionsSec) {
+    const aiBtn = document.createElement('button');
+    aiBtn.className = 'btn-top';
+    aiBtn.id = 'toggleAiDrawerBtn';
+    aiBtn.innerHTML = '✨ AI Assistant';
+    actionsSec.insertBefore(aiBtn, actionsSec.firstChild);
+
+    aiBtn.onclick = () => aiAssistantDrawer.classList.toggle('hidden');
+  }
+
+  document.getElementById('closeAiDrawer').onclick = () => aiAssistantDrawer.classList.add('hidden');
+
+  const aiSendBtn = document.getElementById('aiSendBtn');
+  const aiPromptInput = document.getElementById('aiPromptInput');
+  const aiChatLog = document.getElementById('aiChatLog');
+
+  async function handleAiPrompt() {
+    const promptText = aiPromptInput.value.trim();
+    if (!promptText) return;
+
+    // Append User Message
+    const userBubble = document.createElement('div');
+    userBubble.className = 'ai-msg ai-user';
+    userBubble.innerText = promptText;
+    aiChatLog.appendChild(userBubble);
+    aiPromptInput.value = '';
+    aiChatLog.scrollTop = aiChatLog.scrollHeight;
+
+    // Append Loading
+    const botBubble = document.createElement('div');
+    botBubble.className = 'ai-msg ai-bot';
+    botBubble.innerText = 'Thinking...';
+    aiChatLog.appendChild(botBubble);
+    aiChatLog.scrollTop = aiChatLog.scrollHeight;
+
+    try {
+      let reply = '';
+      if (userSettings.apiKey) {
+        // Call Gemini REST API directly
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userSettings.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `You are an AI assistant for AppLab, a visual mobile/desktop app builder. The user wants: "${promptText}". If they want UI elements, give brief instructions and add a code suggestion or layout idea.` }] }]
+          })
+        });
+        const data = await res.json();
+        reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
+      } else {
+        // Local Smart Assistant Simulation Fallback
+        const lower = promptText.toLowerCase();
+        if (lower.includes('login') || lower.includes('form')) {
+          // Auto-generate login form on canvas
+          const page = getCurrentPage();
+          page.elements.push(
+            { id: 'el_' + Date.now().toString().slice(-4), name: 'Login Title', type: 'label', x: 50, y: 80, width: 240, height: 40, text: 'Welcome Back', fontSize: 24, fontWeight: '700', textColor: '#fff', bgColor: 'transparent', borderColor: 'transparent', shape: 'rect' },
+            { id: 'el_' + (Date.now()+1).toString().slice(-4), name: 'Email Input', type: 'input', x: 50, y: 150, width: 240, height: 44, text: 'Enter email...', textColor: '#fff', bgColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.2)', shape: 'rounded', borderRadius: 8 },
+            { id: 'el_' + (Date.now()+2).toString().slice(-4), name: 'Login Button', type: 'button', x: 50, y: 220, width: 240, height: 48, text: 'Sign In', textColor: '#fff', bgColor: '#7b2cbf', borderColor: '#9d4edd', shape: 'pill', borderRadius: 9999, animation: 'pulse' }
+          );
+          renderCanvas();
+          renderLayersTree();
+          reply = 'I have automatically generated a login form onto your active screen canvas!';
+        } else if (lower.includes('script') || lower.includes('code')) {
+          reply = 'To add code, select any button on your canvas, open the Code Lab, and select "Real JavaScript Editor". You can use `app.showAlert("Hello")` or `element.style.backgroundColor = "#ff0055"`.';
+        } else {
+          reply = `That sounds like a great feature! To build "${promptText}", use the component palette on the left to drag items onto your phone canvas, then style them using the right inspector. (Tip: Add your Gemini API key in Settings for live cloud AI generation!)`;
+        }
+      }
+      botBubble.innerText = reply;
+    } catch (err) {
+      botBubble.innerText = 'Error connecting to AI: ' + err.message;
+    }
+    aiChatLog.scrollTop = aiChatLog.scrollHeight;
+  }
+
+  aiSendBtn.onclick = handleAiPrompt;
+  aiPromptInput.onkeydown = (e) => { if (e.key === 'Enter') handleAiPrompt(); };
+
   // View Routing
   async function switchMainView(viewId) {
     if (viewId === 'homeView' && isDirty) {
@@ -577,130 +672,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let initialPages = [{ id: 'screen_1', name: 'Home Screen', elements: [] }];
 
-      if (template === 'starter_app') {
-        initialPages = [{
-          id: 'screen_1',
-          name: 'Landing Page',
-          elements: [
-            {
-              id: 'elem_lbl_' + Date.now(),
-              name: 'App Header',
-              type: 'label',
-              x: 40,
-              y: 60,
-              width: 260,
-              height: 40,
-              text: 'Welcome to ' + title,
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 22,
-              fontWeight: '700',
-              letterSpacing: 0,
-              lineHeight: 1.2,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 0,
-              textColor: '#ffffff',
-              bgColor: 'transparent',
-              borderColor: 'transparent',
-              borderWidth: 0,
-              borderStyle: 'solid',
-              shape: 'rect',
-              borderRadius: 0,
-              backdropBlur: 0,
-              glowSize: 0,
-              glowColor: '#9d4edd',
-              opacity: 1,
-              rotation: 0,
-              animation: 'slideUp',
-              animDuration: 0.8,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [] }
-            },
-            {
-              id: 'elem_btn_' + Date.now(),
-              name: 'Primary Button',
-              type: 'button',
-              x: 85,
-              y: 320,
-              width: 170,
-              height: 48,
-              text: 'Get Started',
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 15,
-              fontWeight: '600',
-              letterSpacing: 0.5,
-              lineHeight: 1.2,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 8,
-              textColor: '#ffffff',
-              bgColor: '#7b2cbf',
-              borderColor: '#9d4edd',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              shape: 'pill',
-              borderRadius: 9999,
-              backdropBlur: 0,
-              glowSize: 18,
-              glowColor: '#9d4edd',
-              opacity: 1,
-              rotation: 0,
-              animation: 'pulse',
-              animDuration: 1.5,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [{ type: 'alert', target: '', value: 'Button clicked!' }] }
-            }
-          ]
-        }];
-      } else if (template === 'card_feed') {
-        initialPages = [{
-          id: 'screen_1',
-          name: 'Feed Screen',
-          elements: [
-            {
-              id: 'elem_card_' + Date.now(),
-              name: 'Feed Card',
-              type: 'card',
-              x: 20,
-              y: 90,
-              width: 300,
-              height: 200,
-              text: 'Exclusive Creator Content Card\nExplore rich UI layout structures.',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              fontWeight: '400',
-              letterSpacing: 0,
-              lineHeight: 1.5,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 16,
-              textColor: '#f3f3f7',
-              bgColor: 'rgba(255, 255, 255, 0.05)',
-              borderColor: 'rgba(255, 255, 255, 0.12)',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              shape: 'rounded',
-              borderRadius: 16,
-              backdropBlur: 20,
-              glowSize: 10,
-              glowColor: 'rgba(157, 78, 221, 0.3)',
-              opacity: 1,
-              rotation: 0,
-              animation: 'scalePop',
-              animDuration: 0.8,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [] }
-            }
-          ]
-        }];
-      }
-
       currentProject = {
         id: 'proj_' + Date.now(),
         projectName: title,
@@ -712,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       activeScreenId = currentProject.pages[0].id;
-      activeElementId = currentProject.pages[0].elements[0]?.id || null;
+      activeElementId = null;
       if (currentProjectLabel) currentProjectLabel.innerText = title;
 
       document.querySelectorAll('.device-btn').forEach(b => {
@@ -811,7 +782,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- Dynamic Component Node Builder Engine ---
   function renderCanvas() {
     if (!canvas) return;
     canvas.innerHTML = '';
@@ -822,8 +792,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     page.elements.forEach(el => {
       let node;
-
-      // 1. Specialized Element Generators
       if (el.type === 'button') {
         node = document.createElement('button');
         node.innerText = el.text || 'Button';
@@ -877,13 +845,11 @@ document.addEventListener('DOMContentLoaded', () => {
       node.id = el.id;
       node.className = `placed-item ${el.id === activeElementId ? 'selected' : ''}`;
 
-      // Positioning & Coordinates
       node.style.left = `${el.x}px`;
       node.style.top = `${el.y}px`;
       node.style.width = `${el.width}px`;
       node.style.height = `${el.height}px`;
 
-      // Deep Visual & Typography Styles
       node.style.backgroundColor = el.bgColor;
       node.style.color = el.textColor;
       node.style.borderColor = el.borderColor;
@@ -899,7 +865,6 @@ document.addEventListener('DOMContentLoaded', () => {
       node.style.textDecoration = el.textDecoration || 'none';
       node.style.padding = `${el.padding || 0}px`;
 
-      // Shape Geometry and Contour Effects
       applyShapeAndEffects(node, el);
 
       node.style.opacity = el.opacity !== undefined ? el.opacity : 1;
@@ -1143,11 +1108,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. Deep UI, Typography, Border & Spacing Customization
     if (propertiesTab) {
-      // Component-specific extra settings markup
       let extraComponentControls = '';
-
       if (el.type === 'slider' || el.type === 'progress') {
         extraComponentControls = `
           <div class="control-row">
@@ -1280,7 +1242,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-top" style="color:#ff6b6b; margin-top:14px;" id="delElemBtn">Remove Element</button>
       `;
 
-      // Mount Custom Selects
       createCustomSelect(
         document.getElementById('propFontContainer'),
         fontOptions,
@@ -1352,7 +1313,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.borderStyle = val; markDirty(); renderCanvas(); }
       );
 
-      // Component-Specific Selects
       if (el.type === 'image') {
         const fitOpts = [
           { label: 'Cover (Crop)', value: 'cover' },
@@ -1382,7 +1342,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('propCurVal').oninput = (e) => { el.currentVal = parseInt(e.target.value) || 50; markDirty(); renderCanvas(); };
       }
 
-      // Input Event Listeners
       document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
@@ -1419,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Corner Radius (px)</label>
-          <input type="range" min="0" max="80" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
+          <input type="range" min="0" max="60" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
         </div>
       `;
 
@@ -1460,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Opacity (0 to 1)</label>
-          <input type="range" min="0.05" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
+          <input type="range" min="0.1" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
         </div>
         <div class="control-group">
           <label>Rotation Angle (degrees)</label>
@@ -1705,277 +1664,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Component Drag & Drop Palette
-  document.querySelectorAll('.draggable-card').forEach(card => {
-    card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
-  });
-
-  if (canvas) {
-    canvas.ondragover = (e) => e.preventDefault();
-    canvas.ondrop = (e) => {
-      e.preventDefault();
-      const type = e.dataTransfer.getData('type');
-      if (!type) return;
-      const rect = canvas.getBoundingClientRect();
-
-      // Factory settings per element type
-      let defaultWidth = 140;
-      let defaultHeight = 44;
-      let defaultText = 'Click Me';
-      let defaultBg = '#7b2cbf';
-      let defaultBorder = '#9d4edd';
-      let defaultBorderWidth = 1;
-      let defaultPadding = 8;
-      let defaultShape = 'rounded';
-      let defaultRadius = 10;
-      let defaultIsChecked = false;
-      let defaultCurrentVal = 50;
-
-      if (type === 'label') {
-        defaultWidth = 160;
-        defaultHeight = 32;
-        defaultText = 'Header Title';
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'input') {
-        defaultWidth = 180;
-        defaultHeight = 40;
-        defaultText = 'Type something...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'textarea') {
-        defaultWidth = 200;
-        defaultHeight = 80;
-        defaultText = 'Enter long paragraph comments...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'toggle') {
-        defaultWidth = 56;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-        defaultIsChecked = true;
-      } else if (type === 'slider') {
-        defaultWidth = 180;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'progress') {
-        defaultWidth = 200;
-        defaultHeight = 16;
-        defaultBg = 'rgba(255, 255, 255, 0.1)';
-        defaultBorder = 'rgba(157, 78, 221, 0.3)';
-        defaultBorderWidth = 1;
-        defaultRadius = 8;
-        defaultCurrentVal = 65;
-      } else if (type === 'divider') {
-        defaultWidth = 220;
-        defaultHeight = 10;
-        defaultBg = 'transparent';
-        defaultBorder = '#9d4edd';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'icon') {
-        defaultWidth = 48;
-        defaultHeight = 48;
-        defaultText = '⭐';
-        defaultBg = 'rgba(157, 78, 221, 0.2)';
-        defaultBorder = '#9d4edd';
-        defaultShape = 'circle';
-        defaultRadius = 50;
-      } else if (type === 'card') {
-        defaultWidth = 220;
-        defaultHeight = 120;
-        defaultText = 'Card Container Box';
-        defaultBg = 'rgba(255, 255, 255, 0.05)';
-        defaultBorder = 'rgba(255, 255, 255, 0.12)';
-        defaultPadding = 14;
-      }
-
-      const newEl = {
-        id: 'el_' + Date.now().toString().slice(-4),
-        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-        type: type,
-        x: Math.max(10, e.clientX - rect.left - 40),
-        y: Math.max(10, e.clientY - rect.top - 20),
-        width: defaultWidth,
-        height: defaultHeight,
-        text: defaultText,
-        textColor: '#ffffff',
-        bgColor: defaultBg,
-        borderColor: defaultBorder,
-        borderWidth: defaultBorderWidth,
-        borderStyle: 'solid',
-        shape: defaultShape,
-        borderRadius: defaultRadius,
-        fontSize: 14,
-        fontFamily: fontOptions[0].value,
-        fontWeight: '500',
-        letterSpacing: 0,
-        lineHeight: 1.2,
-        textTransform: 'none',
-        textDecoration: 'none',
-        textAlign: 'center',
-        padding: defaultPadding,
-        backdropBlur: 0,
-        glowSize: 0,
-        glowColor: '#9d4edd',
-        opacity: 1,
-        rotation: 0,
-        animation: 'none',
-        animDuration: 1.5,
-        minVal: 0,
-        maxVal: 100,
-        currentVal: defaultCurrentVal,
-        isChecked: defaultIsChecked,
-        imageFit: 'cover',
-        codeMode: 'blocks',
-        customJs: '',
-        logic: { event: 'click', actions: [] }
-      };
-
-      getCurrentPage().elements.push(newEl);
-      markDirty();
-      selectElement(newEl.id);
-    };
-  }
-
-  function renderPagesList() {
-    if (!pagesList) return;
-    pagesList.innerHTML = '';
-    currentProject.pages.forEach(p => {
-      const it = document.createElement('div');
-      it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
-      it.innerText = `📄 ${p.name}`;
-      it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
-      pagesList.appendChild(it);
-    });
-  }
-
-  function renderLayersTree() {
-    if (!layersTree) return;
-    layersTree.innerHTML = '';
-    getCurrentPage().elements.forEach(el => {
-      const l = document.createElement('div');
-      l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
-      l.innerText = el.name;
-      l.onclick = () => selectElement(el.id);
-      layersTree.appendChild(l);
-    });
-  }
-
-  if (addPageBtn) {
-    addPageBtn.onclick = () => {
-      const pId = 'scr_' + Date.now().toString().slice(-4);
-      currentProject.pages.push({ id: pId, name: 'Screen ' + (currentProject.pages.length + 1), elements: [] });
-      activeScreenId = pId;
-      markDirty();
-      renderPagesList(); renderCanvas();
-    };
-  }
-
-  if (modeToggleBtn) {
-    modeToggleBtn.onclick = () => {
-      isPreviewMode = !isPreviewMode;
-      modeToggleBtn.innerText = isPreviewMode ? '⏹️ Stop' : '▶️ Preview';
-      document.body.classList.toggle('preview-mode', isPreviewMode);
-      renderCanvas();
-    };
-  }
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => {
-      const jsonStr = JSON.stringify(currentProject, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProject.projectName.toLowerCase().replace(/\s+/g, '_')}.applab`;
-      a.click();
-    });
-  }
-
-  if (startMenuToggleBtn) {
-    startMenuToggleBtn.onclick = () => {
-      if (startMenuPopup) startMenuPopup.classList.toggle('hidden');
-    };
-  }
-
-  document.addEventListener('click', (e) => {
-    if (startMenuToggleBtn && startMenuPopup && !startMenuToggleBtn.contains(e.target) && !startMenuPopup.contains(e.target)) {
-      startMenuPopup.classList.add('hidden');
-    }
-  });
-
-  const smHomeBtn = document.getElementById('smHomeBtn');
-  if (smHomeBtn) smHomeBtn.onclick = () => { switchMainView('homeView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smStudioBtn = document.getElementById('smStudioBtn');
-  if (smStudioBtn) smStudioBtn.onclick = () => { switchMainView('builderView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smNewProjectBtn = document.getElementById('smNewProjectBtn');
-  if (smNewProjectBtn) smNewProjectBtn.onclick = () => { openNewProjectModal(); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smTutorialBtn = document.getElementById('smTutorialBtn');
-  if (smTutorialBtn) smTutorialBtn.onclick = () => { switchMainView('tutorialView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-
-  const smSettingsBtn = document.getElementById('smSettingsBtn');
-  if (smSettingsBtn) {
-    smSettingsBtn.onclick = () => {
-      if (startMenuPopup) startMenuPopup.classList.add('hidden');
-
-      const themeOpts = [
-        { label: '🌙 Dark Glassmorphism', value: 'dark' },
-        { label: '☀️ Clean Daylight (Light)', value: 'light' }
-      ];
-      createCustomSelect(settingThemeContainer, themeOpts, userSettings.theme, (val) => {
-        userSettings.theme = val;
-      });
-
-      const modeOpts = [
-        { label: '✨ Quality Mode (Full Blurs & Glows)', value: 'quality' },
-        { label: '⚡ Performance Mode (Fast FPS)', value: 'performance' }
-      ];
-      createCustomSelect(settingModeContainer, modeOpts, userSettings.mode, (val) => {
-        userSettings.mode = val;
-      });
-
-      if (settingsModal) settingsModal.classList.remove('hidden');
-    };
-  }
-
-  if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add('hidden');
-  if (applySettingsBtn) {
-    applySettingsBtn.onclick = () => {
-      try {
-        localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
-      } catch (e) {}
-      applyGlobalSettings();
-      settingsModal.classList.add('hidden');
-    };
-  }
-
-  function bindColorPair(pickerId, textId, callback) {
-    const picker = document.getElementById(pickerId);
-    const text = document.getElementById(textId);
-    if (!picker || !text) return;
-    picker.oninput = (e) => { text.value = e.target.value; callback(e.target.value); };
-    text.oninput = (e) => { callback(e.target.value); if (/^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value; };
-  }
-
-  function rgbToHex(val) {
-    if (!val || val === 'transparent') return '#000000';
-    if (val.startsWith('#')) return val;
-    const nums = val.match(/\d+/g);
-    if (!nums || nums.length < 3) return '#000000';
-    return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
-  }
-
-  // ================= EXPANDED 8-TRACK MULTI-PAGE CURRICULUM =================
-  let activeTrackId = 'track_shapes';
+  // Academy Workspace Render
+  let activeTrackId = 'track_canvas';
   let currentCoursePageIndex = 0;
 
   const courseTracks = [
@@ -2392,7 +2082,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCourseWorkspace() {
     if (!trackMenu || !courseStage) return;
 
-    // 1. Render Left Track Items
     trackMenu.innerHTML = '';
     courseTracks.forEach(track => {
       const item = document.createElement('div');
@@ -2409,7 +2098,6 @@ document.addEventListener('DOMContentLoaded', () => {
       trackMenu.appendChild(item);
     });
 
-    // 2. Render Active Track Page
     renderActiveCoursePage();
   }
 
@@ -2579,7 +2267,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Pagination Click Bindings
     document.querySelectorAll('.page-dot').forEach(dot => {
       dot.onclick = () => {
         currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
@@ -2609,7 +2296,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Copy Snippet Buttons
     document.querySelectorAll('.btn-copy-code').forEach(btn => {
       btn.onclick = () => {
         const text = decodeURIComponent(btn.dataset.code);
@@ -2619,7 +2305,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    // Practice Lab 1: Canvas Coordinates
     const chip = document.getElementById('canvasLabChip');
     if (chip) {
       document.getElementById('moveChipLeft').onclick = () => {
@@ -2635,7 +2320,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 2: Geometric Shapes
     const shapeChip = document.getElementById('courseShapeChip');
     if (shapeChip) {
       document.getElementById('shapePillBtn').onclick = () => {
@@ -2661,7 +2345,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 3: Block Simulator
     const blockSimChip = document.getElementById('blockSimChip');
     if (blockSimChip) {
       document.getElementById('runBlockSimBtn').onclick = () => {
@@ -2681,7 +2364,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 4: JavaScript Sandbox
     const runJsBtn = document.getElementById('runCourseJsBtn');
     if (runJsBtn) {
       runJsBtn.onclick = () => {
@@ -2697,7 +2379,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 5: Live Data Binding
     const applyBindingBtn = document.getElementById('applyBindingBtn');
     if (applyBindingBtn) {
       applyBindingBtn.onclick = () => {
@@ -2709,7 +2390,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 6: Performance vs Quality
     const perfChip = document.getElementById('perfTargetChip');
     if (perfChip) {
       document.getElementById('perfToggleQuality').onclick = () => {
@@ -2724,7 +2404,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 7: Motion Keyframe Tester
     const animChip = document.getElementById('courseAnimChip');
     if (animChip) {
       const setChipAnim = (animClass, label) => {
@@ -2738,7 +2417,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
     }
 
-    // Practice Lab 8: Web Audio Synthesizer
     const audioChip = document.getElementById('audioVisualizerChip');
     if (audioChip) {
       const playTone = (freq, duration, type = 'sine') => {
@@ -2779,7 +2457,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Interactive Quiz Option Clicks
     if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
