@@ -95,13 +95,20 @@
             <div class="pages-list" id="pagesList"></div>
           </div>
 
+          <!-- Component Palette with Full Mobile App Elements -->
           <div class="panel-box">
             <span class="section-title">Components</span>
             <div class="component-palette">
               <div class="draggable-card" draggable="true" data-type="button">🔘 Button</div>
               <div class="draggable-card" draggable="true" data-type="label">📝 Text Label</div>
-              <div class="draggable-card" draggable="true" data-type="input">⌨️ Input Field</div>
+              <div class="draggable-card" draggable="true" data-type="input">⌨️ Text Field</div>
+              <div class="draggable-card" draggable="true" data-type="textarea">📄 Text Area</div>
               <div class="draggable-card" draggable="true" data-type="image">🖼️ Image</div>
+              <div class="draggable-card" draggable="true" data-type="toggle">🎚️ Toggle Switch</div>
+              <div class="draggable-card" draggable="true" data-type="slider">🎚️ Range Slider</div>
+              <div class="draggable-card" draggable="true" data-type="progress">📊 Progress Bar</div>
+              <div class="draggable-card" draggable="true" data-type="divider">➖ Divider Line</div>
+              <div class="draggable-card" draggable="true" data-type="icon">⭐ Icon / Avatar</div>
               <div class="draggable-card" draggable="true" data-type="card">🪟 Container Card</div>
             </div>
           </div>
@@ -122,7 +129,7 @@
           </div>
         </main>
 
-        <!-- Right Sidebar: Inspector -->
+        <!-- Right Sidebar: Properties & Customization Inspector -->
         <aside class="sidebar-right">
           <div class="tabs-nav">
             <button class="tab-btn active" data-tab="propertiesTab">Style & UI</button>
@@ -219,15 +226,11 @@
           <span class="academy-badge">ACADEMY MASTER TRACKS</span>
           <h3>Major Topics</h3>
         </div>
-        <div class="track-menu" id="trackMenu">
-          <!-- Populated dynamically via app.js -->
-        </div>
+        <div class="track-menu" id="trackMenu"></div>
       </aside>
 
       <!-- Center Dynamic Multi-Page Course Viewport -->
-      <main class="course-stage" id="courseStage">
-        <!-- Rendered dynamically via renderActiveCoursePage() -->
-      </main>
+      <main class="course-stage" id="courseStage"></main>
     </div>
   </section>
 
