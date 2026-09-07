@@ -192,6 +192,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
+  // Academy & Tutorial References
+  const tutorialSearchInput = document.getElementById('tutorialSearchInput');
+  const academyGrid = document.getElementById('academyGrid');
+
   function applyGlobalSettings() {
     document.documentElement.setAttribute('data-theme', userSettings.theme);
     document.documentElement.setAttribute('data-mode', userSettings.mode);
@@ -380,6 +384,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewId === 'builderView') {
       if (builderControls) builderControls.classList.remove('hidden');
       switchStudioSubpage('design');
+    } else if (viewId === 'tutorialView') {
+      if (builderControls) builderControls.classList.add('hidden');
+      renderAcademy();
     } else {
       if (builderControls) builderControls.classList.add('hidden');
       if (viewId === 'homeView') renderProjectsDashboard();
@@ -1062,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. UI Tab - All custom dropdowns
+    // 1. UI Tab
     if (propertiesTab) {
       propertiesTab.innerHTML = `
         <div class="control-group">
@@ -1234,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Standard Animation Tab (Simple & Streamlined)
+    // 4. Standard Animation Tab
     if (animationsTab) {
       animationsTab.innerHTML = `
         <div class="control-group">
@@ -1640,6 +1647,194 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // Initial Boot
+  // ================= ACADEMY / TUTORIAL SYSTEM =================
+  let currentAcademyCategory = 'all';
+  let currentAcademySearch = '';
+
+  const academyLessons = [
+    {
+      id: 'l1',
+      category: 'basics',
+      num: 'MODULE 01',
+      tag: 'CANVAS BASICS',
+      title: 'Canvas Navigation & Viewports',
+      desc: 'Learn how to freely move elements on the screen, resize using bottom-right handles, and test responsive dimensions across Phone, Tablet, and Desktop frames.',
+      interactiveType: 'demo_canvas',
+      codeSnippet: `// Tip: Switch viewport resolutions using the header buttons:\n// Phone (340x680) | Tablet (680x500) | PC (840x520)`
+    },
+    {
+      id: 'l2',
+      category: 'basics',
+      num: 'MODULE 02',
+      tag: 'PAGE ROUTING',
+      title: 'Multi-Screen Page Flows',
+      desc: 'Create clean multi-screen applications. Learn how to add new screens, manage individual component trees, and establish instant transitions between pages.',
+      interactiveType: 'snippet',
+      codeSnippet: `// Route to any screen programmatically:\napp.navigateTo('screen_2');`
+    },
+    {
+      id: 'l3',
+      category: 'design',
+      num: 'MODULE 03',
+      tag: 'SHAPES & CLIP-PATH',
+      title: 'Polygons & Custom Geometry',
+      desc: 'Transform simple components into Smooth Rounded Cards, Capsules, Circles, Diamonds, and Hexagons. Glow filters cleanly trace contour edges.',
+      interactiveType: 'demo_shapes',
+      codeSnippet: `/* Diamond polygon contour */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);\nfilter: drop-shadow(0 0 16px #9d4edd);`
+    },
+    {
+      id: 'l4',
+      category: 'design',
+      num: 'MODULE 04',
+      tag: 'GLASS & EFFECTS',
+      title: 'Backdrop Glassmorphism & Neon Glow',
+      desc: 'Achieve the signature purple crystal look by combining backdrop blur filters with neon glow spread radiuses, custom opacity, and element rotation.',
+      interactiveType: 'demo_glass',
+      codeSnippet: `/* Glassmorphism stack */\nbackdrop-filter: blur(20px);\nbox-shadow: 0 0 18px rgba(157, 78, 221, 0.45);\nbackground: rgba(255, 255, 255, 0.05);`
+    },
+    {
+      id: 'l5',
+      category: 'design',
+      num: 'MODULE 05',
+      tag: 'ANIMATION ENGINE',
+      title: 'Dynamic Keyframe Animations',
+      desc: 'Bring components to life using continuous loops like Pulse, Bounce, Float, Spin, Shake, or dramatic entrance presets like Fade In, Slide Up, and Scale Pop.',
+      interactiveType: 'demo_anim',
+      codeSnippet: `// Test live animations by pressing "Test Animation Live" in the inspector.`
+    },
+    {
+      id: 'l6',
+      category: 'coding',
+      num: 'MODULE 06',
+      tag: 'VISUAL LOGIC',
+      title: 'Action Block Chaining',
+      desc: 'Build workflows without writing code. Set triggers (Click, Hover) and stack sequential actions: open popups, route pages, change text, or re-color layers.',
+      interactiveType: 'snippet',
+      codeSnippet: `[WHEN: Click Event]\n  1. Alert: "Welcome!"\n  2. Navigate: "Screen 2"\n  3. Set Text: Layer "Title" -> "Active"`
+    },
+    {
+      id: 'l7',
+      category: 'coding',
+      num: 'MODULE 07',
+      tag: 'JAVASCRIPT ENGINE',
+      title: 'Raw JavaScript Execution',
+      desc: 'Switch to the JS Code Editor in the Code Lab to execute raw JavaScript. Access element properties, trigger synthesized audio tones, and launch custom modals.',
+      interactiveType: 'snippet',
+      codeSnippet: `// Inside the script editor:\nelement.style.backgroundColor = '#ff0077';\napp.playBeep();\napp.showAlert('Script executed successfully!');`
+    },
+    {
+      id: 'l8',
+      category: 'pro',
+      num: 'MODULE 08',
+      tag: 'WINDOWS PRO TIPS',
+      title: 'Right-Click Context Menu & Folders',
+      desc: 'Right-click any placed canvas element to duplicate it with layout offsets, re-order z-index layers (Bring to Front / Send to Back), or organize projects into folders.',
+      interactiveType: 'snippet',
+      codeSnippet: `// Shortcut:\n// Right-click any component on canvas to open the Windows-style menu.`
+    }
+  ];
+
+  function renderAcademy() {
+    if (!academyGrid) return;
+    academyGrid.innerHTML = '';
+
+    const query = currentAcademySearch.toLowerCase();
+    const filtered = academyLessons.filter(l => {
+      const matchesCat = currentAcademyCategory === 'all' || l.category === currentAcademyCategory;
+      const matchesSearch = l.title.toLowerCase().includes(query) ||
+                            l.desc.toLowerCase().includes(query) ||
+                            l.tag.toLowerCase().includes(query);
+      return matchesCat && matchesSearch;
+    });
+
+    if (filtered.length === 0) {
+      academyGrid.innerHTML = '<p class="empty-state" style="grid-column: 1/-1;">No lessons match your search criteria.</p>';
+      return;
+    }
+
+    filtered.forEach(lesson => {
+      const card = document.createElement('div');
+      card.className = 'lesson-card';
+
+      let interactiveWidgetHtml = '';
+      if (lesson.interactiveType === 'demo_shapes') {
+        interactiveWidgetHtml = `
+          <div class="lesson-interactive-box">
+            <span class="lesson-interactive-title">Live Shape Playground</span>
+            <div class="interactive-demo-stage">
+              <div id="shapeDemoChip" class="demo-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 10px #9d4edd); border-radius:0;">💠 Diamond</div>
+            </div>
+            <div style="display: flex; gap: 6px; justify-content: center;">
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='none'; document.getElementById('shapeDemoChip').style.borderRadius='9999px'; document.getElementById('shapeDemoChip').innerText='💊 Capsule';">Capsule</button>
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'; document.getElementById('shapeDemoChip').style.borderRadius='0'; document.getElementById('shapeDemoChip').innerText='💠 Diamond';">Diamond</button>
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'; document.getElementById('shapeDemoChip').style.borderRadius='0'; document.getElementById('shapeDemoChip').innerText='⬡ Hexagon';">Hexagon</button>
+            </div>
+          </div>
+        `;
+      } else if (lesson.interactiveType === 'demo_anim') {
+        interactiveWidgetHtml = `
+          <div class="lesson-interactive-box">
+            <span class="lesson-interactive-title">Live Animation Preview</span>
+            <div class="interactive-demo-stage">
+              <div id="animDemoChip" class="demo-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
+            </div>
+            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-pulse'; el.innerText='💓 Pulse';">Pulse</button>
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-bounce'; el.innerText='🏀 Bounce';">Bounce</button>
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-float'; el.innerText='🎈 Float';">Float</button>
+              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-shake'; el.innerText='📳 Shake';">Shake</button>
+            </div>
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="lesson-top-meta">
+          <span class="lesson-number">${lesson.num}</span>
+          <span class="lesson-tag">${lesson.tag}</span>
+        </div>
+        <h3>${lesson.title}</h3>
+        <p>${lesson.desc}</p>
+        ${interactiveWidgetHtml}
+        <div class="code-snippet-box">
+          <button class="btn-copy-code" data-code="${encodeURIComponent(lesson.codeSnippet)}">Copy</button>
+          <pre>${lesson.codeSnippet}</pre>
+        </div>
+        <div class="lesson-footer">
+          <button class="lesson-link-btn" onclick="document.getElementById('heroStartBtn').click();">Try in Studio Builder &rarr;</button>
+        </div>
+      `;
+
+      academyGrid.appendChild(card);
+    });
+
+    document.querySelectorAll('.btn-copy-code').forEach(btn => {
+      btn.onclick = () => {
+        const text = decodeURIComponent(btn.dataset.code);
+        navigator.clipboard.writeText(text);
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = 'Copy', 1500);
+      };
+    });
+  }
+
+  // Academy Filter & Search Listeners
+  document.querySelectorAll('.filter-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentAcademyCategory = pill.dataset.category;
+      renderAcademy();
+    });
+  });
+
+  if (tutorialSearchInput) {
+    tutorialSearchInput.addEventListener('input', (e) => {
+      currentAcademySearch = e.target.value;
+      renderAcademy();
+    });
+  }
+
+  // Initial Load
   switchMainView('homeView');
 });
