@@ -997,49 +997,6 @@ header {
   font-weight: 600;
 }
 
-/* Animation Picker Grid */
-.anim-grid-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.anim-chip-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  padding: 8px 4px;
-  border-radius: 8px;
-  color: var(--text-main);
-  font-size: 0.72rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.anim-chip-btn .chip-icon {
-  font-size: 1.1rem;
-}
-
-.anim-chip-btn:hover {
-  background: rgba(157, 78, 221, 0.18);
-  border-color: var(--accent-purple);
-  transform: translateY(-2px);
-}
-
-.anim-chip-btn.active {
-  background: rgba(157, 78, 221, 0.35);
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 14px var(--accent-glow);
-  color: #fff;
-  font-weight: 600;
-}
-
 /* Preview Mode State */
 body.preview-mode .sidebar-left,
 body.preview-mode .sidebar-right,
@@ -1088,12 +1045,12 @@ body.preview-mode .resize-handle { display: none !important; }
   40%, 80% { transform: translateX(6px); }
 }
 
-.anim-fadeIn { animation-name: animFadeIn; }
-.anim-slideUp { animation-name: animSlideUp; }
-.anim-scalePop { animation-name: animScalePop; }
-.anim-bounce { animation-name: animBounce; }
-.anim-pulse { animation-name: animPulse; }
-.anim-float { animation-name: animFloat; }
-.anim-spin { animation-name: animSpin; }
-.anim-glowPulse { animation-name: animGlowPulse; }
-.anim-shake { animation-name: animShake; }
+.anim-fadeIn { animation: animFadeIn 0.8s ease forwards; }
+.anim-slideUp { animation: animSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-scalePop { animation: animScalePop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.anim-bounce { animation: animBounce 1.5s ease-in-out infinite; }
+.anim-pulse { animation: animPulse 1.5s ease-in-out infinite; }
+.anim-float { animation: animFloat 2.5s ease-in-out infinite; }
+.anim-spin { animation: animSpin 3s linear infinite; }
+.anim-glowPulse { animation: animGlowPulse 2s ease-in-out infinite; }
+.anim-shake { animation: animShake 0.6s ease-in-out infinite; }
