@@ -27,7 +27,7 @@
     <nav class="main-nav-links">
       <button class="nav-link active" data-view="homeView">Home</button>
       <button class="nav-link" data-view="builderView">Studio Builder</button>
-      <button class="nav-link" data-view="tutorialView">Tutorials & Academy</button>
+      <button class="nav-link" data-view="tutorialView">Academy Courses</button>
     </nav>
 
     <!-- Studio Builder Header Controls -->
@@ -62,7 +62,7 @@
 
       <div class="hero-actions">
         <button class="btn-hero btn-primary" id="heroStartBtn">Open Studio Builder</button>
-        <button class="btn-hero btn-secondary" id="heroTutorialBtn">Explore Tutorials</button>
+        <button class="btn-hero btn-secondary" id="heroTutorialBtn">Explore Academy</button>
       </div>
     </div>
 
@@ -210,33 +210,24 @@
 
   </section>
 
-  <!-- ================= VIEW 3: OVERHAULED ACADEMY & TUTORIALS PAGE ================= -->
+  <!-- ================= VIEW 3: MULTI-PAGE ACADEMY COURSE ================= -->
   <section class="app-view hidden" id="tutorialView">
-    <div class="academy-hero">
-      <div class="academy-badge">ACADEMY & KNOWLEDGE BASE</div>
-      <h1>Master AppLab Platform</h1>
-      <p>Everything you need to design visual interfaces, construct multi-screen flows, craft neon contours, and execute block automation or raw JavaScript.</p>
-
-      <!-- Search & Category Filters -->
-      <div class="academy-controls">
-        <div class="academy-search-bar">
-          <span>🔍</span>
-          <input type="text" id="tutorialSearchInput" class="control-input" placeholder="Search topics (e.g. Hexagon, Blocks, Scripting, Routing)...">
+    <div class="course-workspace">
+      <!-- Left Course Track Selector -->
+      <aside class="course-sidebar">
+        <div class="course-sidebar-header">
+          <span class="academy-badge">APPLAB ACADEMY</span>
+          <h3>Curriculum Tracks</h3>
         </div>
-        <div class="academy-filter-tags">
-          <button class="filter-pill active" data-category="all">All Topics (8)</button>
-          <button class="filter-pill" data-category="basics">Basics & Canvas</button>
-          <button class="filter-pill" data-category="design">Shapes & Styling</button>
-          <button class="filter-pill" data-category="coding">Code & Logic</button>
-          <button class="filter-pill" data-category="pro">Pro Tips</button>
+        <div class="track-menu" id="trackMenu">
+          <!-- Populated dynamically via app.js -->
         </div>
-      </div>
-    </div>
+      </aside>
 
-    <div class="academy-content">
-      <div class="academy-grid" id="academyGrid">
-        <!-- Rendered dynamically -->
-      </div>
+      <!-- Center Dynamic Track & Multi-Page Viewport -->
+      <main class="course-stage" id="courseStage">
+        <!-- Rendered dynamically via renderCourseView() -->
+      </main>
     </div>
   </section>
 
@@ -277,7 +268,7 @@
       <div class="start-link-item" id="smHomeBtn">🏠 Home Dashboard</div>
       <div class="start-link-item" id="smStudioBtn">🚀 Studio Builder</div>
       <div class="start-link-item" id="smNewProjectBtn">📄 Create New Project</div>
-      <div class="start-link-item" id="smTutorialBtn">📚 Tutorials & Academy</div>
+      <div class="start-link-item" id="smTutorialBtn">📚 Academy Courses</div>
       <div class="start-link-item" id="smSettingsBtn">⚙️ Settings</div>
     </div>
   </div>
