@@ -1241,7 +1241,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Animation Tab
+    // 4. Standard Animation Tab
     if (animationsTab) {
       animationsTab.innerHTML = `
         <div class="control-group">
@@ -1654,40 +1654,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const courseTracks = [
     {
       id: 'track_canvas',
-      title: 'Canvas & Layouts',
-      desc: 'Free placement, viewports, boundaries & screen routing',
+      title: '1. Canvas, Layouts & Responsiveness',
+      desc: 'Coordinate clamping, boundary physics, device viewports & screen trees',
       pages: [
         {
-          title: 'Page 1: Viewport Dimensions & Coordinate System',
-          desc: 'AppLab utilizes an absolute pixel space anchored inside simulated hardware boundaries. Switching viewports modifies the outer bezel without distorting individual element positions.',
+          title: 'Chapter 1: Hardware Boundaries & Pixel Spaces',
+          desc: 'AppLab operates on an absolute coordinate matrix constrained within hardware device frames. Selecting Phone (340×680), Tablet (680×500), or Desktop (840×520) alters the viewport bezel while locking element coordinates to prevent layout drift.',
           type: 'theory',
-          codeSnippet: `// Hardware Frame Resolutions:\n// Phone: 340 × 680px\n// Tablet: 680 × 500px\n// Desktop: 840 × 520px`,
+          codeSnippet: `// Hardware Bounds Matrix:\n// Phone:   340px W × 680px H\n// Tablet:  680px W × 500px H\n// Desktop: 840px W × 520px H`,
           quiz: null
         },
         {
-          title: 'Page 2: Interactive Practice: Coordinate Clamping',
-          desc: 'Test real-time boundary clamping. Click the buttons below to translate the coordinate chip. Notice how coordinates are kept inside physical canvas constraints.',
+          title: 'Chapter 2: Interactive Practice: Coordinate Clamping',
+          desc: 'Test real-time boundary clamping. Click the control buttons to move the sample component chip. Observe how coordinate calculations prevent elements from drifting off-canvas.',
           type: 'practice_canvas',
           codeSnippet: null,
           quiz: null
         },
         {
-          title: 'Page 3: Responsive Scaling & Positioning',
-          desc: 'By calculating relative positions, you can center modal dialogues and cards across various screen factors programmatically.',
+          title: 'Chapter 3: Dynamic Alignment & Centering Math',
+          desc: 'When positioning cards and dialogue popups across variable device factors, calculate relative offsets dynamically using the container bounding rectangle.',
           type: 'theory',
-          codeSnippet: `// Center element horizontally inside canvas:\nconst centerX = (canvas.offsetWidth - element.offsetWidth) / 2;\nelement.style.left = centerX + 'px';`,
+          codeSnippet: `// Horizontal centering equation:\nconst centeredLeft = (canvas.offsetWidth - element.offsetWidth) / 2;\nelement.style.left = centeredLeft + 'px';`,
           quiz: null
         },
         {
-          title: 'Page 4: Multi-Screen Routing Architecture',
-          desc: 'Every screen in your project manages an isolated element tree. Creating new screens allows you to build multi-page apps (Checkout, Dashboard, Settings).',
+          title: 'Chapter 4: Multi-Screen Page Tree Architecture',
+          desc: 'Each screen maintains its own isolated DOM layer stack. Navigating across screens unmounts inactive layers without dumping their configuration models from memory.',
           type: 'theory',
-          codeSnippet: `// Route between screens:\napp.navigateTo('screen_2');`,
+          codeSnippet: `// Programmatically navigate to target screen ID:\napp.navigateTo('screen_2');`,
           quiz: null
         },
         {
-          title: 'Page 5: Master Quiz: Canvas Architecture',
-          desc: 'Verify your understanding of coordinates, frames, and screen routing.',
+          title: 'Chapter 5: Master Quiz: Canvas Architecture',
+          desc: 'Verify your mastery over coordinate geometry and hardware frames.',
           type: 'quiz',
           codeSnippet: null,
           quiz: {
@@ -1705,40 +1705,40 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     {
       id: 'track_shapes',
-      title: 'Shapes & Contours',
-      desc: 'Geometric clip paths, glow contours, glass & blurs',
+      title: '2. Shapes, Contours & Glassmorphism',
+      desc: 'Geometric clip paths, glow contours, glass blurs & specular highlights',
       pages: [
         {
-          title: 'Page 1: The Geometry Engine: Beyond Rectangles',
-          desc: 'Components are not restricted to plain squares. By leveraging CSS clip-path polygon vectors, you can create Diamonds, Hexagons, and Capsules live.',
+          title: 'Chapter 1: The Geometry Engine: Beyond Rectangles',
+          desc: 'Interfaces in AppLab break free from standard rectangles. Using SVG polygon vector arrays in CSS clip-path, components morph into smooth Capsules, Circles, Diamonds, and Hexagons.',
           type: 'theory',
           codeSnippet: `/* Diamond Polygon Contour */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);`,
           quiz: null
         },
         {
-          title: 'Page 2: Contour Drop-Shadow Wrapping',
-          desc: 'Standard box-shadow fails on clipped geometry. AppLab applies CSS `filter: drop-shadow(...)` which detects alpha channel edges to wrap neon halos around diamond vertices.',
+          title: 'Chapter 2: Drop-Shadow Alpha Contour Wrapping',
+          desc: 'Standard CSS box-shadow fails on clipped geometry because clip-path clips away pixels outside the polygon. AppLab dynamically applies CSS `filter: drop-shadow(...)` to follow polygonal vertices.',
           type: 'theory',
           codeSnippet: `/* Correct Polygon Shadow Wrapping */\nfilter: drop-shadow(0 0 16px #9d4edd);`,
           quiz: null
         },
         {
-          title: 'Page 3: Interactive Practice: Shape & Contour Shifter',
-          desc: 'Click each shape preset below to see how clip-path polygon points and glowing drop-shadow contours react live on the sample component.',
+          title: 'Chapter 3: Interactive Practice: Contour & Shape Shifter',
+          desc: 'Click each shape preset below to observe how polygon vector points and neon drop-shadow contours react live on the sample component.',
           type: 'practice_shapes',
           codeSnippet: null,
           quiz: null
         },
         {
-          title: 'Page 4: Glassmorphism & Backdrop Blurs',
-          desc: 'Combine translucent backgrounds (`rgba(255,255,255,0.05)`) with backdrop blur filters to achieve the clean crystal look without obscuring background wallpaper.',
+          title: 'Chapter 4: Multi-Layer Glassmorphism & Blurs',
+          desc: 'Achieve true frosted-glass realism by layering translucent tints with high-radius backdrop blur filters and luminous specular borders.',
           type: 'theory',
-          codeSnippet: `/* Pure Crystal Stack */\nbackground: rgba(255, 255, 255, 0.05);\nbackdrop-filter: blur(20px);\nborder: 1px solid rgba(157, 78, 221, 0.25);`,
+          codeSnippet: `/* Obsidian Glass Stack */\nbackground: rgba(255, 255, 255, 0.05);\nbackdrop-filter: blur(20px);\nborder: 1px solid rgba(157, 78, 221, 0.25);`,
           quiz: null
         },
         {
-          title: 'Page 5: Master Quiz: Shapes & Contours',
-          desc: 'Verify why traditional box-shadow fails on polygons.',
+          title: 'Chapter 5: Master Quiz: Contours & Glass',
+          desc: 'Confirm your understanding of CSS polygon rendering.',
           type: 'quiz',
           codeSnippet: null,
           quiz: {
@@ -1755,52 +1755,205 @@ document.addEventListener('DOMContentLoaded', () => {
       ]
     },
     {
-      id: 'track_codelab',
-      title: 'Logic & Code Lab',
-      desc: 'Action block stacks & raw JavaScript scripts',
+      id: 'track_blocks',
+      title: '3. Visual Block Automation',
+      desc: 'Event triggers, sequential execution stacks & parameter payloads',
       pages: [
         {
-          title: 'Page 1: Visual Logic & Event Triggers',
-          desc: 'Code Lab allows you to trigger events (Click, Hover) and execute ordered action stacks without writing syntax. Actions run sequentially down the stack.',
+          title: 'Chapter 1: The Event-Action Mental Model',
+          desc: 'Every interactive application operates on triggers and reactions. The Code Lab organizes interactions into an event listener (Click, Hover) followed by an ordered execution stack.',
           type: 'theory',
-          codeSnippet: `[EVENT: On Click]\n  -> Action 1: Show Alert("Welcome")\n  -> Action 2: Navigate("Screen 2")\n  -> Action 3: Set Layer Background("#7b2cbf")`,
+          codeSnippet: `[WHEN: User Clicks Element]\n  Step 1: Emit Sound\n  Step 2: Mutate Visual State\n  Step 3: Transition Page`,
           quiz: null
         },
         {
-          title: 'Page 2: Chaining Multiple Action Blocks',
-          desc: 'You can chain unlimited actions on a single component. For example: changing text, playing an audio chime, and transitioning screens simultaneously.',
+          title: 'Chapter 2: Multi-Action Block Chaining',
+          desc: 'Multiple actions can be stacked on a single component. When fired, the runtime loops down the action stack sequentially, applying mutations to target layers.',
           type: 'theory',
-          codeSnippet: `// Ordered execution sequence runs from top block to bottom block.`,
+          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action);\n}`,
           quiz: null
         },
         {
-          title: 'Page 3: Interactive Practice: Live Script Runner',
-          desc: 'Run a live JavaScript sandbox call directly. Click "Run Code Snippet" below to trigger the Web Audio synthesizer and custom glass modal alert.',
-          type: 'practice_js',
-          codeSnippet: `// Sandbox Scope Example:\nelement.style.backgroundColor = '#9d4edd';\napp.playBeep();\napp.showAlert('Sandbox executed successfully!');`,
+          title: 'Chapter 3: Interactive Practice: Block Stack Simulator',
+          desc: 'Stack and test visual actions live in the simulation lab. Watch the target chip re-color and announce the execution sequence.',
+          type: 'practice_blocks',
+          codeSnippet: null,
           quiz: null
         },
         {
-          title: 'Page 4: Safe DOM Manipulation APIs',
-          desc: 'When using Real JavaScript, the runtime provides direct handles to `element`, `app`, and `canvas`. This gives you full control over animations and styles.',
+          title: 'Chapter 4: Parameter Payloads & Layer Cross-Talk',
+          desc: 'Actions can send payloads to modify other components on the canvas—such as updating text in a title label or changing the background of a container card.',
           type: 'theory',
-          codeSnippet: `element.innerText = "Active";\nelement.classList.add("anim-pulse");\napp.playBeep();`,
+          codeSnippet: `// Cross-layer payload targeting:\nconst targetLayer = document.getElementById(action.targetId);\ntargetLayer.innerText = action.payload;`,
           quiz: null
         },
         {
-          title: 'Page 5: Master Quiz: Logic & Scripts',
-          desc: 'Confirm your mastery of script sandbox scopes.',
+          title: 'Chapter 5: Master Quiz: Block Logic',
+          desc: 'Test your grasp of block execution sequencing.',
           type: 'quiz',
           codeSnippet: null,
           quiz: {
-            question: 'What method is provided by the AppLab sandbox API to programmatically switch screens?',
+            question: 'In what order do actions execute within an AppLab Action Stack?',
             options: [
-              'window.location.href = screenId',
-              'app.navigateTo(screenId)',
-              'screen.change(screenId)'
+              'Random asynchronous order',
+              'Sequentially from top to bottom',
+              'Reverse order from bottom to top'
             ],
             correctIndex: 1,
-            explanation: 'The AppLab runtime passes the `app` helper object, exposing `app.navigateTo(id)` to route between project screens.'
+            explanation: 'AppLab processes action blocks in a top-to-bottom pipeline so prerequisite states apply before transitions fire.'
+          }
+        }
+      ]
+    },
+    {
+      id: 'track_javascript',
+      title: '4. JavaScript Runtime & Sandbox APIs',
+      desc: 'Scoped execution, DOM manipulation, Web Audio synthesis & modals',
+      pages: [
+        {
+          title: 'Chapter 1: The Sandbox Execution Environment',
+          desc: 'When using Real JavaScript in Code Lab, code executes inside an isolated sandbox with direct access to three primary objects: `element`, `app`, and `canvas`.',
+          type: 'theory',
+          codeSnippet: `// Scoped sandbox constructor:\nconst runner = new Function('element', 'app', 'canvas', userCode);`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 2: Audio Synthesis & Web Audio API',
+          desc: 'Trigger custom UI sound effects without external MP3 dependencies using the built-in oscillator synthesis hook.',
+          type: 'theory',
+          codeSnippet: `// Synthesize audio bleep:\napp.playBeep();`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 3: Interactive Practice: Live Script Runner',
+          desc: 'Test the live script runner below to trigger Web Audio synthesis and element state mutation.',
+          type: 'practice_js',
+          codeSnippet: `element.style.backgroundColor = '#9d4edd';\napp.playBeep();\napp.showAlert('Sandbox executed successfully!');`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 4: Custom Modal Dialog Hooks',
+          desc: 'Replace disruptive browser-native popups by triggering AppLab\'s async purple glass dialog system from script.',
+          type: 'theory',
+          codeSnippet: `// Open non-blocking custom modal:\napp.showAlert('Payment confirmed!');`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 5: Master Quiz: JavaScript Sandbox',
+          desc: 'Verify your knowledge of the scoped runtime APIs.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Which argument passed into the script function references the target element DOM node?',
+            options: [
+              '`element`',
+              '`this.dom`',
+              '`window.node`'
+            ],
+            correctIndex: 0,
+            explanation: 'The `element` parameter directly references the active DOM node, allowing instant style and attribute updates.'
+          }
+        }
+      ]
+    },
+    {
+      id: 'track_dynamics',
+      title: '5. Component Dynamics & Inputs',
+      desc: 'Live value binding, placeholder logic, input gathering & states',
+      pages: [
+        {
+          title: 'Chapter 1: Input Fields & Keystroke Harvesting',
+          desc: 'User text inputs gather runtime data. Form fields store user text in their `placeholder` or `value` properties, allowing other elements to read from them.',
+          type: 'theory',
+          codeSnippet: `// Extract input field value:\nconst userInput = document.querySelector('input.placed-item').value;`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 2: Interactive Practice: Live Data Binding',
+          desc: 'Type into the sample input below and click "Bind Value" to watch the target display update live in the sandbox.',
+          type: 'practice_binding',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Chapter 3: Component State & Disabled Flags',
+          desc: 'Buttons and inputs can toggle interactive states during runtime execution to prevent duplicate button submissions.',
+          type: 'theory',
+          codeSnippet: `// Toggle button interactive state:\nelement.disabled = true;\nelement.style.opacity = '0.5';`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 4: Z-Index Layer Ordering Dynamics',
+          desc: 'Elements stack in order of placement. Using the Windows-style context menu, layers can be brought to front or sent to back to manage overlays and modals.',
+          type: 'theory',
+          codeSnippet: `// Re-order active layer:\ncanvas.appendChild(targetElement); // Brings to front`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 5: Master Quiz: Inputs & State',
+          desc: 'Confirm your understanding of dynamic component data handling.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'How do you prevent rapid double-clicks on an action button in script?',
+            options: [
+              'Delete the button immediately from DOM',
+              'Set element.disabled = true on the initial click event',
+              'Change the screen resolution to Desktop'
+            ],
+            correctIndex: 1,
+            explanation: 'Disabling the button on the first event prevents multiple trigger executions while actions run.'
+          }
+        }
+      ]
+    },
+    {
+      id: 'track_performance',
+      title: '6. Production Architecture & Performance',
+      desc: 'GPU backdrop blurs, rendering modes & production bundling',
+      pages: [
+        {
+          title: 'Chapter 1: GPU Backdrop Filter Profiling',
+          desc: 'Backdrop blur filters are GPU-intensive. In large projects with dozens of overlapping cards, heavy blurs can cause frame stutter.',
+          type: 'theory',
+          codeSnippet: `/* High Performance Mode */\n[data-mode="performance"] * {\n  backdrop-filter: none !important;\n}`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 2: Interactive Practice: Quality vs Performance Toggle',
+          desc: 'Toggle the rendering mode on the live chip below to see how GPU filters are cleanly bypassed for high-framerate rendering.',
+          type: 'practice_perf',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Chapter 3: Dirty State & Unsaved Edits Detection',
+          desc: 'AppLab tracks unsaved mutations via an `isDirty` flag, safeguarding against accidental browser tab closures or view shifts.',
+          type: 'theory',
+          codeSnippet: `// Window unload protection:\nwindow.addEventListener('beforeunload', (e) => {\n  if (isDirty) e.returnValue = 'Unsaved changes';\n});`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 4: Schema Serialization & .applab Bundles',
+          desc: 'Projects serialize into portable JSON schemas. Exporting a `.applab` file packages all screens, coordinate vectors, and code stacks into a single bundle.',
+          type: 'theory',
+          codeSnippet: `// Project JSON payload structure:\n{\n  "projectName": "My App",\n  "pages": [{ "id": "screen_1", "elements": [...] }]\n}`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 5: Master Quiz: Performance & Bundles',
+          desc: 'Test your understanding of optimization and project portability.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'What optimization does Performance Mode apply across the UI?',
+            options: [
+              'Converts all colors to black and white',
+              'Disables heavy GPU backdrop blur filters and box-shadow calculations',
+              'Deletes the Code Lab runtime'
+            ],
+            correctIndex: 1,
+            explanation: 'Performance Mode bypasses expensive GPU blur filters and drop-shadow calculations to maintain a smooth 60 FPS on all hardware.'
           }
         }
       ]
@@ -1848,11 +2001,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
         <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Canvas Coordinates</span></div>
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Coordinate Clamping</span></div>
           <div class="lab-stage" id="canvasLabStage" style="position: relative; height: 120px; overflow: hidden;">
             <div id="canvasLabChip" class="lab-target-chip" style="position: absolute; left: 80px; top: 35px;">📦 Coordinate Chip</div>
           </div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="moveChipLeft">⬅️ Left (-30px)</button>
             <button class="btn-top" id="moveChipRight">Right (+30px) ➡️</button>
             <button class="btn-top" id="resetChipPos">Reset Position</button>
@@ -1873,14 +2026,53 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
+    } else if (page.type === 'practice_blocks') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Block Stack Simulator</span></div>
+          <div class="lab-stage">
+            <div id="blockSimChip" class="lab-target-chip">⏹️ Idle Layer</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top btn-primary" id="runBlockSimBtn">▶️ Trigger Action Stack</button>
+            <button class="btn-top" id="resetBlockSimBtn">Reset</button>
+          </div>
+        </div>
+      `;
     } else if (page.type === 'practice_js') {
       interactiveHtml = `
         <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Script Runner</span></div>
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Live Script Runner</span></div>
           <div class="lab-stage">
             <div id="jsLabTarget" class="lab-target-chip">⚡ Script Target</div>
           </div>
           <button class="btn-top btn-primary" id="runCourseJsBtn" style="align-self: center;">▶️ Execute Sandbox Code</button>
+        </div>
+      `;
+    } else if (page.type === 'practice_binding') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Live Data Binding</span></div>
+          <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+            <input type="text" class="control-input" id="bindingInput" value="Hello AppLab" style="max-width: 200px;">
+            <button class="btn-top btn-primary" id="applyBindingBtn">Bind Value</button>
+          </div>
+          <div class="lab-stage">
+            <div id="bindingTargetChip" class="lab-target-chip">Hello AppLab</div>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_perf') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: GPU Filter Profiler</span></div>
+          <div class="lab-stage">
+            <div id="perfTargetChip" class="lab-target-chip" style="backdrop-filter: blur(20px); box-shadow: 0 0 25px var(--accent-glow);">✨ Quality Glass (Blur Active)</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top" id="perfToggleQuality">✨ Quality Mode</button>
+            <button class="btn-top" id="perfToggleFast">⚡ Performance Mode</button>
+          </div>
         </div>
       `;
     } else if (page.type === 'quiz' && page.quiz) {
@@ -1960,7 +2152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Copy Button Binding
+    // Copy Snippet Buttons
     document.querySelectorAll('.btn-copy-code').forEach(btn => {
       btn.onclick = () => {
         const text = decodeURIComponent(btn.dataset.code);
@@ -1970,7 +2162,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    // Practice Lab 1 Handlers (Canvas Coordinates)
+    // Practice Lab 1: Canvas Coordinates
     const chip = document.getElementById('canvasLabChip');
     if (chip) {
       document.getElementById('moveChipLeft').onclick = () => {
@@ -1986,7 +2178,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 2 Handlers (Shapes)
+    // Practice Lab 2: Geometric Shapes
     const shapeChip = document.getElementById('courseShapeChip');
     if (shapeChip) {
       document.getElementById('shapePillBtn').onclick = () => {
@@ -2012,7 +2204,27 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 3 Handlers (JavaScript Sandbox)
+    // Practice Lab 3: Block Simulator
+    const blockSimChip = document.getElementById('blockSimChip');
+    if (blockSimChip) {
+      document.getElementById('runBlockSimBtn').onclick = () => {
+        blockSimChip.innerText = '⚡ Step 1: Recoloring...';
+        blockSimChip.style.backgroundColor = '#00f2fe';
+        blockSimChip.style.boxShadow = '0 0 25px #00f2fe';
+        setTimeout(() => {
+          blockSimChip.innerText = '✨ Step 2: Pulsing...';
+          blockSimChip.className = 'lab-target-chip anim-pulse';
+        }, 600);
+      };
+      document.getElementById('resetBlockSimBtn').onclick = () => {
+        blockSimChip.className = 'lab-target-chip';
+        blockSimChip.style.backgroundColor = '';
+        blockSimChip.style.boxShadow = '';
+        blockSimChip.innerText = '⏹️ Idle Layer';
+      };
+    }
+
+    // Practice Lab 4: JavaScript Sandbox
     const runJsBtn = document.getElementById('runCourseJsBtn');
     if (runJsBtn) {
       runJsBtn.onclick = () => {
@@ -2025,6 +2237,33 @@ document.addEventListener('DOMContentLoaded', () => {
           osc.start(); osc.stop(ctx.currentTime + 0.15);
         } catch (e) {}
         AppLab.alert('Sandbox code executed: Element recolored & audio tone synthesized!', 'Code Lab Live Runner', '⚡');
+      };
+    }
+
+    // Practice Lab 5: Live Data Binding
+    const applyBindingBtn = document.getElementById('applyBindingBtn');
+    if (applyBindingBtn) {
+      applyBindingBtn.onclick = () => {
+        const inputVal = document.getElementById('bindingInput').value;
+        const target = document.getElementById('bindingTargetChip');
+        target.innerText = inputVal || '(Empty)';
+        target.classList.add('anim-scalePop');
+        setTimeout(() => target.classList.remove('anim-scalePop'), 600);
+      };
+    }
+
+    // Practice Lab 6: Performance vs Quality
+    const perfChip = document.getElementById('perfTargetChip');
+    if (perfChip) {
+      document.getElementById('perfToggleQuality').onclick = () => {
+        perfChip.style.backdropFilter = 'blur(20px)';
+        perfChip.style.boxShadow = '0 0 25px var(--accent-glow)';
+        perfChip.innerText = '✨ Quality Glass (Blur Active)';
+      };
+      document.getElementById('perfToggleFast').onclick = () => {
+        perfChip.style.backdropFilter = 'none';
+        perfChip.style.boxShadow = 'none';
+        perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
       };
     }
 
