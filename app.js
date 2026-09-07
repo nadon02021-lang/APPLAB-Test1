@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tooltipElem.style.left = `${clientX + 14}px`;
         tooltipElem.style.top = `${clientY + 14}px`;
         tooltipElem.classList.remove('hidden');
-      }, 2000); // 2-second delay
+      }, 2000);
     });
 
     node.addEventListener('mousemove', (e) => {
@@ -307,6 +307,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const AppLab = {
     alert: (message, title = 'Notice', icon = '🔔') => {
       return new Promise((resolve) => {
+        if (!dialogIcon || !dialogTitle || !dialogMessage || !customDialogModal) {
+          alert(message);
+          resolve();
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -323,6 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirm: (message, title = 'Confirm Action', icon = '❓') => {
       return new Promise((resolve) => {
+        if (!customDialogModal) {
+          resolve(confirm(message));
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -346,6 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prompt: (message, defaultValue = '', title = 'Input Required', icon = '✏️') => {
       return new Promise((resolve) => {
+        if (!customDialogModal) {
+          resolve(prompt(message, defaultValue));
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -820,9 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
         attachContextMenu(node, el);
       }
 
-      // Attach 2-second hover tooltip
       setupTooltips(node, el);
-
       attachRuntimeExecution(node, el);
 
       node.addEventListener('click', (e) => {
@@ -1092,6 +1103,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="control-group">
+          <label>Tooltip Description (2s Hover)</label>
+          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Description shown on hover...">
+        </div>
+
+        <div class="control-group">
           <label>${el.type === 'image' ? 'Image Source (URL or File)' : 'Text Content / Placeholder'}</label>
           <input type="text" class="control-input" id="propText" value="${el.text}">
         </div>
@@ -1285,6 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
+      document.getElementById('propTooltip').oninput = (e) => { el.tooltip = e.target.value; markDirty(); };
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
       document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
@@ -1606,7 +1623,135 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Academy Workspace Render
+  function renderPagesList() {
+    if (!pagesList) return;
+    pagesList.innerHTML = '';
+    currentProject.pages.forEach(p => {
+      const it = document.createElement('div');
+      it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
+      it.innerText = `📄 ${p.name}`;
+      it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
+      pagesList.appendChild(it);
+    });
+  }
+
+  function renderLayersTree() {
+    if (!layersTree) return;
+    layersTree.innerHTML = '';
+    getCurrentPage().elements.forEach(el => {
+      const l = document.createElement('div');
+      l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
+      l.innerText = el.name;
+      l.onclick = () => selectElement(el.id);
+      layersTree.appendChild(l);
+    });
+  }
+
+  if (addPageBtn) {
+    addPageBtn.onclick = () => {
+      const pId = 'scr_' + Date.now().toString().slice(-4);
+      currentProject.pages.push({ id: pId, name: 'Screen ' + (currentProject.pages.length + 1), elements: [] });
+      activeScreenId = pId;
+      markDirty();
+      renderPagesList(); renderCanvas();
+    };
+  }
+
+  if (modeToggleBtn) {
+    modeToggleBtn.onclick = () => {
+      isPreviewMode = !isPreviewMode;
+      modeToggleBtn.innerText = isPreviewMode ? '⏹️ Stop' : '▶️ Preview';
+      document.body.classList.toggle('preview-mode', isPreviewMode);
+      renderCanvas();
+    };
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const jsonStr = JSON.stringify(currentProject, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentProject.projectName.toLowerCase().replace(/\s+/g, '_')}.applab`;
+      a.click();
+    });
+  }
+
+  if (startMenuToggleBtn) {
+    startMenuToggleBtn.onclick = () => {
+      if (startMenuPopup) startMenuPopup.classList.toggle('hidden');
+    };
+  }
+
+  document.addEventListener('click', (e) => {
+    if (startMenuToggleBtn && startMenuPopup && !startMenuToggleBtn.contains(e.target) && !startMenuPopup.contains(e.target)) {
+      startMenuPopup.classList.add('hidden');
+    }
+  });
+
+  const smHomeBtn = document.getElementById('smHomeBtn');
+  if (smHomeBtn) smHomeBtn.onclick = () => { switchMainView('homeView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smStudioBtn = document.getElementById('smStudioBtn');
+  if (smStudioBtn) smStudioBtn.onclick = () => { switchMainView('builderView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smNewProjectBtn = document.getElementById('smNewProjectBtn');
+  if (smNewProjectBtn) smNewProjectBtn.onclick = () => { openNewProjectModal(); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smTutorialBtn = document.getElementById('smTutorialBtn');
+  if (smTutorialBtn) smTutorialBtn.onclick = () => { switchMainView('tutorialView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+
+  const smSettingsBtn = document.getElementById('smSettingsBtn');
+  if (smSettingsBtn) {
+    smSettingsBtn.onclick = () => {
+      if (startMenuPopup) startMenuPopup.classList.add('hidden');
+
+      const themeOpts = [
+        { label: '🌙 Dark Glassmorphism', value: 'dark' },
+        { label: '☀️ Clean Daylight (Light)', value: 'light' }
+      ];
+      createCustomSelect(settingThemeContainer, themeOpts, userSettings.theme, (val) => {
+        userSettings.theme = val;
+      });
+
+      const modeOpts = [
+        { label: '✨ Quality Mode (Full Blurs & Glows)', value: 'quality' },
+        { label: '⚡ Performance Mode (Fast FPS)', value: 'performance' }
+      ];
+      createCustomSelect(settingModeContainer, modeOpts, userSettings.mode, (val) => {
+        userSettings.mode = val;
+      });
+
+      if (settingsModal) settingsModal.classList.remove('hidden');
+    };
+  }
+
+  if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add('hidden');
+  if (applySettingsBtn) {
+    applySettingsBtn.onclick = () => {
+      try {
+        localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
+      } catch (e) {}
+      applyGlobalSettings();
+      settingsModal.classList.add('hidden');
+    };
+  }
+
+  function bindColorPair(pickerId, textId, callback) {
+    const picker = document.getElementById(pickerId);
+    const text = document.getElementById(textId);
+    if (!picker || !text) return;
+    picker.oninput = (e) => { text.value = e.target.value; callback(e.target.value); };
+    text.oninput = (e) => { callback(e.target.value); if (/^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value; };
+  }
+
+  function rgbToHex(val) {
+    if (!val || val === 'transparent') return '#000000';
+    if (val.startsWith('#')) return val;
+    const nums = val.match(/\d+/g);
+    if (!nums || nums.length < 3) return '#000000';
+    return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+  }
+
+  // ================= EXPANDED 8-TRACK MULTI-PAGE CURRICULUM =================
   let activeTrackId = 'track_shapes';
   let currentCoursePageIndex = 0;
 
@@ -1704,7 +1849,7 @@ document.addEventListener('DOMContentLoaded', () => {
             question: 'Why does AppLab use filter: drop-shadow instead of box-shadow for Hexagons and Diamonds?',
             options: [
               'box-shadow is deprecated in modern browsers',
-              'clip-path clips off any pixels outside the polygon, including standard box-shadow',
+              'clip-path cuts off any pixels outside the polygon, including standard box-shadow',
               'filter: drop-shadow runs faster on low-end processors'
             ],
             correctIndex: 1,
