@@ -27,7 +27,7 @@
     <nav class="main-nav-links">
       <button class="nav-link active" data-view="homeView">Home</button>
       <button class="nav-link" data-view="builderView">Studio Builder</button>
-      <button class="nav-link" data-view="tutorialView">Tutorials</button>
+      <button class="nav-link" data-view="tutorialView">Tutorials & Docs</button>
     </nav>
 
     <!-- Studio Builder Header Controls -->
@@ -210,35 +210,32 @@
 
   </section>
 
-  <!-- ================= VIEW 3: TUTORIALS PAGE ================= -->
+  <!-- ================= VIEW 3: OVERHAULED ACADEMY & TUTORIALS PAGE ================= -->
   <section class="app-view hidden" id="tutorialView">
-    <div class="tutorial-container">
-      <div class="tutorial-header">
-        <h1>AppLab Knowledge Base</h1>
-        <p>Master shapes, effects, UI design, right-click actions, and multi-page code logic.</p>
-      </div>
+    <div class="academy-hero">
+      <div class="academy-badge">ACADEMY & KNOWLEDGE BASE</div>
+      <h1>Master AppLab Platform</h1>
+      <p>Everything you need to design visual interfaces, construct multi-screen flows, craft neon contours, and execute block automation or raw JavaScript.</p>
 
-      <div class="tutorial-grid">
-        <div class="tutorial-card">
-          <div class="tutorial-badge">01</div>
-          <h3>Windows-Style Right-Click</h3>
-          <p>Right-click any element on the canvas to open the context menu: duplicate, send to back, bring to front, inspect code, or delete.</p>
+      <!-- Search & Category Filters -->
+      <div class="academy-controls">
+        <div class="academy-search-bar">
+          <span>🔍</span>
+          <input type="text" id="tutorialSearchInput" class="control-input" placeholder="Search topics (e.g. Hexagon, Blocks, Scripting, Routing)...">
         </div>
-        <div class="tutorial-card">
-          <div class="tutorial-badge">02</div>
-          <h3>Shapes & Glow Contour</h3>
-          <p>Switch any component into a Diamond, Hexagon, Capsule, or Circle. Drop shadows wrap around polygonal geometry cleanly.</p>
+        <div class="academy-filter-tags">
+          <button class="filter-pill active" data-category="all">All Topics (8)</button>
+          <button class="filter-pill" data-category="basics">Basics & Canvas</button>
+          <button class="filter-pill" data-category="design">Shapes & Styling</button>
+          <button class="filter-pill" data-category="coding">Code & Logic</button>
+          <button class="filter-pill" data-category="pro">Pro Tips</button>
         </div>
-        <div class="tutorial-card">
-          <div class="tutorial-badge">03</div>
-          <h3>In-Project Code & Logic Page</h3>
-          <p>Switch between <strong>Design View</strong> and <strong>Code & Logic</strong> inside the Studio header to manage all events without leaving your project.</p>
-        </div>
-        <div class="tutorial-card">
-          <div class="tutorial-badge">04</div>
-          <h3>Custom Dropdown System</h3>
-          <p>All options, folders, fonts, templates, and animations use custom purple glassmorphism menus.</p>
-        </div>
+      </div>
+    </div>
+
+    <div class="academy-content">
+      <div class="academy-grid" id="academyGrid">
+        <!-- Generated dynamically via app.js -->
       </div>
     </div>
   </section>
@@ -280,7 +277,7 @@
       <div class="start-link-item" id="smHomeBtn">🏠 Home Dashboard</div>
       <div class="start-link-item" id="smStudioBtn">🚀 Studio Builder</div>
       <div class="start-link-item" id="smNewProjectBtn">📄 Create New Project</div>
-      <div class="start-link-item" id="smTutorialBtn">📚 Tutorials</div>
+      <div class="start-link-item" id="smTutorialBtn">📚 Tutorials & Academy</div>
       <div class="start-link-item" id="smSettingsBtn">⚙️ Settings</div>
     </div>
   </div>
