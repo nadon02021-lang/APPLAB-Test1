@@ -15,7 +15,7 @@
   <header>
     <div class="brand-section" id="navHomeBtn">
       <div class="logo-crop-wrapper logo-nav">
-        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed">
+        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 44 44%22><rect width=%2244%22 height=%2244%22 rx=%2210%22 fill=%22%237b2cbf%22/><text x=%2250%%22 y=%2258%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22 font-size=%2222%22 font-weight=%22bold%22>A</text></svg>'">
       </div>
       <div class="brand-text">
         <h1>AppLab</h1>
@@ -55,14 +55,14 @@
   <section class="app-view" id="homeView">
     <div class="hero-container">
       <div class="logo-crop-wrapper hero-logo-box">
-        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed">
+        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%237b2cbf%22/><text x=%2250%%22 y=%2258%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22sans-serif%22 font-size=%2250%22 font-weight=%22bold%22>A</text></svg>'">
       </div>
       <h1 class="hero-title">Craft Apps with <span class="glow-purple">Crystal Precision</span></h1>
-      <p class="hero-subtitle">Design interfaces with custom shapes, backdrop blurs, and neon glows. Build automation inside your project using blocks or raw JavaScript.</p>
+      <p class="hero-subtitle">Design interfaces with custom shapes, backdrop blurs, and neon glows. Master the multi-page curriculum or jump into Studio to build apps.</p>
 
       <div class="hero-actions">
         <button class="btn-hero btn-primary" id="heroStartBtn">Open Studio Builder</button>
-        <button class="btn-hero btn-secondary" id="heroTutorialBtn">Explore Academy</button>
+        <button class="btn-hero btn-secondary" id="heroTutorialBtn">Open Master Academy</button>
       </div>
     </div>
 
@@ -210,23 +210,23 @@
 
   </section>
 
-  <!-- ================= VIEW 3: MULTI-PAGE ACADEMY COURSE ================= -->
+  <!-- ================= VIEW 3: MULTI-PAGE ACADEMY MASTER TRACKS ================= -->
   <section class="app-view hidden" id="tutorialView">
     <div class="course-workspace">
       <!-- Left Course Track Selector -->
       <aside class="course-sidebar">
         <div class="course-sidebar-header">
-          <span class="academy-badge">APPLAB ACADEMY</span>
-          <h3>Curriculum Tracks</h3>
+          <span class="academy-badge">ACADEMY MASTER TRACKS</span>
+          <h3>Major Topics</h3>
         </div>
         <div class="track-menu" id="trackMenu">
           <!-- Populated dynamically via app.js -->
         </div>
       </aside>
 
-      <!-- Center Dynamic Track & Multi-Page Viewport -->
+      <!-- Center Dynamic Multi-Page Course Viewport -->
       <main class="course-stage" id="courseStage">
-        <!-- Rendered dynamically via renderCourseView() -->
+        <!-- Rendered dynamically via renderActiveCoursePage() -->
       </main>
     </div>
   </section>
@@ -246,7 +246,7 @@
   <div class="start-bar">
     <button class="start-btn" id="startMenuToggleBtn">
       <div class="logo-crop-wrapper start-logo-thumb">
-        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed">
+        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed" onerror="this.style.display='none'">
       </div>
       <span>Start</span>
     </button>
@@ -257,7 +257,7 @@
   <div class="start-menu-popup hidden" id="startMenuPopup">
     <div class="start-header">
       <div class="logo-crop-wrapper start-logo-head">
-        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed">
+        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed" onerror="this.style.display='none'">
       </div>
       <div>
         <h4>AppLab Studio</h4>
@@ -268,7 +268,7 @@
       <div class="start-link-item" id="smHomeBtn">🏠 Home Dashboard</div>
       <div class="start-link-item" id="smStudioBtn">🚀 Studio Builder</div>
       <div class="start-link-item" id="smNewProjectBtn">📄 Create New Project</div>
-      <div class="start-link-item" id="smTutorialBtn">📚 Academy Courses</div>
+      <div class="start-link-item" id="smTutorialBtn">📚 Master Academy</div>
       <div class="start-link-item" id="smSettingsBtn">⚙️ Settings</div>
     </div>
   </div>
