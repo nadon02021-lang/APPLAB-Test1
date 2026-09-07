@@ -64,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 shape: 'pill',
                 borderRadius: 9999,
                 backdropBlur: 10,
-                glowColor: '#9d4edd',
                 glowSize: 16,
+                glowColor: '#9d4edd',
                 opacity: 1,
                 rotation: 0,
                 animation: 'pulse',
@@ -192,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
-  // Academy & Tutorial References
   const tutorialSearchInput = document.getElementById('tutorialSearchInput');
   const academyGrid = document.getElementById('academyGrid');
 
@@ -1659,8 +1658,8 @@ document.addEventListener('DOMContentLoaded', () => {
       tag: 'CANVAS BASICS',
       title: 'Canvas Navigation & Viewports',
       desc: 'Learn how to freely move elements on the screen, resize using bottom-right handles, and test responsive dimensions across Phone, Tablet, and Desktop frames.',
-      interactiveType: 'demo_canvas',
-      codeSnippet: `// Tip: Switch viewport resolutions using the header buttons:\n// Phone (340x680) | Tablet (680x500) | PC (840x520)`
+      interactiveType: 'snippet',
+      codeSnippet: `// Available viewports in header:\n// Phone: 340 × 680px | Tablet: 680 × 500px | Desktop: 840 × 520px`
     },
     {
       id: 'l2',
@@ -1689,7 +1688,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tag: 'GLASS & EFFECTS',
       title: 'Backdrop Glassmorphism & Neon Glow',
       desc: 'Achieve the signature purple crystal look by combining backdrop blur filters with neon glow spread radiuses, custom opacity, and element rotation.',
-      interactiveType: 'demo_glass',
+      interactiveType: 'snippet',
       codeSnippet: `/* Glassmorphism stack */\nbackdrop-filter: blur(20px);\nbox-shadow: 0 0 18px rgba(157, 78, 221, 0.45);\nbackground: rgba(255, 255, 255, 0.05);`
     },
     {
@@ -1738,17 +1737,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!academyGrid) return;
     academyGrid.innerHTML = '';
 
-    const query = currentAcademySearch.toLowerCase();
+    const query = currentAcademySearch.toLowerCase().trim();
     const filtered = academyLessons.filter(l => {
       const matchesCat = currentAcademyCategory === 'all' || l.category === currentAcademyCategory;
-      const matchesSearch = l.title.toLowerCase().includes(query) ||
+      const matchesSearch = query === '' ||
+                            l.title.toLowerCase().includes(query) ||
                             l.desc.toLowerCase().includes(query) ||
                             l.tag.toLowerCase().includes(query);
       return matchesCat && matchesSearch;
     });
 
     if (filtered.length === 0) {
-      academyGrid.innerHTML = '<p class="empty-state" style="grid-column: 1/-1;">No lessons match your search criteria.</p>';
+      academyGrid.innerHTML = '<p class="empty-state" style="grid-column: 1/-1; padding: 40px 0;">No lessons match your search criteria.</p>';
       return;
     }
 
@@ -1762,12 +1762,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="lesson-interactive-box">
             <span class="lesson-interactive-title">Live Shape Playground</span>
             <div class="interactive-demo-stage">
-              <div id="shapeDemoChip" class="demo-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 10px #9d4edd); border-radius:0;">💠 Diamond</div>
+              <div id="shapeDemoChip_${lesson.id}" class="demo-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 10px #9d4edd); border-radius:0;">💠 Diamond</div>
             </div>
-            <div style="display: flex; gap: 6px; justify-content: center;">
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='none'; document.getElementById('shapeDemoChip').style.borderRadius='9999px'; document.getElementById('shapeDemoChip').innerText='💊 Capsule';">Capsule</button>
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'; document.getElementById('shapeDemoChip').style.borderRadius='0'; document.getElementById('shapeDemoChip').innerText='💠 Diamond';">Diamond</button>
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="document.getElementById('shapeDemoChip').style.clipPath='polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'; document.getElementById('shapeDemoChip').style.borderRadius='0'; document.getElementById('shapeDemoChip').innerText='⬡ Hexagon';">Hexagon</button>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="pill" data-target="shapeDemoChip_${lesson.id}">💊 Capsule</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="diamond" data-target="shapeDemoChip_${lesson.id}">💠 Diamond</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="hexagon" data-target="shapeDemoChip_${lesson.id}">⬡ Hexagon</button>
             </div>
           </div>
         `;
@@ -1776,13 +1776,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="lesson-interactive-box">
             <span class="lesson-interactive-title">Live Animation Preview</span>
             <div class="interactive-demo-stage">
-              <div id="animDemoChip" class="demo-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
+              <div id="animDemoChip_${lesson.id}" class="demo-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
             </div>
             <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-pulse'; el.innerText='💓 Pulse';">Pulse</button>
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-bounce'; el.innerText='🏀 Bounce';">Bounce</button>
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-float'; el.innerText='🎈 Float';">Float</button>
-              <button class="btn-top" style="padding: 3px 8px; font-size: 0.72rem;" onclick="const el = document.getElementById('animDemoChip'); el.className='demo-chip anim-shake'; el.innerText='📳 Shake';">Shake</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="pulse" data-target="animDemoChip_${lesson.id}">💓 Pulse</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="bounce" data-target="animDemoChip_${lesson.id}">🏀 Bounce</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="float" data-target="animDemoChip_${lesson.id}">🎈 Float</button>
+              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="shake" data-target="animDemoChip_${lesson.id}">📳 Shake</button>
             </div>
           </div>
         `;
@@ -1801,13 +1801,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <pre>${lesson.codeSnippet}</pre>
         </div>
         <div class="lesson-footer">
-          <button class="lesson-link-btn" onclick="document.getElementById('heroStartBtn').click();">Try in Studio Builder &rarr;</button>
+          <button class="lesson-link-btn" data-action="open-studio">Try in Studio Builder &rarr;</button>
         </div>
       `;
 
       academyGrid.appendChild(card);
     });
 
+    // Attach Copy Snippet Listeners
     document.querySelectorAll('.btn-copy-code').forEach(btn => {
       btn.onclick = () => {
         const text = decodeURIComponent(btn.dataset.code);
@@ -1816,11 +1817,59 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => btn.innerText = 'Copy', 1500);
       };
     });
+
+    // Attach "Try in Studio Builder"
+    document.querySelectorAll('[data-action="open-studio"]').forEach(btn => {
+      btn.onclick = () => switchMainView('builderView');
+    });
+
+    // Attach Interactive Shape Playground Handlers
+    document.querySelectorAll('[data-shape-btn]').forEach(btn => {
+      btn.onclick = () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        const type = btn.dataset.shapeBtn;
+        if (type === 'pill') {
+          target.style.clipPath = 'none';
+          target.style.borderRadius = '9999px';
+          target.style.filter = 'none';
+          target.style.boxShadow = '0 0 16px var(--accent-glow)';
+          target.innerText = '💊 Capsule';
+        } else if (type === 'diamond') {
+          target.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+          target.style.borderRadius = '0';
+          target.style.boxShadow = 'none';
+          target.style.filter = 'drop-shadow(0 0 12px #9d4edd)';
+          target.innerText = '💠 Diamond';
+        } else if (type === 'hexagon') {
+          target.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+          target.style.borderRadius = '0';
+          target.style.boxShadow = 'none';
+          target.style.filter = 'drop-shadow(0 0 12px #9d4edd)';
+          target.innerText = '⬡ Hexagon';
+        }
+      };
+    });
+
+    // Attach Interactive Animation Preview Handlers
+    document.querySelectorAll('[data-anim-btn]').forEach(btn => {
+      btn.onclick = () => {
+        const target = document.getElementById(btn.dataset.target);
+        if (!target) return;
+        const anim = btn.dataset.animBtn;
+        target.className = `demo-chip anim-${anim}`;
+        if (anim === 'pulse') target.innerText = '💓 Pulse';
+        if (anim === 'bounce') target.innerText = '🏀 Bounce';
+        if (anim === 'float') target.innerText = '🎈 Float';
+        if (anim === 'shake') target.innerText = '📳 Shake';
+      };
+    });
   }
 
-  // Academy Filter & Search Listeners
+  // Academy Filter Topic Pills
   document.querySelectorAll('.filter-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
+    pill.addEventListener('click', (e) => {
+      e.preventDefault();
       document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       currentAcademyCategory = pill.dataset.category;
