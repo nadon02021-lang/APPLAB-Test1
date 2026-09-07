@@ -44,7 +44,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  user-select: none;
 }
 
 body {
@@ -145,7 +144,7 @@ header {
   gap: 14px;
 }
 
-.builder-nav-controls.hidden { display: none; }
+.builder-nav-controls.hidden { display: none !important; }
 
 .studio-subnav {
   display: flex;
@@ -303,7 +302,6 @@ header {
 
 .folder-filter-bar { display: flex; align-items: center; gap: 10px; }
 .folder-label { font-size: 0.85rem; color: var(--text-sub); }
-.folder-select { width: 170px; }
 
 .projects-grid {
   display: grid;
@@ -367,7 +365,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 260px;
+  min-width: 250px;
 }
 
 .codelab-target-picker label { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; }
@@ -744,7 +742,7 @@ header {
   gap: 2px;
 }
 
-.context-menu.hidden { display: none; }
+.context-menu.hidden { display: none !important; }
 .context-item {
   padding: 7px 12px;
   border-radius: 6px;
@@ -803,7 +801,7 @@ header {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-.start-menu-popup.hidden { display: none; }
+.start-menu-popup.hidden { display: none !important; }
 .start-header { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border); padding-bottom: 8px; }
 .start-logo-head { width: 34px; height: 34px; border-radius: 8px; }
 .start-links { display: flex; flex-direction: column; gap: 4px; }
@@ -828,7 +826,7 @@ header {
   z-index: 2000;
 }
 
-.modal-overlay.hidden { display: none; }
+.modal-overlay.hidden { display: none !important; }
 
 .modal-box {
   width: 440px;
@@ -973,7 +971,7 @@ header {
 }
 
 .custom-select-wrapper.open .custom-select-options {
-  display: flex;
+  display: flex !important;
 }
 
 .custom-select-option {
@@ -1056,7 +1054,7 @@ body.preview-mode #exportBtn {
 body.preview-mode .placed-item { cursor: pointer !important; outline: none !important; }
 body.preview-mode .resize-handle { display: none !important; }
 
-/* ================= KEYFRAME ANIMATIONS ================= */
+/* Keyframe Animations */
 @keyframes animFadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes animSlideUp { from { transform: translateY(35px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes animScalePop { 
