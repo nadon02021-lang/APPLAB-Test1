@@ -109,7 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let newProjConfig = {
     viewport: 'phone',
-    canvasBg: '#0e0a1a'
+    canvasBg: '#0e0a1a',
+    folder: 'General',
+    template: 'blank'
   };
 
   const fontOptions = [
@@ -134,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const subnavCodeBtn = document.getElementById('subnavCodeBtn');
 
   const projectsGrid = document.getElementById('projectsGrid');
-  const folderFilterSelect = document.getElementById('folderFilterSelect');
+  const folderFilterContainer = document.getElementById('folderFilterContainer');
   const createFolderBtn = document.getElementById('createFolderBtn');
 
   const canvas = document.getElementById('canvas');
@@ -147,12 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveProjectBtn = document.getElementById('saveProjectBtn');
   const currentProjectLabel = document.getElementById('currentProjectLabel');
 
-  const codeLabTargetSelect = document.getElementById('codeLabTargetSelect');
+  const codeLabTargetContainer = document.getElementById('codeLabTargetContainer');
   const codeModeBlocksBtn = document.getElementById('codeModeBlocksBtn');
   const codeModeJsBtn = document.getElementById('codeModeJsBtn');
   const codeBlocksPanel = document.getElementById('codeBlocksPanel');
   const codeJsPanel = document.getElementById('codeJsPanel');
-  const blockEventSelect = document.getElementById('blockEventSelect');
+  const blockEventContainer = document.getElementById('blockEventContainer');
   const blocksContainer = document.getElementById('blocksContainer');
   const addBlockStepBtn = document.getElementById('addBlockStepBtn');
   const realJsInput = document.getElementById('realJsInput');
@@ -175,8 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const cancelNewProjBtn = document.getElementById('cancelNewProjBtn');
   const confirmCreateProjBtn = document.getElementById('confirmCreateProjBtn');
   const newProjTitle = document.getElementById('newProjTitle');
-  const newProjFolderSelect = document.getElementById('newProjFolderSelect');
-  const newProjTemplate = document.getElementById('newProjTemplate');
+  const newProjFolderContainer = document.getElementById('newProjFolderContainer');
+  const newProjTemplateContainer = document.getElementById('newProjTemplateContainer');
+
+  const settingThemeContainer = document.getElementById('settingThemeContainer');
+  const settingModeContainer = document.getElementById('settingModeContainer');
 
   const customDialogModal = document.getElementById('customDialogModal');
   const dialogIcon = document.getElementById('dialogIcon');
@@ -202,6 +207,62 @@ document.addEventListener('DOMContentLoaded', () => {
     const clk = document.getElementById('systemClock');
     if (clk) clk.innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, 1000);
+
+  // ================= UNIVERSAL CUSTOM SELECT COMPONENT GENERATOR =================
+  function createCustomSelect(container, options, initialValue, onSelectCallback) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+
+    const selectedOption = options.find(o => o.value === initialValue) || options[0] || { label: 'Select...', value: '' };
+
+    const trigger = document.createElement('div');
+    trigger.className = 'custom-select-trigger';
+    trigger.innerHTML = `
+      <span class="selected-text">${selectedOption.label}</span>
+      <span class="arrow-icon">▼</span>
+    `;
+
+    const optionsContainer = document.createElement('div');
+    optionsContainer.className = 'custom-select-options';
+
+    options.forEach(opt => {
+      const optDiv = document.createElement('div');
+      optDiv.className = `custom-select-option ${opt.value === selectedOption.value ? 'selected' : ''}`;
+      optDiv.dataset.val = opt.value;
+      optDiv.innerText = opt.label;
+
+      optDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        optionsContainer.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+        optDiv.classList.add('selected');
+        trigger.querySelector('.selected-text').innerText = opt.label;
+        wrapper.classList.remove('open');
+        if (onSelectCallback) onSelectCallback(opt.value);
+      });
+
+      optionsContainer.appendChild(optDiv);
+    });
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+        if (w !== wrapper) w.classList.remove('open');
+      });
+      wrapper.classList.toggle('open');
+    });
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(optionsContainer);
+    container.appendChild(wrapper);
+  }
+
+  // Global Click Outside to Close Custom Dropdowns
+  window.addEventListener('click', () => {
+    document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+  });
 
   // Custom Modal Dialogs
   const AppLab = {
@@ -369,21 +430,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Dashboard Render
   function renderFolderOptions() {
-    if (!folderFilterSelect) return;
+    if (!folderFilterContainer) return;
     const folders = getStoredFolders();
-    folderFilterSelect.innerHTML = '<option value="all">📁 All Folders</option>';
-    folders.forEach(f => {
-      const opt = document.createElement('option');
-      opt.value = f;
-      opt.innerText = `📂 ${f}`;
-      if (f === activeFolderFilter) opt.selected = true;
-      folderFilterSelect.appendChild(opt);
-    });
-  }
+    const folderOpts = [
+      { label: '📁 All Folders', value: 'all' },
+      ...folders.map(f => ({ label: `📂 ${f}`, value: f }))
+    ];
 
-  if (folderFilterSelect) {
-    folderFilterSelect.addEventListener('change', (e) => {
-      activeFolderFilter = e.target.value;
+    createCustomSelect(folderFilterContainer, folderOpts, activeFolderFilter, (selectedVal) => {
+      activeFolderFilter = selectedVal;
       renderProjectsDashboard();
     });
   }
@@ -461,9 +516,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openNewProjectModal() {
     const folders = getStoredFolders();
-    if (newProjFolderSelect) {
-      newProjFolderSelect.innerHTML = folders.map(f => `<option value="${f}">${f}</option>`).join('');
-    }
+    const folderOpts = folders.map(f => ({ label: `📂 ${f}`, value: f }));
+    createCustomSelect(newProjFolderContainer, folderOpts, newProjConfig.folder, (val) => {
+      newProjConfig.folder = val;
+    });
+
+    const templateOpts = [
+      { label: 'Blank Canvas', value: 'blank' },
+      { label: 'Mobile Landing Page', value: 'starter_app' },
+      { label: 'Social Media Feed Card', value: 'card_feed' }
+    ];
+    createCustomSelect(newProjTemplateContainer, templateOpts, newProjConfig.template, (val) => {
+      newProjConfig.template = val;
+    });
+
     if (newProjectModal) newProjectModal.classList.remove('hidden');
   }
 
@@ -494,8 +560,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const title = newProjTitle ? (newProjTitle.value.trim() || 'Untitled Project') : 'Untitled Project';
-      const folder = newProjFolderSelect ? newProjFolderSelect.value : 'General';
-      const template = newProjTemplate ? newProjTemplate.value : 'blank';
+      const folder = newProjConfig.folder || 'General';
+      const template = newProjConfig.template || 'blank';
 
       let initialPages = [{ id: 'screen_1', name: 'Home Screen', elements: [] }];
 
@@ -569,6 +635,46 @@ document.addEventListener('DOMContentLoaded', () => {
               codeMode: 'blocks',
               customJs: '',
               logic: { event: 'click', actions: [{ type: 'alert', target: '', value: 'Button clicked!' }] }
+            }
+          ]
+        }];
+      } else if (template === 'card_feed') {
+        initialPages = [{
+          id: 'screen_1',
+          name: 'Feed Screen',
+          elements: [
+            {
+              id: 'elem_card_' + Date.now(),
+              name: 'Feed Card',
+              type: 'card',
+              x: 20,
+              y: 90,
+              width: 300,
+              height: 200,
+              text: 'Exclusive Creator Content Card\nExplore rich UI layout structures.',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 14,
+              fontWeight: '400',
+              textAlign: 'center',
+              textColor: '#f3f3f7',
+              bgColor: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderWidth: 1,
+              shape: 'rounded',
+              borderRadius: 16,
+              backdropBlur: 20,
+              glowSize: 10,
+              glowColor: 'rgba(157, 78, 221, 0.3)',
+              opacity: 1,
+              rotation: 0,
+              animation: 'scalePop',
+              animDuration: 0.8,
+              animDelay: 0,
+              animIteration: '1',
+              animEasing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+              codeMode: 'blocks',
+              customJs: '',
+              logic: { event: 'click', actions: [] }
             }
           ]
         }];
@@ -967,8 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // UI Tab
-    const fontOpts = fontOptions.map(f => `<option value="${f.value}" ${el.fontFamily === f.value ? 'selected' : ''}>${f.label}</option>`).join('');
+    // 1. UI Tab - All custom dropdowns
     if (propertiesTab) {
       propertiesTab.innerHTML = `
         <div class="control-group">
@@ -981,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Font Family</label>
-          <select class="control-input" id="propFont">${fontOpts}</select>
+          <div id="propFontContainer"></div>
         </div>
         <div class="control-row">
           <div class="control-group">
@@ -990,20 +1095,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="control-group">
             <label>Weight</label>
-            <select class="control-input" id="propWeight">
-              <option value="400" ${el.fontWeight === '400' ? 'selected' : ''}>Regular</option>
-              <option value="600" ${el.fontWeight === '600' ? 'selected' : ''}>Semi-Bold</option>
-              <option value="700" ${el.fontWeight === '700' ? 'selected' : ''}>Bold</option>
-            </select>
+            <div id="propWeightContainer"></div>
           </div>
         </div>
         <div class="control-group">
           <label>Text Alignment</label>
-          <select class="control-input" id="propAlign">
-            <option value="left" ${el.textAlign === 'left' ? 'selected' : ''}>Left</option>
-            <option value="center" ${el.textAlign === 'center' ? 'selected' : ''}>Center</option>
-            <option value="right" ${el.textAlign === 'right' ? 'selected' : ''}>Right</option>
-          </select>
+          <div id="propAlignContainer"></div>
         </div>
         <div class="control-group">
           <label>Text Color</label>
@@ -1029,12 +1126,41 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-top" style="color:#ff6b6b; margin-top:10px;" id="delElemBtn">Remove Element</button>
       `;
 
+      // Mount Font, Weight & Alignment Custom Selects
+      createCustomSelect(
+        document.getElementById('propFontContainer'),
+        fontOptions,
+        el.fontFamily || fontOptions[0].value,
+        (val) => { el.fontFamily = val; markDirty(); renderCanvas(); }
+      );
+
+      const weightOpts = [
+        { label: 'Regular (400)', value: '400' },
+        { label: 'Semi-Bold (600)', value: '600' },
+        { label: 'Bold (700)', value: '700' }
+      ];
+      createCustomSelect(
+        document.getElementById('propWeightContainer'),
+        weightOpts,
+        el.fontWeight || '400',
+        (val) => { el.fontWeight = val; markDirty(); renderCanvas(); }
+      );
+
+      const alignOpts = [
+        { label: 'Left', value: 'left' },
+        { label: 'Center', value: 'center' },
+        { label: 'Right', value: 'right' }
+      ];
+      createCustomSelect(
+        document.getElementById('propAlignContainer'),
+        alignOpts,
+        el.textAlign || 'center',
+        (val) => { el.textAlign = val; markDirty(); renderCanvas(); }
+      );
+
       document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
-      document.getElementById('propFont').onchange = (e) => { el.fontFamily = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
-      document.getElementById('propWeight').onchange = (e) => { el.fontWeight = e.target.value; markDirty(); renderCanvas(); };
-      document.getElementById('propAlign').onchange = (e) => { el.textAlign = e.target.value; markDirty(); renderCanvas(); };
 
       bindColorPair('propTextColorPicker', 'propTextColor', (v) => { el.textColor = v; markDirty(); renderCanvas(); });
       bindColorPair('propBgColorPicker', 'propBgColor', (v) => { el.bgColor = v; markDirty(); renderCanvas(); });
@@ -1048,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Shapes Tab
+    // 2. Shapes Tab
     if (shapesTab) {
       shapesTab.innerHTML = `
         <div class="control-group">
@@ -1085,7 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Effects Tab
+    // 3. Effects Tab
     if (effectsTab) {
       effectsTab.innerHTML = `
         <div class="control-group">
@@ -1117,7 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // Animations Tab
+    // 4. Animations Tab - Interactive card grid & custom select dropdowns
     if (animationsTab) {
       const animPresets = [
         { id: 'none', label: 'None', icon: '🚫' },
@@ -1162,33 +1288,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="control-row">
           <div class="control-group">
             <label>Iterations</label>
-            <div class="custom-select-wrapper" id="customIterSelect">
-              <div class="custom-select-trigger">
-                <span class="selected-text">${el.animIteration === 'infinite' ? '🔁 Infinite Loop' : el.animIteration === '1' ? '1 Time' : el.animIteration + ' Times'}</span>
-                <span class="arrow-icon">▼</span>
-              </div>
-              <div class="custom-select-options">
-                <div class="custom-select-option ${el.animIteration === 'infinite' ? 'selected' : ''}" data-val="infinite">🔁 Infinite Loop</div>
-                <div class="custom-select-option ${el.animIteration === '1' ? 'selected' : ''}" data-val="1">1 Time</div>
-                <div class="custom-select-option ${el.animIteration === '2' ? 'selected' : ''}" data-val="2">2 Times</div>
-                <div class="custom-select-option ${el.animIteration === '3' ? 'selected' : ''}" data-val="3">3 Times</div>
-              </div>
-            </div>
+            <div id="animIterContainer"></div>
           </div>
 
           <div class="control-group">
             <label>Timing Curve</label>
-            <div class="custom-select-wrapper" id="customEasingSelect">
-              <div class="custom-select-trigger">
-                <span class="selected-text">${el.animEasing?.includes('cubic') ? 'Bouncy Spring' : el.animEasing === 'linear' ? 'Linear' : 'Smooth (Ease)'}</span>
-                <span class="arrow-icon">▼</span>
-              </div>
-              <div class="custom-select-options">
-                <div class="custom-select-option ${el.animEasing === 'ease-in-out' ? 'selected' : ''}" data-val="ease-in-out">Smooth (Ease In-Out)</div>
-                <div class="custom-select-option ${el.animEasing === 'linear' ? 'selected' : ''}" data-val="linear">Linear (Constant)</div>
-                <div class="custom-select-option ${el.animEasing?.includes('cubic') ? 'selected' : ''}" data-val="cubic-bezier(0.16, 1, 0.3, 1)">Bouncy Spring</div>
-              </div>
-            </div>
+            <div id="animEasingContainer"></div>
           </div>
         </div>
 
@@ -1205,17 +1310,30 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       });
 
-      setupCustomDropdown('customIterSelect', (val) => {
-        el.animIteration = val;
-        markDirty();
-        renderCanvas();
-      });
+      const iterOpts = [
+        { label: '🔁 Infinite Loop', value: 'infinite' },
+        { label: '1 Time', value: '1' },
+        { label: '2 Times', value: '2' },
+        { label: '3 Times', value: '3' }
+      ];
+      createCustomSelect(
+        document.getElementById('animIterContainer'),
+        iterOpts,
+        el.animIteration || 'infinite',
+        (val) => { el.animIteration = val; markDirty(); renderCanvas(); }
+      );
 
-      setupCustomDropdown('customEasingSelect', (val) => {
-        el.animEasing = val;
-        markDirty();
-        renderCanvas();
-      });
+      const easingOpts = [
+        { label: 'Smooth (Ease In-Out)', value: 'ease-in-out' },
+        { label: 'Linear (Constant)', value: 'linear' },
+        { label: 'Bouncy Spring', value: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+      ];
+      createCustomSelect(
+        document.getElementById('animEasingContainer'),
+        easingOpts,
+        el.animEasing || 'ease-in-out',
+        (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
+      );
 
       document.getElementById('propAnimDur').oninput = (e) => { el.animDuration = parseFloat(e.target.value) || 1.5; markDirty(); renderCanvas(); };
       document.getElementById('propAnimDelay').oninput = (e) => { el.animDelay = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
@@ -1231,52 +1349,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function setupCustomDropdown(wrapperId, onSelectCallback) {
-    const wrapper = document.getElementById(wrapperId);
-    if (!wrapper) return;
-
-    const trigger = wrapper.querySelector('.custom-select-trigger');
-    const selectedText = trigger.querySelector('.selected-text');
-    const options = wrapper.querySelectorAll('.custom-select-option');
-
-    trigger.onclick = (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.custom-select-wrapper').forEach(w => {
-        if (w !== wrapper) w.classList.remove('open');
-      });
-      wrapper.classList.toggle('open');
-    };
-
-    options.forEach(opt => {
-      opt.onclick = (e) => {
-        e.stopPropagation();
-        options.forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        selectedText.innerText = opt.innerText;
-        wrapper.classList.remove('open');
-        if (onSelectCallback) onSelectCallback(opt.dataset.val);
-      };
-    });
-  }
-
-  window.addEventListener('click', () => {
-    document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
-  });
-
+  // Code Lab Custom Dropdowns
   function renderCodeLab() {
     const page = getCurrentPage();
-    if (codeLabTargetSelect) {
-      codeLabTargetSelect.innerHTML = '<option value="">-- Choose Element to Script --</option>';
 
-      if (page) {
-        page.elements.forEach(el => {
-          const opt = document.createElement('option');
-          opt.value = el.id;
-          opt.innerText = `[${el.type.toUpperCase()}] ${el.name}`;
-          if (el.id === activeElementId) opt.selected = true;
-          codeLabTargetSelect.appendChild(opt);
-        });
-      }
+    if (codeLabTargetContainer && page) {
+      const targetOpts = [
+        { label: '-- Choose Element to Script --', value: '' },
+        ...page.elements.map(el => ({ label: `[${el.type.toUpperCase()}] ${el.name}`, value: el.id }))
+      ];
+
+      createCustomSelect(codeLabTargetContainer, targetOpts, activeElementId || '', (val) => {
+        activeElementId = val;
+        renderCodeLab();
+      });
     }
 
     const activeEl = getActiveElementModel();
@@ -1298,16 +1384,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (codeJsPanel) codeJsPanel.classList.add('hidden');
     }
 
-    if (blockEventSelect) blockEventSelect.value = activeEl.logic?.event || 'click';
+    const eventOpts = [
+      { label: 'When Clicked / Tapped', value: 'click' },
+      { label: 'When Hovered with Mouse', value: 'hover' }
+    ];
+    createCustomSelect(blockEventContainer, eventOpts, activeEl.logic?.event || 'click', (val) => {
+      if (!activeEl.logic) activeEl.logic = { event: 'click', actions: [] };
+      activeEl.logic.event = val;
+      markDirty();
+    });
+
     renderBlockStack(activeEl);
     if (realJsInput) realJsInput.value = activeEl.customJs || "// Example:\n// app.showAlert('Action fired!');\n// element.style.backgroundColor = '#ff0055';\n// app.navigateTo('screen_id');";
-  }
-
-  if (codeLabTargetSelect) {
-    codeLabTargetSelect.addEventListener('change', (e) => {
-      activeElementId = e.target.value;
-      renderCodeLab();
-    });
   }
 
   if (codeModeBlocksBtn) {
@@ -1326,17 +1414,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (blockEventSelect) {
-    blockEventSelect.addEventListener('change', (e) => {
-      const el = getActiveElementModel();
-      if (el) {
-        if (!el.logic) el.logic = { event: 'click', actions: [] };
-        el.logic.event = e.target.value;
-        markDirty();
-      }
-    });
-  }
-
   if (realJsInput) {
     realJsInput.addEventListener('input', (e) => {
       const el = getActiveElementModel();
@@ -1351,31 +1428,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const pageOptions = currentProject.pages.map(p => `<option value="${p.id}">Screen: ${p.name}</option>`).join('');
-    const elemOptions = getCurrentPage().elements.filter(i => i.id !== el.id).map(i => `<option value="${i.id}">Layer: ${i.name}</option>`).join('');
+    const pageOptions = currentProject.pages.map(p => ({ label: `Screen: ${p.name}`, value: p.id }));
+    const elemOptions = getCurrentPage().elements.filter(i => i.id !== el.id).map(i => ({ label: `Layer: ${i.name}`, value: i.id }));
 
     blocksContainer.innerHTML = '';
     el.logic.actions.forEach((act, idx) => {
       const step = document.createElement('div');
       step.className = 'block-step';
+
       step.innerHTML = `
         <button class="btn-remove-step" data-index="${idx}">&times; Remove Step</button>
         <div class="control-group">
           <label>Action (${idx + 1})</label>
-          <select class="control-input step-type" data-index="${idx}">
-            <option value="alert" ${act.type === 'alert' ? 'selected' : ''}>Show Alert Pop-up</option>
-            <option value="navigate" ${act.type === 'navigate' ? 'selected' : ''}>Navigate to Screen</option>
-            <option value="setText" ${act.type === 'setText' ? 'selected' : ''}>Set Layer Text</option>
-            <option value="setBg" ${act.type === 'setBg' ? 'selected' : ''}>Set Layer Background Color</option>
-          </select>
+          <div id="stepTypeContainer_${idx}"></div>
         </div>
         ${['navigate', 'setText', 'setBg'].includes(act.type) ? `
           <div class="control-group">
             <label>Target</label>
-            <select class="control-input step-target" data-index="${idx}">
-              <option value="">-- Choose Target --</option>
-              ${act.type === 'navigate' ? pageOptions : elemOptions}
-            </select>
+            <div id="stepTargetContainer_${idx}"></div>
           </div>
         ` : ''}
         <div class="control-group">
@@ -1385,21 +1455,42 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
 
       blocksContainer.appendChild(step);
-    });
 
-    document.querySelectorAll('.step-target').forEach(sel => {
-      const idx = sel.dataset.index;
-      if (el.logic.actions[idx]) sel.value = el.logic.actions[idx].target || '';
-      sel.onchange = (e) => { el.logic.actions[idx].target = e.target.value; markDirty(); };
-    });
+      // Mount Custom Select for Action Type
+      const actionTypeOpts = [
+        { label: 'Show Alert Pop-up', value: 'alert' },
+        { label: 'Navigate to Screen', value: 'navigate' },
+        { label: 'Set Layer Text', value: 'setText' },
+        { label: 'Set Layer Background Color', value: 'setBg' }
+      ];
+      createCustomSelect(
+        document.getElementById(`stepTypeContainer_${idx}`),
+        actionTypeOpts,
+        act.type,
+        (val) => {
+          el.logic.actions[idx].type = val;
+          markDirty();
+          renderBlockStack(el);
+        }
+      );
 
-    document.querySelectorAll('.step-type').forEach(sel => {
-      sel.onchange = (e) => {
-        const idx = sel.dataset.index;
-        el.logic.actions[idx].type = e.target.value;
-        markDirty();
-        renderBlockStack(el);
-      };
+      // Mount Custom Select for Action Target (if applicable)
+      const targetContainer = document.getElementById(`stepTargetContainer_${idx}`);
+      if (targetContainer) {
+        const availableTargets = [
+          { label: '-- Choose Target --', value: '' },
+          ...(act.type === 'navigate' ? pageOptions : elemOptions)
+        ];
+        createCustomSelect(
+          targetContainer,
+          availableTargets,
+          act.target || '',
+          (val) => {
+            el.logic.actions[idx].target = val;
+            markDirty();
+          }
+        );
+      }
     });
 
     document.querySelectorAll('.step-val').forEach(inp => {
@@ -1433,6 +1524,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Component Drag & Drop
   document.querySelectorAll('.draggable-card').forEach(card => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
   });
@@ -1563,10 +1655,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (smSettingsBtn) {
     smSettingsBtn.onclick = () => {
       if (startMenuPopup) startMenuPopup.classList.add('hidden');
-      const st = document.getElementById('settingTheme');
-      const sm = document.getElementById('settingMode');
-      if (st) st.value = userSettings.theme;
-      if (sm) sm.value = userSettings.mode;
+
+      const themeOpts = [
+        { label: '🌙 Dark Glassmorphism', value: 'dark' },
+        { label: '☀️ Clean Daylight (Light)', value: 'light' }
+      ];
+      createCustomSelect(settingThemeContainer, themeOpts, userSettings.theme, (val) => {
+        userSettings.theme = val;
+      });
+
+      const modeOpts = [
+        { label: '✨ Quality Mode (Full Blurs & Glows)', value: 'quality' },
+        { label: '⚡ Performance Mode (Fast FPS)', value: 'performance' }
+      ];
+      createCustomSelect(settingModeContainer, modeOpts, userSettings.mode, (val) => {
+        userSettings.mode = val;
+      });
+
       if (settingsModal) settingsModal.classList.remove('hidden');
     };
   }
@@ -1574,10 +1679,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add('hidden');
   if (applySettingsBtn) {
     applySettingsBtn.onclick = () => {
-      const st = document.getElementById('settingTheme');
-      const sm = document.getElementById('settingMode');
-      if (st) userSettings.theme = st.value;
-      if (sm) userSettings.mode = sm.value;
       try {
         localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
       } catch {}
@@ -1602,6 +1703,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // Safe initial boot
+  // Initial Load
   switchMainView('homeView');
 });
