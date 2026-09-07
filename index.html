@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-mode="quality">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AppLab | Visual & Code Studio</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top App Navigation -->
+  <header>
+    <div class="brand-section" id="navHomeBtn">
+      <div class="logo-crop-wrapper logo-nav">
+        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed">
+      </div>
+      <div class="brand-text">
+        <h1>AppLab</h1>
+        <span class="project-tag" id="currentProjectLabel">Studio</span>
+      </div>
+    </div>
+
+    <!-- Main Navigation Links -->
+    <nav class="main-nav-links">
+      <button class="nav-link active" data-view="homeView">Home</button>
+      <button class="nav-link" data-view="builderView">Studio Builder</button>
+      <button class="nav-link" data-view="tutorialView">Tutorials</button>
+    </nav>
+
+    <!-- Studio Builder Header Controls -->
+    <div class="builder-nav-controls hidden" id="builderControls">
+      <div class="studio-subnav">
+        <button class="subnav-btn active" id="subnavDesignBtn">🎨 Design View</button>
+        <button class="subnav-btn" id="subnavCodeBtn">⚡ Code & Logic</button>
+      </div>
+
+      <div class="device-switcher" id="deviceSwitcher">
+        <button class="device-btn active" data-device="phone">📱 Phone</button>
+        <button class="device-btn" data-device="tablet">📟 Tablet</button>
+        <button class="device-btn" data-device="desktop">💻 PC</button>
+      </div>
+
+      <div class="actions-section">
+        <button class="btn-top" id="saveProjectBtn">💾 Save</button>
+        <button class="btn-top" id="modeToggleBtn">▶️ Preview</button>
+        <button class="btn-top btn-primary" id="exportBtn">⬇️ Export</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= VIEW 1: INTRO / HOME DASHBOARD ================= -->
+  <section class="app-view" id="homeView">
+    <div class="hero-container">
+      <div class="logo-crop-wrapper hero-logo-box">
+        <img src="Applabimage.png" alt="AppLab Logo" class="brand-logo-zoomed">
+      </div>
+      <h1 class="hero-title">Craft Apps with <span class="glow-purple">Crystal Precision</span></h1>
+      <p class="hero-subtitle">Design interfaces with custom shapes, backdrop blurs, and neon glows. Build automation inside your project using blocks or raw JavaScript.</p>
+
+      <div class="hero-actions">
+        <button class="btn-hero btn-primary" id="heroStartBtn">Open Studio Builder</button>
+        <button class="btn-hero btn-secondary" id="heroTutorialBtn">Explore Tutorials</button>
+      </div>
+    </div>
+
+    <div class="dashboard-section">
+      <div class="section-heading-bar">
+        <div class="folder-filter-bar">
+          <span class="folder-label">Folder:</span>
+          <select class="control-input folder-select" id="folderFilterSelect">
+            <option value="all">📁 All Folders</option>
+          </select>
+          <button class="btn-top" id="createFolderBtn">+ New Folder</button>
+        </div>
+        <button class="btn-top btn-primary" id="dashNewBtn">+ Create New Project</button>
+      </div>
+
+      <div class="projects-grid" id="projectsGrid"></div>
+    </div>
+  </section>
+
+  <!-- ================= VIEW 2: STUDIO BUILDER ================= -->
+  <section class="app-view hidden" id="builderView">
+
+    <!-- SUB-PAGE A: VISUAL DESIGN WORKSPACE -->
+    <div class="studio-subpage" id="studioDesignPage">
+      <div class="workspace">
+        <aside class="sidebar-left">
+          <div class="panel-box">
+            <div class="panel-header">
+              <span class="section-title">Screens / Pages</span>
+              <button class="btn-icon" id="addPageBtn" title="Add Page">+</button>
+            </div>
+            <div class="pages-list" id="pagesList"></div>
+          </div>
+
+          <div class="panel-box">
+            <span class="section-title">Components</span>
+            <div class="component-palette">
+              <div class="draggable-card" draggable="true" data-type="button">🔘 Button</div>
+              <div class="draggable-card" draggable="true" data-type="label">📝 Text Label</div>
+              <div class="draggable-card" draggable="true" data-type="input">⌨️ Input Field</div>
+              <div class="draggable-card" draggable="true" data-type="image">🖼️ Image</div>
+              <div class="draggable-card" draggable="true" data-type="card">🪟 Container Card</div>
+            </div>
+          </div>
+
+          <div class="panel-box flex-fill">
+            <span class="section-title">Layers & Outline</span>
+            <div class="layers-tree" id="layersTree">
+              <p class="empty-state">No elements placed.</p>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Viewport Mockup -->
+        <main class="viewport">
+          <div class="device-mockup device-phone" id="deviceFrame">
+            <div class="notch" id="deviceNotch"></div>
+            <div class="screen-canvas" id="canvas"></div>
+          </div>
+        </main>
+
+        <!-- Right Sidebar: Inspector -->
+        <aside class="sidebar-right">
+          <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="propertiesTab">Style & UI</button>
+            <button class="tab-btn" data-tab="shapesTab">Shape</button>
+            <button class="tab-btn" data-tab="effectsTab">Effects</button>
+            <button class="tab-btn" data-tab="animationsTab">Anim Pro</button>
+          </div>
+
+          <div class="tab-content" id="propertiesTab">
+            <p class="empty-state">Select an element on the screen to customize styling.</p>
+          </div>
+
+          <div class="tab-content hidden" id="shapesTab">
+            <p class="empty-state">Select an element to customize shapes.</p>
+          </div>
+
+          <div class="tab-content hidden" id="effectsTab">
+            <p class="empty-state">Select an element to adjust glass, glow & shadow effects.</p>
+          </div>
+
+          <div class="tab-content hidden" id="animationsTab">
+            <p class="empty-state">Select an element to configure advanced animations.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- SUB-PAGE B: CODE & LOGIC LAB -->
+    <div class="studio-subpage hidden" id="studioCodePage">
+      <div class="codelab-container">
+        <div class="codelab-header">
+          <div>
+            <h2>⚡ Project Code & Logic Lab</h2>
+            <p class="codelab-sub">Build interactive workflows or write custom JavaScript for your canvas components.</p>
+          </div>
+          <div class="codelab-target-picker">
+            <label>Target Element:</label>
+            <select class="control-input" id="codeLabTargetSelect">
+              <option value="">-- Choose Element to Script --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="codelab-modes-bar">
+          <button class="code-mode-btn active" id="codeModeBlocksBtn">🧩 Visual Action Blocks</button>
+          <button class="code-mode-btn" id="codeModeJsBtn">⚡ Real JavaScript Editor</button>
+        </div>
+
+        <!-- Visual Blocks Panel -->
+        <div class="codelab-panel" id="codeBlocksPanel">
+          <div class="block-card">
+            <div class="block-header event-header">⚡ When Event Occurs</div>
+            <select class="control-input" id="blockEventSelect">
+              <option value="click">When Clicked / Tapped</option>
+              <option value="hover">When Hovered with Mouse</option>
+            </select>
+          </div>
+
+          <div class="block-card">
+            <div class="block-header action-header">🧩 Action Stack (Ordered Execution)</div>
+            <div class="blocks-container" id="blocksContainer">
+              <p class="empty-state">Select an element above to configure blocks.</p>
+            </div>
+            <button class="btn-top btn-primary" id="addBlockStepBtn" style="margin-top: 14px; align-self: flex-start;">+ Add Action Step</button>
+          </div>
+        </div>
+
+        <!-- JavaScript Panel -->
+        <div class="codelab-panel hidden" id="codeJsPanel">
+          <div class="js-editor-frame">
+            <div class="js-editor-toolbar">
+              <span>script.js</span>
+              <span class="js-tag">Safe Interactive Execution Scope</span>
+            </div>
+            <textarea class="code-editor-area" id="realJsInput" spellcheck="false" placeholder="// Write standard JavaScript here..."></textarea>
+          </div>
+
+          <div class="code-help-card">
+            <h4>💡 Available Runtime APIs:</h4>
+            <ul>
+              <li><code>element</code> &rarr; Target DOM element node</li>
+              <li><code>app.navigateTo('screen_id')</code> &rarr; Switch to target screen</li>
+              <li><code>app.playBeep()</code> &rarr; Synthesize an audio notification</li>
+              <li><code>app.showAlert('message')</code> &rarr; Open custom purple alert modal</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ================= VIEW 3: TUTORIALS PAGE ================= -->
+  <section class="app-view hidden" id="tutorialView">
+    <div class="tutorial-container">
+      <div class="tutorial-header">
+        <h1>AppLab Knowledge Base</h1>
+        <p>Master shapes, effects, UI design, right-click actions, and multi-page code logic.</p>
+      </div>
+
+      <div class="tutorial-grid">
+        <div class="tutorial-card">
+          <div class="tutorial-badge">01</div>
+          <h3>Windows-Style Right-Click</h3>
+          <p>Right-click any element on the canvas to open the context menu: duplicate, send to back, bring to front, inspect code, or delete.</p>
+        </div>
+        <div class="tutorial-card">
+          <div class="tutorial-badge">02</div>
+          <h3>Shapes & Glow Contour</h3>
+          <p>Switch any component into a Diamond, Hexagon, Capsule, or Circle. Drop shadows wrap around polygonal geometry cleanly.</p>
+        </div>
+        <div class="tutorial-card">
+          <div class="tutorial-badge">03</div>
+          <h3>In-Project Code & Logic Page</h3>
+          <p>Switch between <strong>Design View</strong> and <strong>Code & Logic</strong> inside the Studio header to manage all events without leaving your project.</p>
+        </div>
+        <div class="tutorial-card">
+          <div class="tutorial-badge">04</div>
+          <h3>Live Interactive Preview</h3>
+          <p>Press <strong>▶️ Preview</strong> to execute JavaScript actions, test button events, custom modal alerts, and animations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTEXT MENU ================= -->
+  <div class="context-menu hidden" id="elementContextMenu">
+    <div class="context-item" id="ctxDuplicate">📋 Duplicate</div>
+    <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
+    <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
+    <div class="context-separator"></div>
+    <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
+    <div class="context-separator"></div>
+    <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
+  </div>
+
+  <!-- Start Menu Bar -->
+  <div class="start-bar">
+    <button class="start-btn" id="startMenuToggleBtn">
+      <div class="logo-crop-wrapper start-logo-thumb">
+        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed">
+      </div>
+      <span>Start</span>
+    </button>
+    <div class="system-time" id="systemClock">12:00 PM</div>
+  </div>
+
+  <!-- Start Menu Popup -->
+  <div class="start-menu-popup hidden" id="startMenuPopup">
+    <div class="start-header">
+      <div class="logo-crop-wrapper start-logo-head">
+        <img src="Applabimage.png" alt="Logo" class="brand-logo-zoomed">
+      </div>
+      <div>
+        <h4>AppLab Studio</h4>
+        <p class="project-tag">Workspace Hub</p>
+      </div>
+    </div>
+    <div class="start-links">
+      <div class="start-link-item" id="smHomeBtn">🏠 Home Dashboard</div>
+      <div class="start-link-item" id="smStudioBtn">🚀 Studio Builder</div>
+      <div class="start-link-item" id="smNewProjectBtn">📄 Create New Project</div>
+      <div class="start-link-item" id="smTutorialBtn">📚 Tutorials</div>
+      <div class="start-link-item" id="smSettingsBtn">⚙️ Settings</div>
+    </div>
+  </div>
+
+  <!-- ================= ADVANCED NEW PROJECT MODAL ================= -->
+  <div class="modal-overlay hidden" id="newProjectModal">
+    <div class="modal-box modal-box-wide">
+      <div class="modal-header">
+        <h3>✨ Configure New Project</h3>
+        <button class="btn-icon" id="closeNewProjBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="control-row">
+          <div class="control-group">
+            <label>Project Title</label>
+            <input type="text" class="control-input" id="newProjTitle" value="My Vision App">
+          </div>
+          <div class="control-group">
+            <label>Assign Folder</label>
+            <select class="control-input" id="newProjFolderSelect"></select>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Target Viewport Form Factor</label>
+          <div class="preset-choice-grid">
+            <button class="choice-btn active" data-viewport="phone">📱 Smartphone<br><small>340 × 680px</small></button>
+            <button class="choice-btn" data-viewport="tablet">📟 iPad / Tablet<br><small>680 × 500px</small></button>
+            <button class="choice-btn" data-viewport="desktop">💻 Desktop / Web<br><small>840 × 520px</small></button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Starting Canvas Canvas Theme</label>
+          <div class="preset-choice-grid">
+            <button class="choice-btn active" data-canvasbg="#0e0a1a">🌌 Obsidian Glass</button>
+            <button class="choice-btn" data-canvasbg="#1a0c2e">🔮 Cyber Purple</button>
+            <button class="choice-btn" data-canvasbg="#07070a">⬛ Pitch Black</button>
+            <button class="choice-btn" data-canvasbg="#1f140e">🌋 Lava Ember</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Starter Canvas Template</label>
+          <select class="control-input" id="newProjTemplate">
+            <option value="blank">Empty Blank Canvas</option>
+            <option value="starter_app">Mobile Action Landing App (Buttons, Header, Card)</option>
+            <option value="card_feed">Social Media Card Feed (Profile & Interactions)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-top" id="cancelNewProjBtn">Cancel</button>
+        <button class="btn-top btn-primary" id="confirmCreateProjBtn">Initialize Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= CUSTOM APPLAB DIALOG (ALERT / CONFIRM / PROMPT) ================= -->
+  <div class="modal-overlay hidden" id="customDialogModal">
+    <div class="modal-box modal-box-dialog">
+      <div class="dialog-icon-bubble" id="dialogIcon">🔔</div>
+      <h3 id="dialogTitle">AppLab Notice</h3>
+      <p id="dialogMessage">Dialog message details go here.</p>
+      <div class="control-group hidden" id="dialogInputGroup">
+        <input type="text" class="control-input" id="dialogInput" placeholder="Enter value...">
+      </div>
+      <div class="modal-footer dialog-footer" id="dialogFooter">
+        <!-- Buttons rendered dynamically via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay hidden" id="settingsModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Studio Settings</h3>
+        <button class="btn-icon" id="closeSettingsBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="control-group">
+          <label>Theme</label>
+          <select class="control-input" id="settingTheme">
+            <option value="dark">🌙 Dark Glassmorphism</option>
+            <option value="light">☀️ Clean Daylight (Light Mode)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Rendering Mode</label>
+          <select class="control-input" id="settingMode">
+            <option value="quality">✨ Quality Mode (Full Blurs, Shadows & Glows)</option>
+            <option value="performance">⚡ Performance Mode (Fast FPS, Low GPU Load)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-top btn-primary" id="applySettingsBtn">Save Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
