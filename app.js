@@ -56,11 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 fontFamily: "'Poppins', sans-serif",
                 fontSize: 15,
                 fontWeight: '600',
+                letterSpacing: 0.5,
+                lineHeight: 1.2,
+                textTransform: 'none',
+                textDecoration: 'none',
                 textAlign: 'center',
+                padding: 10,
                 textColor: '#ffffff',
                 bgColor: '#7b2cbf',
                 borderColor: '#9d4edd',
                 borderWidth: 1,
+                borderStyle: 'solid',
                 shape: 'pill',
                 borderRadius: 9999,
                 backdropBlur: 10,
@@ -192,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
-  // Academy Course Elements
   const trackMenu = document.getElementById('trackMenu');
   const courseStage = document.getElementById('courseStage');
 
@@ -589,11 +594,17 @@ document.addEventListener('DOMContentLoaded', () => {
               fontFamily: "'Poppins', sans-serif",
               fontSize: 22,
               fontWeight: '700',
+              letterSpacing: 0,
+              lineHeight: 1.2,
+              textTransform: 'none',
+              textDecoration: 'none',
               textAlign: 'center',
+              padding: 0,
               textColor: '#ffffff',
               bgColor: 'transparent',
               borderColor: 'transparent',
               borderWidth: 0,
+              borderStyle: 'solid',
               shape: 'rect',
               borderRadius: 0,
               backdropBlur: 0,
@@ -619,11 +630,17 @@ document.addEventListener('DOMContentLoaded', () => {
               fontFamily: "'Poppins', sans-serif",
               fontSize: 15,
               fontWeight: '600',
+              letterSpacing: 0.5,
+              lineHeight: 1.2,
+              textTransform: 'none',
+              textDecoration: 'none',
               textAlign: 'center',
+              padding: 8,
               textColor: '#ffffff',
               bgColor: '#7b2cbf',
               borderColor: '#9d4edd',
               borderWidth: 1,
+              borderStyle: 'solid',
               shape: 'pill',
               borderRadius: 9999,
               backdropBlur: 0,
@@ -656,11 +673,17 @@ document.addEventListener('DOMContentLoaded', () => {
               fontFamily: "'Inter', sans-serif",
               fontSize: 14,
               fontWeight: '400',
+              letterSpacing: 0,
+              lineHeight: 1.5,
+              textTransform: 'none',
+              textDecoration: 'none',
               textAlign: 'center',
+              padding: 16,
               textColor: '#f3f3f7',
               bgColor: 'rgba(255, 255, 255, 0.05)',
               borderColor: 'rgba(255, 255, 255, 0.12)',
               borderWidth: 1,
+              borderStyle: 'solid',
               shape: 'rounded',
               borderRadius: 16,
               backdropBlur: 20,
@@ -788,6 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- Dynamic Component Node Builder Engine ---
   function renderCanvas() {
     if (!canvas) return;
     canvas.innerHTML = '';
@@ -797,39 +821,85 @@ document.addEventListener('DOMContentLoaded', () => {
     if (deviceFrame) deviceFrame.style.background = currentProject.canvasBg || '#0e0a1a';
 
     page.elements.forEach(el => {
-      let node = el.type === 'button' ? document.createElement('button')
-               : el.type === 'input' ? document.createElement('input')
-               : document.createElement('div');
+      let node;
 
-      if (el.type === 'image') {
+      // 1. Specialized Element Generators
+      if (el.type === 'button') {
+        node = document.createElement('button');
+        node.innerText = el.text || 'Button';
+      } else if (el.type === 'input') {
+        node = document.createElement('input');
+        node.placeholder = el.text || 'Enter text...';
+      } else if (el.type === 'textarea') {
+        node = document.createElement('textarea');
+        node.placeholder = el.text || 'Multi-line comments...';
+        node.style.resize = 'none';
+      } else if (el.type === 'image') {
+        node = document.createElement('div');
         const img = document.createElement('img');
         img.src = el.text;
+        img.style.objectFit = el.imageFit || 'cover';
         img.onerror = () => { img.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%232b1b4d%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23c77dff%22 font-family=%22sans-serif%22 font-size=%2214%22>No Image</text></svg>'; };
         node.appendChild(img);
-      } else if (el.type === 'input') {
-        node.placeholder = el.text;
+      } else if (el.type === 'toggle') {
+        node = document.createElement('div');
+        const active = el.isChecked ? 'translate(26px, -50%)' : 'translate(0, -50%)';
+        const bg = el.isChecked ? '#9d4edd' : 'rgba(255, 255, 255, 0.2)';
+        node.innerHTML = `
+          <div style="width: 52px; height: 26px; border-radius: 9999px; background: ${bg}; position: relative; pointer-events: none; transition: all 0.2s;">
+            <div style="width: 22px; height: 22px; border-radius: 50%; background: #fff; position: absolute; top: 50%; left: 2px; transform: ${active}; transition: transform 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>
+          </div>
+        `;
+      } else if (el.type === 'slider') {
+        node = document.createElement('div');
+        node.innerHTML = `
+          <input type="range" min="${el.minVal || 0}" max="${el.maxVal || 100}" value="${el.currentVal || 50}" style="width: 100%; accent-color: #9d4edd; pointer-events: ${isPreviewMode ? 'auto' : 'none'};">
+        `;
+      } else if (el.type === 'progress') {
+        node = document.createElement('div');
+        const pct = Math.min(100, Math.max(0, el.currentVal || 65));
+        node.innerHTML = `
+          <div style="width: 100%; height: 100%; background: rgba(255, 255, 255, 0.1); border-radius: inherit; overflow: hidden; position: relative;">
+            <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #9d4edd, #c77dff); border-radius: inherit; transition: width 0.3s;"></div>
+          </div>
+        `;
+      } else if (el.type === 'divider') {
+        node = document.createElement('div');
+        node.innerHTML = `<div style="width: 100%; height: 1px; background: ${el.borderColor || 'rgba(157, 78, 221, 0.4)'};"></div>`;
+      } else if (el.type === 'icon') {
+        node = document.createElement('div');
+        node.innerText = el.text || '⭐';
       } else {
+        node = document.createElement('div');
         node.innerText = el.text;
       }
 
       node.id = el.id;
       node.className = `placed-item ${el.id === activeElementId ? 'selected' : ''}`;
 
+      // Positioning & Coordinates
       node.style.left = `${el.x}px`;
       node.style.top = `${el.y}px`;
       node.style.width = `${el.width}px`;
       node.style.height = `${el.height}px`;
 
+      // Deep Visual & Typography Styles
       node.style.backgroundColor = el.bgColor;
       node.style.color = el.textColor;
       node.style.borderColor = el.borderColor;
-      node.style.borderWidth = `${el.borderWidth || 1}px`;
-      node.style.borderStyle = 'solid';
+      node.style.borderWidth = `${el.borderWidth !== undefined ? el.borderWidth : 1}px`;
+      node.style.borderStyle = el.borderStyle || 'solid';
       node.style.fontFamily = el.fontFamily || 'inherit';
       node.style.fontSize = `${el.fontSize}px`;
       node.style.fontWeight = el.fontWeight || 'normal';
       node.style.textAlign = el.textAlign || 'center';
+      node.style.letterSpacing = `${el.letterSpacing || 0}px`;
+      node.style.lineHeight = el.lineHeight || 1.2;
+      node.style.textTransform = el.textTransform || 'none';
+      node.style.textDecoration = el.textDecoration || 'none';
+      node.style.padding = `${el.padding || 0}px`;
 
+      // Shape Geometry and Contour Effects
       applyShapeAndEffects(node, el);
 
       node.style.opacity = el.opacity !== undefined ? el.opacity : 1;
@@ -852,6 +922,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isPreviewMode) {
           e.stopPropagation();
           selectElement(el.id);
+        } else if (el.type === 'toggle') {
+          el.isChecked = !el.isChecked;
+          renderCanvas();
         }
       });
 
@@ -897,8 +970,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const sx = e.clientX, sy = e.clientY, sw = model.width, sh = model.height;
 
       function onDrag(ev) {
-        model.width = Math.max(30, sw + (ev.clientX - sx));
-        model.height = Math.max(20, sh + (ev.clientY - sy));
+        model.width = Math.max(20, sw + (ev.clientX - sx));
+        model.height = Math.max(10, sh + (ev.clientY - sy));
         node.style.width = `${model.width}px`;
         node.style.height = `${model.height}px`;
         markDirty();
@@ -1059,6 +1132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ================= MAXIMUM CUSTOMIZABILITY PROPERTIES INSPECTOR =================
   function buildInspector() {
     const el = getActiveElementModel();
     if (!el) {
@@ -1069,35 +1143,116 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. UI Tab
+    // 1. Deep UI, Typography, Border & Spacing Customization
     if (propertiesTab) {
+      // Component-specific extra settings markup
+      let extraComponentControls = '';
+
+      if (el.type === 'slider' || el.type === 'progress') {
+        extraComponentControls = `
+          <div class="control-row">
+            <div class="control-group">
+              <label>Min Value</label>
+              <input type="number" class="control-input" id="propMinVal" value="${el.minVal || 0}">
+            </div>
+            <div class="control-group">
+              <label>Max Value</label>
+              <input type="number" class="control-input" id="propMaxVal" value="${el.maxVal || 100}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Current Value</label>
+            <input type="number" class="control-input" id="propCurVal" value="${el.currentVal || 50}">
+          </div>
+        `;
+      } else if (el.type === 'image') {
+        extraComponentControls = `
+          <div class="control-group">
+            <label>Image Fit Mode</label>
+            <div id="propImageFitContainer"></div>
+          </div>
+        `;
+      } else if (el.type === 'toggle') {
+        extraComponentControls = `
+          <div class="control-group">
+            <label>Default State</label>
+            <div id="propToggleStateContainer"></div>
+          </div>
+        `;
+      }
+
       propertiesTab.innerHTML = `
         <div class="control-group">
-          <label>Layer Name</label>
+          <label>Layer Label Identifier</label>
           <input type="text" class="control-input" id="propName" value="${el.name}">
         </div>
+
         <div class="control-group">
-          <label>Text Content / Placeholder</label>
+          <label>${el.type === 'image' ? 'Image Source (URL or File)' : 'Text Content / Placeholder'}</label>
           <input type="text" class="control-input" id="propText" value="${el.text}">
         </div>
-        <div class="control-group">
+
+        ${extraComponentControls}
+
+        <div class="control-group" style="margin-top: 6px;">
           <label>Font Family</label>
           <div id="propFontContainer"></div>
         </div>
+
         <div class="control-row">
           <div class="control-group">
             <label>Font Size (px)</label>
             <input type="number" class="control-input" id="propFontSize" value="${el.fontSize || 14}">
           </div>
           <div class="control-group">
-            <label>Weight</label>
+            <label>Font Weight</label>
             <div id="propWeightContainer"></div>
           </div>
         </div>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label>Letter Spacing (px)</label>
+            <input type="number" step="0.5" class="control-input" id="propLetterSpacing" value="${el.letterSpacing || 0}">
+          </div>
+          <div class="control-group">
+            <label>Line Height</label>
+            <input type="number" step="0.1" class="control-input" id="propLineHeight" value="${el.lineHeight || 1.2}">
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label>Text Transform</label>
+            <div id="propTransformContainer"></div>
+          </div>
+          <div class="control-group">
+            <label>Text Decoration</label>
+            <div id="propDecorContainer"></div>
+          </div>
+        </div>
+
         <div class="control-group">
           <label>Text Alignment</label>
           <div id="propAlignContainer"></div>
         </div>
+
+        <div class="control-group">
+          <label>Inner Padding (px)</label>
+          <input type="range" min="0" max="40" value="${el.padding || 0}" class="control-input" id="propPadding">
+        </div>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label>Border Width (px)</label>
+            <input type="number" min="0" max="20" class="control-input" id="propBorderWidth" value="${el.borderWidth !== undefined ? el.borderWidth : 1}">
+          </div>
+          <div class="control-group">
+            <label>Border Style</label>
+            <div id="propBorderStyleContainer"></div>
+          </div>
+        </div>
+
         <div class="control-group">
           <label>Text Color</label>
           <div class="color-picker-row">
@@ -1105,6 +1260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" class="control-input" id="propTextColor" value="${el.textColor}">
           </div>
         </div>
+
         <div class="control-group">
           <label>Background Color</label>
           <div class="color-picker-row">
@@ -1112,6 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" class="control-input" id="propBgColor" value="${el.bgColor}">
           </div>
         </div>
+
         <div class="control-group">
           <label>Border Color</label>
           <div class="color-picker-row">
@@ -1119,9 +1276,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="text" class="control-input" id="propBorderColor" value="${el.borderColor}">
           </div>
         </div>
-        <button class="btn-top" style="color:#ff6b6b; margin-top:10px;" id="delElemBtn">Remove Element</button>
+
+        <button class="btn-top" style="color:#ff6b6b; margin-top:14px;" id="delElemBtn">Remove Element</button>
       `;
 
+      // Mount Custom Selects
       createCustomSelect(
         document.getElementById('propFontContainer'),
         fontOptions,
@@ -1131,14 +1290,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const weightOpts = [
         { label: 'Regular (400)', value: '400' },
+        { label: 'Medium (500)', value: '500' },
         { label: 'Semi-Bold (600)', value: '600' },
-        { label: 'Bold (700)', value: '700' }
+        { label: 'Bold (700)', value: '700' },
+        { label: 'Extra-Bold (800)', value: '800' }
       ];
       createCustomSelect(
         document.getElementById('propWeightContainer'),
         weightOpts,
         el.fontWeight || '400',
         (val) => { el.fontWeight = val; markDirty(); renderCanvas(); }
+      );
+
+      const transformOpts = [
+        { label: 'None', value: 'none' },
+        { label: 'UPPERCASE', value: 'uppercase' },
+        { label: 'lowercase', value: 'lowercase' },
+        { label: 'Capitalize', value: 'capitalize' }
+      ];
+      createCustomSelect(
+        document.getElementById('propTransformContainer'),
+        transformOpts,
+        el.textTransform || 'none',
+        (val) => { el.textTransform = val; markDirty(); renderCanvas(); }
+      );
+
+      const decorOpts = [
+        { label: 'None', value: 'none' },
+        { label: 'Underline', value: 'underline' },
+        { label: 'Line-Through', value: 'line-through' }
+      ];
+      createCustomSelect(
+        document.getElementById('propDecorContainer'),
+        decorOpts,
+        el.textDecoration || 'none',
+        (val) => { el.textDecoration = val; markDirty(); renderCanvas(); }
       );
 
       const alignOpts = [
@@ -1153,9 +1339,57 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.textAlign = val; markDirty(); renderCanvas(); }
       );
 
+      const borderStyleOpts = [
+        { label: 'Solid', value: 'solid' },
+        { label: 'Dashed', value: 'dashed' },
+        { label: 'Dotted', value: 'dotted' },
+        { label: 'Double', value: 'double' }
+      ];
+      createCustomSelect(
+        document.getElementById('propBorderStyleContainer'),
+        borderStyleOpts,
+        el.borderStyle || 'solid',
+        (val) => { el.borderStyle = val; markDirty(); renderCanvas(); }
+      );
+
+      // Component-Specific Selects
+      if (el.type === 'image') {
+        const fitOpts = [
+          { label: 'Cover (Crop)', value: 'cover' },
+          { label: 'Contain (Fit)', value: 'contain' },
+          { label: 'Fill (Stretch)', value: 'fill' }
+        ];
+        createCustomSelect(
+          document.getElementById('propImageFitContainer'),
+          fitOpts,
+          el.imageFit || 'cover',
+          (val) => { el.imageFit = val; markDirty(); renderCanvas(); }
+        );
+      } else if (el.type === 'toggle') {
+        const toggleOpts = [
+          { label: 'Inactive / Off', value: 'false' },
+          { label: 'Active / On', value: 'true' }
+        ];
+        createCustomSelect(
+          document.getElementById('propToggleStateContainer'),
+          toggleOpts,
+          el.isChecked ? 'true' : 'false',
+          (val) => { el.isChecked = (val === 'true'); markDirty(); renderCanvas(); }
+        );
+      } else if (el.type === 'slider' || el.type === 'progress') {
+        document.getElementById('propMinVal').oninput = (e) => { el.minVal = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
+        document.getElementById('propMaxVal').oninput = (e) => { el.maxVal = parseInt(e.target.value) || 100; markDirty(); renderCanvas(); };
+        document.getElementById('propCurVal').oninput = (e) => { el.currentVal = parseInt(e.target.value) || 50; markDirty(); renderCanvas(); };
+      }
+
+      // Input Event Listeners
       document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
+      document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
+      document.getElementById('propLineHeight').oninput = (e) => { el.lineHeight = parseFloat(e.target.value) || 1.2; markDirty(); renderCanvas(); };
+      document.getElementById('propPadding').oninput = (e) => { el.padding = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
+      document.getElementById('propBorderWidth').oninput = (e) => { el.borderWidth = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
 
       bindColorPair('propTextColorPicker', 'propTextColor', (v) => { el.textColor = v; markDirty(); renderCanvas(); });
       bindColorPair('propBgColorPicker', 'propBgColor', (v) => { el.bgColor = v; markDirty(); renderCanvas(); });
@@ -1185,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Corner Radius (px)</label>
-          <input type="range" min="0" max="60" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
+          <input type="range" min="0" max="80" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
         </div>
       `;
 
@@ -1226,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Opacity (0 to 1)</label>
-          <input type="range" min="0.1" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
+          <input type="range" min="0.05" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
         </div>
         <div class="control-group">
           <label>Rotation Angle (degrees)</label>
@@ -1471,7 +1705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Component Drag & Drop
+  // Component Drag & Drop Palette
   document.querySelectorAll('.draggable-card').forEach(card => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
   });
@@ -1483,25 +1717,112 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = e.dataTransfer.getData('type');
       if (!type) return;
       const rect = canvas.getBoundingClientRect();
+
+      // Factory settings per element type
+      let defaultWidth = 140;
+      let defaultHeight = 44;
+      let defaultText = 'Click Me';
+      let defaultBg = '#7b2cbf';
+      let defaultBorder = '#9d4edd';
+      let defaultBorderWidth = 1;
+      let defaultPadding = 8;
+      let defaultShape = 'rounded';
+      let defaultRadius = 10;
+      let defaultIsChecked = false;
+      let defaultCurrentVal = 50;
+
+      if (type === 'label') {
+        defaultWidth = 160;
+        defaultHeight = 32;
+        defaultText = 'Header Title';
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'input') {
+        defaultWidth = 180;
+        defaultHeight = 40;
+        defaultText = 'Type something...';
+        defaultBg = 'rgba(255, 255, 255, 0.08)';
+        defaultBorder = 'rgba(255, 255, 255, 0.2)';
+      } else if (type === 'textarea') {
+        defaultWidth = 200;
+        defaultHeight = 80;
+        defaultText = 'Enter long paragraph comments...';
+        defaultBg = 'rgba(255, 255, 255, 0.08)';
+        defaultBorder = 'rgba(255, 255, 255, 0.2)';
+      } else if (type === 'toggle') {
+        defaultWidth = 56;
+        defaultHeight = 30;
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+        defaultIsChecked = true;
+      } else if (type === 'slider') {
+        defaultWidth = 180;
+        defaultHeight = 30;
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'progress') {
+        defaultWidth = 200;
+        defaultHeight = 16;
+        defaultBg = 'rgba(255, 255, 255, 0.1)';
+        defaultBorder = 'rgba(157, 78, 221, 0.3)';
+        defaultBorderWidth = 1;
+        defaultRadius = 8;
+        defaultCurrentVal = 65;
+      } else if (type === 'divider') {
+        defaultWidth = 220;
+        defaultHeight = 10;
+        defaultBg = 'transparent';
+        defaultBorder = '#9d4edd';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'icon') {
+        defaultWidth = 48;
+        defaultHeight = 48;
+        defaultText = '⭐';
+        defaultBg = 'rgba(157, 78, 221, 0.2)';
+        defaultBorder = '#9d4edd';
+        defaultShape = 'circle';
+        defaultRadius = 50;
+      } else if (type === 'card') {
+        defaultWidth = 220;
+        defaultHeight = 120;
+        defaultText = 'Card Container Box';
+        defaultBg = 'rgba(255, 255, 255, 0.05)';
+        defaultBorder = 'rgba(255, 255, 255, 0.12)';
+        defaultPadding = 14;
+      }
+
       const newEl = {
         id: 'el_' + Date.now().toString().slice(-4),
         name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
         type: type,
         x: Math.max(10, e.clientX - rect.left - 40),
         y: Math.max(10, e.clientY - rect.top - 20),
-        width: 140,
-        height: 44,
-        text: type === 'button' ? 'Click Me' : 'New ' + type,
+        width: defaultWidth,
+        height: defaultHeight,
+        text: defaultText,
         textColor: '#ffffff',
-        bgColor: '#7b2cbf',
-        borderColor: '#9d4edd',
-        borderWidth: 1,
-        shape: 'rounded',
-        borderRadius: 10,
+        bgColor: defaultBg,
+        borderColor: defaultBorder,
+        borderWidth: defaultBorderWidth,
+        borderStyle: 'solid',
+        shape: defaultShape,
+        borderRadius: defaultRadius,
         fontSize: 14,
         fontFamily: fontOptions[0].value,
         fontWeight: '500',
+        letterSpacing: 0,
+        lineHeight: 1.2,
+        textTransform: 'none',
+        textDecoration: 'none',
         textAlign: 'center',
+        padding: defaultPadding,
         backdropBlur: 0,
         glowSize: 0,
         glowColor: '#9d4edd',
@@ -1509,10 +1830,16 @@ document.addEventListener('DOMContentLoaded', () => {
         rotation: 0,
         animation: 'none',
         animDuration: 1.5,
+        minVal: 0,
+        maxVal: 100,
+        currentVal: defaultCurrentVal,
+        isChecked: defaultIsChecked,
+        imageFit: 'cover',
         codeMode: 'blocks',
         customJs: '',
         logic: { event: 'click', actions: [] }
       };
+
       getCurrentPage().elements.push(newEl);
       markDirty();
       selectElement(newEl.id);
@@ -1647,15 +1974,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // ================= DEEP MULTI-PAGE ACADEMY CURRICULUM =================
+  // ================= EXPANDED 8-TRACK MULTI-PAGE CURRICULUM =================
   let activeTrackId = 'track_shapes';
   let currentCoursePageIndex = 0;
 
   const courseTracks = [
     {
       id: 'track_canvas',
-      title: '1. Canvas, Layouts & Responsiveness',
-      desc: 'Coordinate clamping, boundary physics, device viewports & screen trees',
+      title: '1. Canvas & Responsive Layouts',
+      desc: 'Hardware frames, coordinate matrices, collision physics & viewport bezels',
       pages: [
         {
           title: 'Chapter 1: Hardware Boundaries & Pixel Spaces',
@@ -1957,6 +2284,108 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       ]
+    },
+    {
+      id: 'track_animations',
+      title: '7. Keyframes & Motion Dynamics',
+      desc: 'Entrance triggers, continuous motion loops, and custom easing curves',
+      pages: [
+        {
+          title: 'Chapter 1: The CSS Animation Pipeline',
+          desc: 'AppLab animates elements via dynamic CSS keyframe classes. Entrance animations run once upon mounting (`forwards`), while ambient animations loop infinitely (`infinite`).',
+          type: 'theory',
+          codeSnippet: `/* Continuous Pulse Loop */\n@keyframes animPulse {\n  0%, 100% { transform: scale(1); }\n  50% { transform: scale(1.1); }\n}`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 2: Interactive Practice: Live Motion Tester',
+          desc: 'Test ambient motion loops live. Click each button below to switch animation keyframes on the sample component in real time.',
+          type: 'practice_anim',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Chapter 3: Duration & Staggering Delays',
+          desc: 'Staggering animation delays across multiple child components creates professional waterfall entrances when screens mount.',
+          type: 'theory',
+          codeSnippet: `// Waterfall delay stagger:\ncard1.style.animationDelay = '0.1s';\ncard2.style.animationDelay = '0.2s';\ncard3.style.animationDelay = '0.3s';`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 4: Easing Curves & Bouncy Springs',
+          desc: 'Replace mechanical linear timing curves with custom cubic-bezier curves for bouncy, tactile feedback on button presses.',
+          type: 'theory',
+          codeSnippet: `/* Bouncy Spring Easing */\nanimation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 5: Master Quiz: Motion Dynamics',
+          desc: 'Verify your knowledge of keyframe animations and easing.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Which animation property ensures an entrance animation stays in its final state rather than snapping back?',
+            options: [
+              '`animation-fill-mode: forwards`',
+              '`animation-direction: reverse`',
+              '`animation-iteration-count: infinite`'
+            ],
+            correctIndex: 0,
+            explanation: '`forwards` instructs the CSS engine to retain the computed values established by the final keyframe upon animation completion.'
+          }
+        }
+      ]
+    },
+    {
+      id: 'track_audio',
+      title: '8. Audio Synthesis & Sound Effects',
+      desc: 'Oscillator frequencies, gain envelopes, chimes, and tactile haptics',
+      pages: [
+        {
+          title: 'Chapter 1: Zero-Dependency Audio Synthesis',
+          desc: 'Rather than loading bulky external MP3 files that fail to load offline, AppLab synthesizes pure audio waves directly through your device speakers using browser oscillators.',
+          type: 'theory',
+          codeSnippet: `const ctx = new AudioContext();\nconst osc = ctx.createOscillator();\nosc.connect(ctx.destination);\nosc.start();\nosc.stop(ctx.currentTime + 0.15);`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 2: Pitch & Frequency Modulation',
+          desc: 'Frequencies correspond to standard musical notes. Ramping an oscillator from 523Hz (C5) to 784Hz (G5) creates a crisp success chime.',
+          type: 'theory',
+          codeSnippet: `// Positive feedback chime:\nosc.frequency.setValueAtTime(523, ctx.currentTime);\nosc.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.2);`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 3: Interactive Practice: Synthesizer Lab',
+          desc: 'Play with sound waves in real time. Click the synthesizer buttons below to test live generated tones.',
+          type: 'practice_audio',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Chapter 4: Gain Nodes & Decay Envelopes',
+          desc: 'Abruptly stopping sound waves creates a popping artifact. Using a GainNode decay curve fades the volume to zero smoothly.',
+          type: 'theory',
+          codeSnippet: `gainNode.gain.setValueAtTime(0.2, ctx.currentTime);\ngainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);`,
+          quiz: null
+        },
+        {
+          title: 'Chapter 5: Master Quiz: Audio Synthesis',
+          desc: 'Test your understanding of browser audio generation.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Why does browser audio require an initial user click before it can play sound?',
+            options: [
+              'Audio requires microphone permissions',
+              'Browser autoplay security policies prevent unwanted background noise',
+              'Oscillators must pre-download audio drivers'
+            ],
+            correctIndex: 1,
+            explanation: 'Modern browsers block AudioContext audio playback until the user clicks or taps anywhere on the page to prevent jarring background sounds.'
+          }
+        }
+      ]
     }
   ];
 
@@ -1991,7 +2420,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const page = track.pages[currentCoursePageIndex];
     if (!page) return;
 
-    // Dots indicator
     let dotsHtml = track.pages.map((p, idx) => `
       <div class="page-dot ${idx === currentCoursePageIndex ? 'active' : ''}" data-page-idx="${idx}"></div>
     `).join('');
@@ -2072,6 +2500,35 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 8px; justify-content: center;">
             <button class="btn-top" id="perfToggleQuality">✨ Quality Mode</button>
             <button class="btn-top" id="perfToggleFast">⚡ Performance Mode</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_anim') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Motion Keyframe Tester</span></div>
+          <div class="lab-stage">
+            <div id="courseAnimChip" class="lab-target-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
+          </div>
+          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top" id="animPulseBtn">💓 Pulse</button>
+            <button class="btn-top" id="animBounceBtn">🏀 Bounce</button>
+            <button class="btn-top" id="animFloatBtn">🎈 Float</button>
+            <button class="btn-top" id="animSpinBtn">🔄 Spin</button>
+            <button class="btn-top" id="animShakeBtn">📳 Shake</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_audio') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Web Audio Synthesizer</span></div>
+          <div class="lab-stage">
+            <div id="audioVisualizerChip" class="lab-target-chip">🎵 Audio Wave Ready</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top btn-primary" id="playBeepToneBtn">🔊 440Hz Beep</button>
+            <button class="btn-top btn-primary" id="playChimeToneBtn">🔔 Success Chime</button>
           </div>
         </div>
       `;
@@ -2264,6 +2721,61 @@ document.addEventListener('DOMContentLoaded', () => {
         perfChip.style.backdropFilter = 'none';
         perfChip.style.boxShadow = 'none';
         perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
+      };
+    }
+
+    // Practice Lab 7: Motion Keyframe Tester
+    const animChip = document.getElementById('courseAnimChip');
+    if (animChip) {
+      const setChipAnim = (animClass, label) => {
+        animChip.className = `lab-target-chip anim-${animClass}`;
+        animChip.innerText = label;
+      };
+      document.getElementById('animPulseBtn').onclick = () => setChipAnim('pulse', '💓 Pulsing');
+      document.getElementById('animBounceBtn').onclick = () => setChipAnim('bounce', '🏀 Bouncing');
+      document.getElementById('animFloatBtn').onclick = () => setChipAnim('float', '🎈 Floating');
+      document.getElementById('animSpinBtn').onclick = () => setChipAnim('spin', '🔄 Spinning');
+      document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
+    }
+
+    // Practice Lab 8: Web Audio Synthesizer
+    const audioChip = document.getElementById('audioVisualizerChip');
+    if (audioChip) {
+      const playTone = (freq, duration, type = 'sine') => {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+          osc.start();
+          osc.stop(ctx.currentTime + duration);
+        } catch (e) {}
+      };
+
+      document.getElementById('playBeepToneBtn').onclick = () => {
+        audioChip.innerText = '🔊 Playing 440Hz Sine Wave...';
+        audioChip.style.boxShadow = '0 0 25px #00f2fe';
+        playTone(440, 0.25);
+        setTimeout(() => {
+          audioChip.innerText = '🎵 Audio Wave Ready';
+          audioChip.style.boxShadow = '';
+        }, 300);
+      };
+
+      document.getElementById('playChimeToneBtn').onclick = () => {
+        audioChip.innerText = '🔔 Playing Success Chime (C5 -> G5)...';
+        audioChip.style.boxShadow = '0 0 25px #2ed573';
+        playTone(523, 0.15);
+        setTimeout(() => playTone(784, 0.25), 150);
+        setTimeout(() => {
+          audioChip.innerText = '🎵 Audio Wave Ready';
+          audioChip.style.boxShadow = '';
+        }, 400);
       };
     }
 
