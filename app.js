@@ -18,19 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
   function getStoredFolders() {
     try {
       const data = localStorage.getItem(STORAGE_FOLDERS);
-      return data ? JSON.parse(data) : ['General', 'Prototypes', 'Games', 'Tools'];
-    } catch {
-      return ['General', 'Prototypes', 'Games', 'Tools'];
-    }
+      if (data) return JSON.parse(data);
+    } catch (e) {}
+    const defaults = ['General', 'Prototypes', 'Games', 'Tools'];
+    try { localStorage.setItem(STORAGE_FOLDERS, JSON.stringify(defaults)); } catch (e) {}
+    return defaults;
   }
 
   function getStoredProjects() {
     try {
       const data = localStorage.getItem(STORAGE_PROJECTS);
       if (data) return JSON.parse(data);
-    } catch (e) {
-      console.warn(e);
-    }
+    } catch (e) {}
 
     const defaultData = [
       {
@@ -71,9 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 rotation: 0,
                 animation: 'pulse',
                 animDuration: 1.5,
-                animDelay: 0,
-                animIteration: 'infinite',
-                animEasing: 'ease-in-out',
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
                 logic: {
@@ -90,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     try {
       localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(defaultData));
-    } catch {}
+    } catch (e) {}
     return defaultData;
   }
 
@@ -98,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const s = localStorage.getItem(STORAGE_SETTINGS);
     if (s) userSettings = JSON.parse(s);
-  } catch {}
+  } catch (e) {}
 
   let currentProject = JSON.parse(JSON.stringify(getStoredProjects()[0]));
   let activeScreenId = currentProject.pages[0].id;
@@ -208,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (clk) clk.innerText = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }, 1000);
 
-  // ================= UNIVERSAL CUSTOM SELECT COMPONENT GENERATOR =================
+  // ================= UNIVERSAL CUSTOM SELECT COMPONENT =================
   function createCustomSelect(container, options, initialValue, onSelectCallback) {
     if (!container) return;
     container.innerHTML = '';
@@ -216,7 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.createElement('div');
     wrapper.className = 'custom-select-wrapper';
 
-    const selectedOption = options.find(o => o.value === initialValue) || options[0] || { label: 'Select...', value: '' };
+    let selectedOption = options.find(o => o.value === initialValue);
+    if (!selectedOption) selectedOption = options[0] || { label: 'Select...', value: '' };
 
     const trigger = document.createElement('div');
     trigger.className = 'custom-select-trigger';
@@ -447,13 +444,17 @@ document.addEventListener('DOMContentLoaded', () => {
     createFolderBtn.addEventListener('click', async () => {
       const name = await AppLab.prompt('Enter new folder name:', '', 'Create Project Folder');
       if (name && name.trim()) {
+        const trimmed = name.trim();
         const folders = getStoredFolders();
-        if (!folders.includes(name.trim())) {
-          folders.push(name.trim());
+        if (!folders.includes(trimmed)) {
+          folders.push(trimmed);
           try {
             localStorage.setItem(STORAGE_FOLDERS, JSON.stringify(folders));
-          } catch {}
+          } catch (e) {}
           renderFolderOptions();
+          await AppLab.alert(`Folder "${trimmed}" created successfully!`, 'Folder Created', '📁');
+        } else {
+          await AppLab.alert(`A folder named "${trimmed}" already exists.`, 'Duplicate Folder', '⚠️');
         }
       }
     });
@@ -509,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let list = getStoredProjects().filter(p => p.id !== id);
       try {
         localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(list));
-      } catch {}
+      } catch (e) {}
       renderProjectsDashboard();
     }
   }
@@ -596,9 +597,6 @@ document.addEventListener('DOMContentLoaded', () => {
               rotation: 0,
               animation: 'slideUp',
               animDuration: 0.8,
-              animDelay: 0,
-              animIteration: '1',
-              animEasing: 'cubic-bezier(0.16, 1, 0.3, 1)',
               codeMode: 'blocks',
               customJs: '',
               logic: { event: 'click', actions: [] }
@@ -629,9 +627,6 @@ document.addEventListener('DOMContentLoaded', () => {
               rotation: 0,
               animation: 'pulse',
               animDuration: 1.5,
-              animDelay: 0,
-              animIteration: 'infinite',
-              animEasing: 'ease-in-out',
               codeMode: 'blocks',
               customJs: '',
               logic: { event: 'click', actions: [{ type: 'alert', target: '', value: 'Button clicked!' }] }
@@ -669,9 +664,6 @@ document.addEventListener('DOMContentLoaded', () => {
               rotation: 0,
               animation: 'scalePop',
               animDuration: 0.8,
-              animDelay: 0,
-              animIteration: '1',
-              animEasing: 'cubic-bezier(0.16, 1, 0.3, 1)',
               codeMode: 'blocks',
               customJs: '',
               logic: { event: 'click', actions: [] }
@@ -716,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else list.unshift(JSON.parse(JSON.stringify(currentProject)));
     try {
       localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(list));
-    } catch {}
+    } catch (e) {}
     markClean();
   }
 
@@ -839,9 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (el.animation && el.animation !== 'none') {
         node.classList.add(`anim-${el.animation}`);
         node.style.animationDuration = `${el.animDuration || 1.5}s`;
-        node.style.animationDelay = `${el.animDelay || 0}s`;
-        node.style.animationIterationCount = el.animIteration || 'infinite';
-        node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
       }
 
       if (!isPreviewMode) {
@@ -1023,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator(); osc.connect(ctx.destination);
                 osc.start(); osc.stop(ctx.currentTime + 0.15);
-              } catch {}
+              } catch (e) {}
             }
           }, canvas);
         } catch (err) {
@@ -1069,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (propertiesTab) propertiesTab.innerHTML = '<p class="empty-state">Select an element to customize styling.</p>';
       if (shapesTab) shapesTab.innerHTML = '<p class="empty-state">Select an element to customize shapes.</p>';
       if (effectsTab) effectsTab.innerHTML = '<p class="empty-state">Select an element to customize effects.</p>';
-      if (animationsTab) animationsTab.innerHTML = '<p class="empty-state">Select an element to configure advanced animations.</p>';
+      if (animationsTab) animationsTab.innerHTML = '<p class="empty-state">Select an element to configure animations.</p>';
       return;
     }
 
@@ -1126,7 +1115,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-top" style="color:#ff6b6b; margin-top:10px;" id="delElemBtn">Remove Element</button>
       `;
 
-      // Mount Font, Weight & Alignment Custom Selects
       createCustomSelect(
         document.getElementById('propFontContainer'),
         fontOptions,
@@ -1224,7 +1212,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Glow / Shadow Color</label>
-          <input type="color" id="propGlowColor" value="${rgbToHex(el.glowColor || '#9d4edd')}">
+          <div class="color-picker-row">
+            <input type="color" id="propGlowColorPicker" value="${rgbToHex(el.glowColor || '#9d4edd')}">
+            <input type="text" class="control-input" id="propGlowColorText" value="${el.glowColor || '#9d4edd'}">
+          </div>
         </div>
         <div class="control-group">
           <label>Opacity (0 to 1)</label>
@@ -1238,105 +1229,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('propBlur').oninput = (e) => { el.backdropBlur = parseInt(e.target.value); markDirty(); renderCanvas(); };
       document.getElementById('propGlowSize').oninput = (e) => { el.glowSize = parseInt(e.target.value); markDirty(); renderCanvas(); };
-      document.getElementById('propGlowColor').oninput = (e) => { el.glowColor = e.target.value; markDirty(); renderCanvas(); };
+      bindColorPair('propGlowColorPicker', 'propGlowColorText', (v) => { el.glowColor = v; markDirty(); renderCanvas(); });
       document.getElementById('propOpacity').oninput = (e) => { el.opacity = parseFloat(e.target.value); markDirty(); renderCanvas(); };
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Animations Tab - Interactive card grid & custom select dropdowns
+    // 4. Standard Animation Tab (Simple & Streamlined)
     if (animationsTab) {
-      const animPresets = [
-        { id: 'none', label: 'None', icon: '🚫' },
-        { id: 'fadeIn', label: 'Fade In', icon: '✨' },
-        { id: 'slideUp', label: 'Slide Up', icon: '⬆️' },
-        { id: 'scalePop', label: 'Scale Pop', icon: '💥' },
-        { id: 'pulse', label: 'Pulse', icon: '💓' },
-        { id: 'bounce', label: 'Bounce', icon: '🏀' },
-        { id: 'float', label: 'Float', icon: '🎈' },
-        { id: 'spin', label: 'Spin', icon: '🔄' },
-        { id: 'glowPulse', label: 'Glow', icon: '🔮' },
-        { id: 'shake', label: 'Shake', icon: '📳' }
-      ];
-
-      const currentAnim = el.animation || 'none';
-      const animChipsHtml = animPresets.map(p => `
-        <button class="anim-chip-btn ${currentAnim === p.id ? 'active' : ''}" data-anim="${p.id}">
-          <span class="chip-icon">${p.icon}</span>
-          <span>${p.label}</span>
-        </button>
-      `).join('');
-
       animationsTab.innerHTML = `
         <div class="control-group">
-          <label>Visual Animation Preset</label>
-          <div class="anim-grid-picker" id="animGridPicker">
-            ${animChipsHtml}
-          </div>
+          <label>Animation Style</label>
+          <div id="animStyleContainer"></div>
         </div>
 
-        <div class="control-row" style="margin-top: 6px;">
-          <div class="control-group">
-            <label>Duration (Seconds)</label>
-            <input type="number" step="0.1" min="0.1" max="10" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
-          </div>
-          <div class="control-group">
-            <label>Delay (Seconds)</label>
-            <input type="number" step="0.1" min="0" max="10" class="control-input" id="propAnimDelay" value="${el.animDelay || 0}">
-          </div>
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Iterations</label>
-            <div id="animIterContainer"></div>
-          </div>
-
-          <div class="control-group">
-            <label>Timing Curve</label>
-            <div id="animEasingContainer"></div>
-          </div>
+        <div class="control-group" style="margin-top: 6px;">
+          <label>Duration (Seconds)</label>
+          <input type="number" step="0.1" min="0.1" max="10" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
         </div>
 
         <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 10px;">▶️ Test Animation Live</button>
       `;
 
-      document.querySelectorAll('.anim-chip-btn').forEach(btn => {
-        btn.onclick = () => {
-          document.querySelectorAll('.anim-chip-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          el.animation = btn.dataset.anim;
+      const animOpts = [
+        { label: '🚫 None', value: 'none' },
+        { label: '✨ Fade In', value: 'fadeIn' },
+        { label: '⬆️ Slide Up', value: 'slideUp' },
+        { label: '💥 Scale Pop', value: 'scalePop' },
+        { label: '💓 Pulse (Loop)', value: 'pulse' },
+        { label: '🏀 Bounce (Loop)', value: 'bounce' },
+        { label: '🎈 Float (Loop)', value: 'float' },
+        { label: '🔄 Spin (Loop)', value: 'spin' },
+        { label: '🔮 Glow Pulse (Loop)', value: 'glowPulse' },
+        { label: '📳 Shake', value: 'shake' }
+      ];
+
+      createCustomSelect(
+        document.getElementById('animStyleContainer'),
+        animOpts,
+        el.animation || 'none',
+        (val) => {
+          el.animation = val;
           markDirty();
           renderCanvas();
-        };
-      });
-
-      const iterOpts = [
-        { label: '🔁 Infinite Loop', value: 'infinite' },
-        { label: '1 Time', value: '1' },
-        { label: '2 Times', value: '2' },
-        { label: '3 Times', value: '3' }
-      ];
-      createCustomSelect(
-        document.getElementById('animIterContainer'),
-        iterOpts,
-        el.animIteration || 'infinite',
-        (val) => { el.animIteration = val; markDirty(); renderCanvas(); }
+        }
       );
 
-      const easingOpts = [
-        { label: 'Smooth (Ease In-Out)', value: 'ease-in-out' },
-        { label: 'Linear (Constant)', value: 'linear' },
-        { label: 'Bouncy Spring', value: 'cubic-bezier(0.16, 1, 0.3, 1)' }
-      ];
-      createCustomSelect(
-        document.getElementById('animEasingContainer'),
-        easingOpts,
-        el.animEasing || 'ease-in-out',
-        (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
-      );
-
-      document.getElementById('propAnimDur').oninput = (e) => { el.animDuration = parseFloat(e.target.value) || 1.5; markDirty(); renderCanvas(); };
-      document.getElementById('propAnimDelay').oninput = (e) => { el.animDelay = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
+      document.getElementById('propAnimDur').oninput = (e) => {
+        el.animDuration = parseFloat(e.target.value) || 1.5;
+        markDirty();
+        renderCanvas();
+      };
 
       document.getElementById('replayAnimBtn').onclick = () => {
         const node = document.getElementById(el.id);
@@ -1456,7 +1398,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       blocksContainer.appendChild(step);
 
-      // Mount Custom Select for Action Type
       const actionTypeOpts = [
         { label: 'Show Alert Pop-up', value: 'alert' },
         { label: 'Navigate to Screen', value: 'navigate' },
@@ -1474,7 +1415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       );
 
-      // Mount Custom Select for Action Target (if applicable)
       const targetContainer = document.getElementById(`stepTargetContainer_${idx}`);
       if (targetContainer) {
         const availableTargets = [
@@ -1562,9 +1502,6 @@ document.addEventListener('DOMContentLoaded', () => {
         rotation: 0,
         animation: 'none',
         animDuration: 1.5,
-        animDelay: 0,
-        animIteration: 'infinite',
-        animEasing: 'ease-in-out',
         codeMode: 'blocks',
         customJs: '',
         logic: { event: 'click', actions: [] }
@@ -1681,7 +1618,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applySettingsBtn.onclick = () => {
       try {
         localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
-      } catch {}
+      } catch (e) {}
       applyGlobalSettings();
       settingsModal.classList.add('hidden');
     };
@@ -1703,6 +1640,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // Initial Load
+  // Initial Boot
   switchMainView('homeView');
 });
