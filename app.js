@@ -192,8 +192,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
-  const tutorialSearchInput = document.getElementById('tutorialSearchInput');
-  const academyGrid = document.getElementById('academyGrid');
+  // Academy Course Elements
+  const trackMenu = document.getElementById('trackMenu');
+  const courseStage = document.getElementById('courseStage');
 
   function applyGlobalSettings() {
     document.documentElement.setAttribute('data-theme', userSettings.theme);
@@ -259,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(wrapper);
   }
 
-  // Global Click Outside to Close Custom Dropdowns
   window.addEventListener('click', () => {
     document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
   });
@@ -385,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
       switchStudioSubpage('design');
     } else if (viewId === 'tutorialView') {
       if (builderControls) builderControls.classList.add('hidden');
-      renderAcademy();
+      renderCourseWorkspace();
     } else {
       if (builderControls) builderControls.classList.add('hidden');
       if (viewId === 'homeView') renderProjectsDashboard();
@@ -1068,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. UI Tab
+    // UI Tab
     if (propertiesTab) {
       propertiesTab.innerHTML = `
         <div class="control-group">
@@ -1168,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // 2. Shapes Tab
+    // Shapes Tab
     if (shapesTab) {
       shapesTab.innerHTML = `
         <div class="control-group">
@@ -1205,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // 3. Effects Tab
+    // Effects Tab
     if (effectsTab) {
       effectsTab.innerHTML = `
         <div class="control-group">
@@ -1240,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Standard Animation Tab
+    // Animation Tab
     if (animationsTab) {
       animationsTab.innerHTML = `
         <div class="control-group">
@@ -1646,242 +1646,365 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // ================= ACADEMY / TUTORIAL SYSTEM =================
-  let currentAcademyCategory = 'all';
-  let currentAcademySearch = '';
+  // ================= MULTI-PAGE ACADEMY CURRICULUM =================
+  let activeTrackId = 'track_shapes';
+  let currentCoursePageIndex = 0;
 
-  const academyLessons = [
+  const courseTracks = [
     {
-      id: 'l1',
-      category: 'basics',
-      num: 'MODULE 01',
-      tag: 'CANVAS BASICS',
-      title: 'Canvas Navigation & Viewports',
-      desc: 'Learn how to freely move elements on the screen, resize using bottom-right handles, and test responsive dimensions across Phone, Tablet, and Desktop frames.',
-      interactiveType: 'snippet',
-      codeSnippet: `// Available viewports in header:\n// Phone: 340 × 680px | Tablet: 680 × 500px | Desktop: 840 × 520px`
+      id: 'track_canvas',
+      title: 'Canvas & Layouts',
+      desc: 'Free placement, viewports & screen routing',
+      pages: [
+        {
+          title: 'Viewport Dimensions & Positioning',
+          desc: 'Learn how elements position themselves inside simulated hardware boundaries (Phone: 340×680, Tablet: 680×500, Desktop: 840×520). Elements use absolute pixel coordinates relative to the screen canvas.',
+          type: 'theory',
+          codeSnippet: `// Coordinate bounds:\nconst maxX = canvas.offsetWidth - element.offsetWidth;\nconst maxY = canvas.offsetHeight - element.offsetHeight;`,
+          quiz: null
+        },
+        {
+          title: 'Interactive Practice: Boundary Collision',
+          desc: 'Test real-time clamping. Click the buttons below to shift the sample chip. Notice how coordinate boundaries prevent elements from falling off-screen.',
+          type: 'practice_canvas',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Knowledge Check: Canvas Layouts',
+          desc: 'Test your understanding of AppLab viewport coordinates.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'What happens to element dimensions when switching between Phone and Tablet viewports?',
+            options: [
+              'Elements automatically stretch to 100% width',
+              'Elements maintain their absolute pixel dimensions and coordinates',
+              'All placed elements are cleared from memory'
+            ],
+            correctIndex: 1,
+            explanation: 'AppLab preserves your exact element coordinates and pixel dimensions so layout structures remain intact across device frame previews.'
+          }
+        }
+      ]
     },
     {
-      id: 'l2',
-      category: 'basics',
-      num: 'MODULE 02',
-      tag: 'PAGE ROUTING',
-      title: 'Multi-Screen Page Flows',
-      desc: 'Create clean multi-screen applications. Learn how to add new screens, manage individual component trees, and establish instant transitions between pages.',
-      interactiveType: 'snippet',
-      codeSnippet: `// Route to any screen programmatically:\napp.navigateTo('screen_2');`
+      id: 'track_shapes',
+      title: 'Shapes & Styling',
+      desc: 'Geometric clip paths, glow contours & blurs',
+      pages: [
+        {
+          title: 'Polygonal Clip-Paths & Drop-Shadows',
+          desc: 'Standard CSS box-shadow gets clipped off by polygon clip-paths. AppLab dynamically applies CSS `filter: drop-shadow(...)` to wrap neon glow around Diamond and Hexagon contours.',
+          type: 'theory',
+          codeSnippet: `/* Diamond polygon contour */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);\nfilter: drop-shadow(0 0 16px #9d4edd);`,
+          quiz: null
+        },
+        {
+          title: 'Interactive Lab: Geometric Contour Shifter',
+          desc: 'Click each shape preset below to see how clip-path polygon points and glowing drop-shadow contours react live on the sample component.',
+          type: 'practice_shapes',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Knowledge Check: Contour Shadows',
+          desc: 'Verify why traditional box-shadow fails on polygons.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Why does AppLab use filter: drop-shadow instead of box-shadow for Hexagons and Diamonds?',
+            options: [
+              'box-shadow is deprecated in modern browsers',
+              'clip-path cuts off any pixels outside the polygon, including standard box-shadow',
+              'filter: drop-shadow runs faster on low-end processors'
+            ],
+            correctIndex: 1,
+            explanation: 'CSS clip-path establishes a new geometric mask that clips rectangular box-shadows. Filter drop-shadow computes shadow around alpha channels.'
+          }
+        }
+      ]
     },
     {
-      id: 'l3',
-      category: 'design',
-      num: 'MODULE 03',
-      tag: 'SHAPES & CLIP-PATH',
-      title: 'Polygons & Custom Geometry',
-      desc: 'Transform simple components into Smooth Rounded Cards, Capsules, Circles, Diamonds, and Hexagons. Glow filters cleanly trace contour edges.',
-      interactiveType: 'demo_shapes',
-      codeSnippet: `/* Diamond polygon contour */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);\nfilter: drop-shadow(0 0 16px #9d4edd);`
-    },
-    {
-      id: 'l4',
-      category: 'design',
-      num: 'MODULE 04',
-      tag: 'GLASS & EFFECTS',
-      title: 'Backdrop Glassmorphism & Neon Glow',
-      desc: 'Achieve the signature purple crystal look by combining backdrop blur filters with neon glow spread radiuses, custom opacity, and element rotation.',
-      interactiveType: 'snippet',
-      codeSnippet: `/* Glassmorphism stack */\nbackdrop-filter: blur(20px);\nbox-shadow: 0 0 18px rgba(157, 78, 221, 0.45);\nbackground: rgba(255, 255, 255, 0.05);`
-    },
-    {
-      id: 'l5',
-      category: 'design',
-      num: 'MODULE 05',
-      tag: 'ANIMATION ENGINE',
-      title: 'Dynamic Keyframe Animations',
-      desc: 'Bring components to life using continuous loops like Pulse, Bounce, Float, Spin, Shake, or dramatic entrance presets like Fade In, Slide Up, and Scale Pop.',
-      interactiveType: 'demo_anim',
-      codeSnippet: `// Test live animations by pressing "Test Animation Live" in the inspector.`
-    },
-    {
-      id: 'l6',
-      category: 'coding',
-      num: 'MODULE 06',
-      tag: 'VISUAL LOGIC',
-      title: 'Action Block Chaining',
-      desc: 'Build workflows without writing code. Set triggers (Click, Hover) and stack sequential actions: open popups, route pages, change text, or re-color layers.',
-      interactiveType: 'snippet',
-      codeSnippet: `[WHEN: Click Event]\n  1. Alert: "Welcome!"\n  2. Navigate: "Screen 2"\n  3. Set Text: Layer "Title" -> "Active"`
-    },
-    {
-      id: 'l7',
-      category: 'coding',
-      num: 'MODULE 07',
-      tag: 'JAVASCRIPT ENGINE',
-      title: 'Raw JavaScript Execution',
-      desc: 'Switch to the JS Code Editor in the Code Lab to execute raw JavaScript. Access element properties, trigger synthesized audio tones, and launch custom modals.',
-      interactiveType: 'snippet',
-      codeSnippet: `// Inside the script editor:\nelement.style.backgroundColor = '#ff0077';\napp.playBeep();\napp.showAlert('Script executed successfully!');`
-    },
-    {
-      id: 'l8',
-      category: 'pro',
-      num: 'MODULE 08',
-      tag: 'WINDOWS PRO TIPS',
-      title: 'Right-Click Context Menu & Folders',
-      desc: 'Right-click any placed canvas element to duplicate it with layout offsets, re-order z-index layers (Bring to Front / Send to Back), or organize projects into folders.',
-      interactiveType: 'snippet',
-      codeSnippet: `// Shortcut:\n// Right-click any component on canvas to open the Windows-style menu.`
+      id: 'track_codelab',
+      title: 'Code Lab & Logic',
+      desc: 'Action block stacks & raw JavaScript scripts',
+      pages: [
+        {
+          title: 'Block Stacking & Event Hooks',
+          desc: 'Code Lab allows you to trigger events (Click, Hover) and execute ordered action stacks without coding. Actions run sequentially down the stack.',
+          type: 'theory',
+          codeSnippet: `[EVENT: On Click]\n  -> Action 1: Show Alert("Welcome")\n  -> Action 2: Navigate("Screen 2")\n  -> Action 3: Set Layer Background("#7b2cbf")`,
+          quiz: null
+        },
+        {
+          title: 'Interactive Lab: Script Execution Sandbox',
+          desc: 'Run a sample JavaScript sandbox call directly. Click "Run Code Snippet" below to trigger the Web Audio synthesizer and custom glass modal alert.',
+          type: 'practice_js',
+          codeSnippet: `// Sandbox Scope Example:\nelement.style.backgroundColor = '#9d4edd';\napp.playBeep();\napp.showAlert('Sandbox executed successfully!');`,
+          quiz: null
+        },
+        {
+          title: 'Knowledge Check: Code Execution',
+          desc: 'Confirm your mastery of script sandbox scopes.',
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'What method is provided by the AppLab sandbox API to programmatically switch screens?',
+            options: [
+              'window.location.href = screenId',
+              'app.navigateTo(screenId)',
+              'screen.change(screenId)'
+            ],
+            correctIndex: 1,
+            explanation: 'The AppLab runtime passes the `app` helper object, exposing `app.navigateTo(id)` to route between project screens.'
+          }
+        }
+      ]
     }
   ];
 
-  function renderAcademy() {
-    if (!academyGrid) return;
-    academyGrid.innerHTML = '';
+  function renderCourseWorkspace() {
+    if (!trackMenu || !courseStage) return;
 
-    const query = currentAcademySearch.toLowerCase().trim();
-    const filtered = academyLessons.filter(l => {
-      const matchesCat = currentAcademyCategory === 'all' || l.category === currentAcademyCategory;
-      const matchesSearch = query === '' ||
-                            l.title.toLowerCase().includes(query) ||
-                            l.desc.toLowerCase().includes(query) ||
-                            l.tag.toLowerCase().includes(query);
-      return matchesCat && matchesSearch;
+    // 1. Render Left Track Items
+    trackMenu.innerHTML = '';
+    courseTracks.forEach(track => {
+      const item = document.createElement('div');
+      item.className = `track-item ${track.id === activeTrackId ? 'active' : ''}`;
+      item.innerHTML = `
+        <h4>${track.title}</h4>
+        <span class="track-meta">${track.pages.length} Pages • ${track.desc}</span>
+      `;
+      item.onclick = () => {
+        activeTrackId = track.id;
+        currentCoursePageIndex = 0;
+        renderCourseWorkspace();
+      };
+      trackMenu.appendChild(item);
     });
 
-    if (filtered.length === 0) {
-      academyGrid.innerHTML = '<p class="empty-state" style="grid-column: 1/-1; padding: 40px 0;">No lessons match your search criteria.</p>';
-      return;
-    }
+    // 2. Render Active Track Page
+    renderActiveCoursePage();
+  }
 
-    filtered.forEach(lesson => {
-      const card = document.createElement('div');
-      card.className = 'lesson-card';
+  function renderActiveCoursePage() {
+    const track = courseTracks.find(t => t.id === activeTrackId);
+    if (!track) return;
 
-      let interactiveWidgetHtml = '';
-      if (lesson.interactiveType === 'demo_shapes') {
-        interactiveWidgetHtml = `
-          <div class="lesson-interactive-box">
-            <span class="lesson-interactive-title">Live Shape Playground</span>
-            <div class="interactive-demo-stage">
-              <div id="shapeDemoChip_${lesson.id}" class="demo-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 10px #9d4edd); border-radius:0;">💠 Diamond</div>
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="pill" data-target="shapeDemoChip_${lesson.id}">💊 Capsule</button>
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="diamond" data-target="shapeDemoChip_${lesson.id}">💠 Diamond</button>
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-shape-btn="hexagon" data-target="shapeDemoChip_${lesson.id}">⬡ Hexagon</button>
-            </div>
+    const page = track.pages[currentCoursePageIndex];
+    if (!page) return;
+
+    // Dots indicator
+    let dotsHtml = track.pages.map((p, idx) => `
+      <div class="page-dot ${idx === currentCoursePageIndex ? 'active' : ''}" data-page-idx="${idx}"></div>
+    `).join('');
+
+    let interactiveHtml = '';
+
+    if (page.type === 'practice_canvas') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Canvas Coordinates</span></div>
+          <div class="lab-stage" id="canvasLabStage" style="position: relative; height: 120px; overflow: hidden;">
+            <div id="canvasLabChip" class="lab-target-chip" style="position: absolute; left: 80px; top: 35px;">📦 Coordinate Chip</div>
           </div>
-        `;
-      } else if (lesson.interactiveType === 'demo_anim') {
-        interactiveWidgetHtml = `
-          <div class="lesson-interactive-box">
-            <span class="lesson-interactive-title">Live Animation Preview</span>
-            <div class="interactive-demo-stage">
-              <div id="animDemoChip_${lesson.id}" class="demo-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
-            </div>
-            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="pulse" data-target="animDemoChip_${lesson.id}">💓 Pulse</button>
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="bounce" data-target="animDemoChip_${lesson.id}">🏀 Bounce</button>
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="float" data-target="animDemoChip_${lesson.id}">🎈 Float</button>
-              <button class="btn-top" style="padding: 4px 10px; font-size: 0.74rem;" data-anim-btn="shake" data-target="animDemoChip_${lesson.id}">📳 Shake</button>
-            </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top" id="moveChipLeft">⬅️ Left (-30px)</button>
+            <button class="btn-top" id="moveChipRight">Right (+30px) ➡️</button>
+            <button class="btn-top" id="resetChipPos">Reset</button>
           </div>
-        `;
-      }
-
-      card.innerHTML = `
-        <div class="lesson-top-meta">
-          <span class="lesson-number">${lesson.num}</span>
-          <span class="lesson-tag">${lesson.tag}</span>
-        </div>
-        <h3>${lesson.title}</h3>
-        <p>${lesson.desc}</p>
-        ${interactiveWidgetHtml}
-        <div class="code-snippet-box">
-          <button class="btn-copy-code" data-code="${encodeURIComponent(lesson.codeSnippet)}">Copy</button>
-          <pre>${lesson.codeSnippet}</pre>
-        </div>
-        <div class="lesson-footer">
-          <button class="lesson-link-btn" data-action="open-studio">Try in Studio Builder &rarr;</button>
         </div>
       `;
+    } else if (page.type === 'practice_shapes') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Geometric Contours</span></div>
+          <div class="lab-stage">
+            <div id="courseShapeChip" class="lab-target-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 14px #9d4edd); border-radius:0;">💠 Diamond</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top" id="shapePillBtn">💊 Capsule</button>
+            <button class="btn-top" id="shapeDiamondBtn">💠 Diamond</button>
+            <button class="btn-top" id="shapeHexagonBtn">⬡ Hexagon</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_js') {
+      interactiveHtml = `
+        <div class="lab-card">
+          <div class="lab-title-bar"><span>🧪 Interactive Lab: Script Runner</span></div>
+          <div class="lab-stage">
+            <div id="jsLabTarget" class="lab-target-chip">⚡ Script Target</div>
+          </div>
+          <button class="btn-top btn-primary" id="runCourseJsBtn" style="align-self: center;">▶️ Execute Sandbox Code</button>
+        </div>
+      `;
+    } else if (page.type === 'quiz' && page.quiz) {
+      const q = page.quiz;
+      const optsHtml = q.options.map((opt, i) => `
+        <button class="quiz-option-btn" data-opt-idx="${i}">
+          <span style="opacity: 0.6;">[${String.fromCharCode(65 + i)}]</span> ${opt}
+        </button>
+      `).join('');
 
-      academyGrid.appendChild(card);
+      interactiveHtml = `
+        <div class="quiz-card">
+          <div class="quiz-question">${q.question}</div>
+          <div class="quiz-options" id="quizOptionsContainer">${optsHtml}</div>
+          <div class="quiz-feedback" id="quizFeedbackBox">${q.explanation}</div>
+        </div>
+      `;
+    }
+
+    courseStage.innerHTML = `
+      <div class="course-paper">
+        <div class="course-paper-header">
+          <span class="page-indicator-pill">${track.title.toUpperCase()} • PAGE ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
+          <div class="page-dots">${dotsHtml}</div>
+        </div>
+
+        <div class="lesson-headline">
+          <h2>${page.title}</h2>
+          <p>${page.desc}</p>
+        </div>
+
+        ${page.codeSnippet ? `
+          <div class="code-snippet-box">
+            <button class="btn-copy-code" data-code="${encodeURIComponent(page.codeSnippet)}">Copy Snippet</button>
+            <pre>${page.codeSnippet}</pre>
+          </div>
+        ` : ''}
+
+        ${interactiveHtml}
+
+        <div class="course-pagination-footer">
+          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Page</button>
+          <button class="btn-top btn-primary" id="nextCoursePageBtn">
+            ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Page &rarr;'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    // Pagination Listeners
+    document.querySelectorAll('.page-dot').forEach(dot => {
+      dot.onclick = () => {
+        currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
+        renderActiveCoursePage();
+      };
     });
 
-    // Attach Copy Snippet Listeners
+    document.getElementById('prevCoursePageBtn').onclick = () => {
+      if (currentCoursePageIndex > 0) {
+        currentCoursePageIndex--;
+        renderActiveCoursePage();
+      }
+    };
+
+    document.getElementById('nextCoursePageBtn').onclick = () => {
+      if (currentCoursePageIndex < track.pages.length - 1) {
+        currentCoursePageIndex++;
+        renderActiveCoursePage();
+      } else {
+        switchMainView('builderView');
+      }
+    };
+
+    // Copy Button Binding
     document.querySelectorAll('.btn-copy-code').forEach(btn => {
       btn.onclick = () => {
         const text = decodeURIComponent(btn.dataset.code);
         navigator.clipboard.writeText(text);
         btn.innerText = 'Copied!';
-        setTimeout(() => btn.innerText = 'Copy', 1500);
+        setTimeout(() => btn.innerText = 'Copy Snippet', 1500);
       };
     });
 
-    // Attach "Try in Studio Builder"
-    document.querySelectorAll('[data-action="open-studio"]').forEach(btn => {
-      btn.onclick = () => switchMainView('builderView');
-    });
-
-    // Attach Interactive Shape Playground Handlers
-    document.querySelectorAll('[data-shape-btn]').forEach(btn => {
-      btn.onclick = () => {
-        const target = document.getElementById(btn.dataset.target);
-        if (!target) return;
-        const type = btn.dataset.shapeBtn;
-        if (type === 'pill') {
-          target.style.clipPath = 'none';
-          target.style.borderRadius = '9999px';
-          target.style.filter = 'none';
-          target.style.boxShadow = '0 0 16px var(--accent-glow)';
-          target.innerText = '💊 Capsule';
-        } else if (type === 'diamond') {
-          target.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
-          target.style.borderRadius = '0';
-          target.style.boxShadow = 'none';
-          target.style.filter = 'drop-shadow(0 0 12px #9d4edd)';
-          target.innerText = '💠 Diamond';
-        } else if (type === 'hexagon') {
-          target.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
-          target.style.borderRadius = '0';
-          target.style.boxShadow = 'none';
-          target.style.filter = 'drop-shadow(0 0 12px #9d4edd)';
-          target.innerText = '⬡ Hexagon';
-        }
+    // Practice Lab 1 Handlers (Canvas Coordinates)
+    const chip = document.getElementById('canvasLabChip');
+    if (chip) {
+      document.getElementById('moveChipLeft').onclick = () => {
+        let left = parseInt(chip.style.left) || 80;
+        chip.style.left = `${Math.max(10, left - 30)}px`;
       };
-    });
-
-    // Attach Interactive Animation Preview Handlers
-    document.querySelectorAll('[data-anim-btn]').forEach(btn => {
-      btn.onclick = () => {
-        const target = document.getElementById(btn.dataset.target);
-        if (!target) return;
-        const anim = btn.dataset.animBtn;
-        target.className = `demo-chip anim-${anim}`;
-        if (anim === 'pulse') target.innerText = '💓 Pulse';
-        if (anim === 'bounce') target.innerText = '🏀 Bounce';
-        if (anim === 'float') target.innerText = '🎈 Float';
-        if (anim === 'shake') target.innerText = '📳 Shake';
+      document.getElementById('moveChipRight').onclick = () => {
+        let left = parseInt(chip.style.left) || 80;
+        chip.style.left = `${Math.min(260, left + 30)}px`;
       };
-    });
-  }
+      document.getElementById('resetChipPos').onclick = () => {
+        chip.style.left = '80px';
+      };
+    }
 
-  // Academy Filter Topic Pills
-  document.querySelectorAll('.filter-pill').forEach(pill => {
-    pill.addEventListener('click', (e) => {
-      e.preventDefault();
-      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentAcademyCategory = pill.dataset.category;
-      renderAcademy();
-    });
-  });
+    // Practice Lab 2 Handlers (Shapes)
+    const shapeChip = document.getElementById('courseShapeChip');
+    if (shapeChip) {
+      document.getElementById('shapePillBtn').onclick = () => {
+        shapeChip.style.clipPath = 'none';
+        shapeChip.style.borderRadius = '9999px';
+        shapeChip.style.boxShadow = '0 0 20px var(--accent-glow)';
+        shapeChip.style.filter = 'none';
+        shapeChip.innerText = '💊 Capsule';
+      };
+      document.getElementById('shapeDiamondBtn').onclick = () => {
+        shapeChip.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+        shapeChip.style.borderRadius = '0';
+        shapeChip.style.boxShadow = 'none';
+        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.innerText = '💠 Diamond';
+      };
+      document.getElementById('shapeHexagonBtn').onclick = () => {
+        shapeChip.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+        shapeChip.style.borderRadius = '0';
+        shapeChip.style.boxShadow = 'none';
+        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.innerText = '⬡ Hexagon';
+      };
+    }
 
-  if (tutorialSearchInput) {
-    tutorialSearchInput.addEventListener('input', (e) => {
-      currentAcademySearch = e.target.value;
-      renderAcademy();
-    });
+    // Practice Lab 3 Handlers (JavaScript Sandbox)
+    const runJsBtn = document.getElementById('runCourseJsBtn');
+    if (runJsBtn) {
+      runJsBtn.onclick = () => {
+        const jsTarget = document.getElementById('jsLabTarget');
+        jsTarget.style.backgroundColor = '#ff0077';
+        jsTarget.style.boxShadow = '0 0 25px #ff0077';
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator(); osc.connect(ctx.destination);
+          osc.start(); osc.stop(ctx.currentTime + 0.15);
+        } catch (e) {}
+        AppLab.alert('Sandbox code executed: Element recolored & audio tone synthesized!', 'Code Lab Live Runner', '⚡');
+      };
+    }
+
+    // Interactive Quiz Option Clicks
+    if (page.type === 'quiz' && page.quiz) {
+      const q = page.quiz;
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+      document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
+        optBtn.onclick = () => {
+          const chosenIdx = parseInt(optBtn.dataset.optIdx);
+          document.querySelectorAll('.quiz-option-btn').forEach(b => {
+            b.classList.remove('correct', 'incorrect');
+            b.disabled = true;
+          });
+
+          if (chosenIdx === q.correctIndex) {
+            optBtn.classList.add('correct');
+            feedbackBox.className = 'quiz-feedback show success';
+            feedbackBox.innerText = '✅ Correct! ' + q.explanation;
+          } else {
+            optBtn.classList.add('incorrect');
+            const correctBtn = document.querySelector(`[data-opt-idx="${q.correctIndex}"]`);
+            if (correctBtn) correctBtn.classList.add('correct');
+            feedbackBox.className = 'quiz-feedback show fail';
+            feedbackBox.innerText = '❌ Incorrect. ' + q.explanation;
+          }
+        };
+      });
+    }
   }
 
   // Initial Load
