@@ -911,7 +911,250 @@ header {
   box-shadow: 0 0 12px var(--accent-glow);
 }
 
-/* ================= CUSTOM APPLAB DROPDOWN & PICKER SYSTEM ================= */
+/* ================= OVERHAULED ACADEMY & TUTORIALS PAGE ================= */
+.academy-hero {
+  max-width: 1040px;
+  margin: 20px auto 30px;
+  padding: 20px 20px 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.academy-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-purple);
+  background: rgba(157, 78, 221, 0.15);
+  border: 1px solid var(--accent-purple);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.academy-hero h1 {
+  font-size: 2.2rem;
+  font-weight: 800;
+}
+
+.academy-hero p {
+  color: var(--text-sub);
+  font-size: 0.95rem;
+  max-width: 640px;
+  line-height: 1.5;
+}
+
+.academy-controls {
+  width: 100%;
+  max-width: 820px;
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.academy-search-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  padding: 6px 14px;
+  border-radius: 12px;
+}
+
+.academy-search-bar input {
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-main) !important;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.academy-filter-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-pill {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-sub);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-pill:hover,
+.filter-pill.active {
+  background: var(--accent-purple);
+  color: #fff;
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.academy-content {
+  max-width: 1040px;
+  margin: 0 auto 50px;
+  padding: 0 20px;
+}
+
+.academy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 20px;
+}
+
+.lesson-card {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.lesson-card:hover {
+  border-color: var(--accent-purple);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 18px var(--accent-glow);
+}
+
+.lesson-top-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lesson-number {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  background: rgba(157, 78, 221, 0.15);
+  border: 1px solid var(--accent-purple);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.lesson-tag {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lesson-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.lesson-card p {
+  color: var(--text-sub);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.lesson-interactive-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-interactive-title {
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--accent-purple);
+}
+
+.interactive-demo-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px dashed var(--glass-border);
+}
+
+.demo-chip {
+  padding: 8px 18px;
+  background: #7b2cbf;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.code-snippet-box {
+  background: #080510;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 10px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.76rem;
+  color: #c77dff;
+  line-height: 1.4;
+  overflow-x: auto;
+  position: relative;
+}
+
+.btn-copy-code {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.btn-copy-code:hover {
+  background: var(--accent-purple);
+}
+
+.lesson-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--glass-border);
+}
+
+.lesson-link-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-purple);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lesson-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* ================= CUSTOM APPLAB DROPDOWN ================= */
 .custom-select-wrapper {
   position: relative;
   width: 100%;
@@ -1045,12 +1288,12 @@ body.preview-mode .resize-handle { display: none !important; }
   40%, 80% { transform: translateX(6px); }
 }
 
-.anim-fadeIn { animation: animFadeIn 0.8s ease forwards; }
-.anim-slideUp { animation: animSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.anim-scalePop { animation: animScalePop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.anim-bounce { animation: animBounce 1.5s ease-in-out infinite; }
-.anim-pulse { animation: animPulse 1.5s ease-in-out infinite; }
-.anim-float { animation: animFloat 2.5s ease-in-out infinite; }
-.anim-spin { animation: animSpin 3s linear infinite; }
-.anim-glowPulse { animation: animGlowPulse 2s ease-in-out infinite; }
-.anim-shake { animation: animShake 0.6s ease-in-out infinite; }
+.anim-fadeIn { animation-name: animFadeIn; }
+.anim-slideUp { animation-name: animSlideUp; }
+.anim-scalePop { animation-name: animScalePop; }
+.anim-bounce { animation-name: animBounce; }
+.anim-pulse { animation-name: animPulse; }
+.anim-float { animation-name: animFloat; }
+.anim-spin { animation-name: animSpin; }
+.anim-glowPulse { animation-name: animGlowPulse; }
+.anim-shake { animation-name: animShake; }
