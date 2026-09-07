@@ -609,7 +609,6 @@ confirmCreateProjBtn.onclick = async () => {
   activeElementId = currentProject.pages[0].elements[0]?.id || null;
   currentProjectLabel.innerText = title;
 
-  // Apply device viewport
   document.querySelectorAll('.device-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.device === currentProject.viewport);
   });
@@ -745,7 +744,7 @@ function renderCanvas() {
     node.style.opacity = el.opacity !== undefined ? el.opacity : 1;
     node.style.transform = `rotate(${el.rotation || 0}deg)`;
 
-    // Comprehensive Animation Properties Application
+    // Animation Properties
     if (el.animation && el.animation !== 'none') {
       node.classList.add(`anim-${el.animation}`);
       node.style.animationDuration = `${el.animDuration || 1.5}s`;
@@ -1116,25 +1115,37 @@ function buildInspector() {
   document.getElementById('propOpacity').oninput = (e) => { el.opacity = parseFloat(e.target.value); markDirty(); renderCanvas(); };
   document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
 
-  // 4. Advanced Animations Pro Tab
+  // 4. Advanced Animations Pro Tab (Interactive Card Grid & Custom Selects)
+  const animPresets = [
+    { id: 'none', label: 'None', icon: '🚫' },
+    { id: 'fadeIn', label: 'Fade In', icon: '✨' },
+    { id: 'slideUp', label: 'Slide Up', icon: '⬆️' },
+    { id: 'scalePop', label: 'Scale Pop', icon: '💥' },
+    { id: 'pulse', label: 'Pulse', icon: '💓' },
+    { id: 'bounce', label: 'Bounce', icon: '🏀' },
+    { id: 'float', label: 'Float', icon: '🎈' },
+    { id: 'spin', label: 'Spin', icon: '🔄' },
+    { id: 'glowPulse', label: 'Glow', icon: '🔮' },
+    { id: 'shake', label: 'Shake', icon: '📳' }
+  ];
+
+  const currentAnim = el.animation || 'none';
+  const animChipsHtml = animPresets.map(p => `
+    <button class="anim-chip-btn ${currentAnim === p.id ? 'active' : ''}" data-anim="${p.id}">
+      <span class="chip-icon">${p.icon}</span>
+      <span>${p.label}</span>
+    </button>
+  `).join('');
+
   animationsTab.innerHTML = `
     <div class="control-group">
-      <label>Animation Style</label>
-      <select class="control-input" id="propAnim">
-        <option value="none" ${el.animation === 'none' ? 'selected' : ''}>None</option>
-        <option value="fadeIn" ${el.animation === 'fadeIn' ? 'selected' : ''}>Fade In (Entrance)</option>
-        <option value="slideUp" ${el.animation === 'slideUp' ? 'selected' : ''}>Slide Up (Entrance)</option>
-        <option value="scalePop" ${el.animation === 'scalePop' ? 'selected' : ''}>Scale Pop (Entrance)</option>
-        <option value="pulse" ${el.animation === 'pulse' ? 'selected' : ''}>Pulse (Continuous)</option>
-        <option value="bounce" ${el.animation === 'bounce' ? 'selected' : ''}>Bounce (Continuous)</option>
-        <option value="float" ${el.animation === 'float' ? 'selected' : ''}>Float / Hover (Continuous)</option>
-        <option value="spin" ${el.animation === 'spin' ? 'selected' : ''}>Spin / Rotate (Continuous)</option>
-        <option value="glowPulse" ${el.animation === 'glowPulse' ? 'selected' : ''}>Glow Pulse (Continuous)</option>
-        <option value="shake" ${el.animation === 'shake' ? 'selected' : ''}>Shake / Vibrate</option>
-      </select>
+      <label>Visual Animation Preset</label>
+      <div class="anim-grid-picker" id="animGridPicker">
+        ${animChipsHtml}
+      </div>
     </div>
 
-    <div class="control-row">
+    <div class="control-row" style="margin-top: 6px;">
       <div class="control-group">
         <label>Duration (Seconds)</label>
         <input type="number" step="0.1" min="0.1" max="10" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
@@ -1148,42 +1159,109 @@ function buildInspector() {
     <div class="control-row">
       <div class="control-group">
         <label>Iterations</label>
-        <select class="control-input" id="propAnimIter">
-          <option value="infinite" ${el.animIteration === 'infinite' ? 'selected' : ''}>Infinite Loop</option>
-          <option value="1" ${el.animIteration === '1' ? 'selected' : ''}>Run 1 Time</option>
-          <option value="2" ${el.animIteration === '2' ? 'selected' : ''}>Run 2 Times</option>
-          <option value="3" ${el.animIteration === '3' ? 'selected' : ''}>Run 3 Times</option>
-        </select>
+        <div class="custom-select-wrapper" id="customIterSelect">
+          <div class="custom-select-trigger">
+            <span class="selected-text">${el.animIteration === 'infinite' ? '🔁 Infinite Loop' : el.animIteration === '1' ? '1 Time' : el.animIteration + ' Times'}</span>
+            <span class="arrow-icon">▼</span>
+          </div>
+          <div class="custom-select-options">
+            <div class="custom-select-option ${el.animIteration === 'infinite' ? 'selected' : ''}" data-val="infinite">🔁 Infinite Loop</div>
+            <div class="custom-select-option ${el.animIteration === '1' ? 'selected' : ''}" data-val="1">1 Time</div>
+            <div class="custom-select-option ${el.animIteration === '2' ? 'selected' : ''}" data-val="2">2 Times</div>
+            <div class="custom-select-option ${el.animIteration === '3' ? 'selected' : ''}" data-val="3">3 Times</div>
+          </div>
+        </div>
       </div>
+
       <div class="control-group">
         <label>Timing Curve</label>
-        <select class="control-input" id="propAnimEasing">
-          <option value="ease-in-out" ${el.animEasing === 'ease-in-out' ? 'selected' : ''}>Smooth (Ease In-Out)</option>
-          <option value="ease" ${el.animEasing === 'ease' ? 'selected' : ''}>Ease</option>
-          <option value="linear" ${el.animEasing === 'linear' ? 'selected' : ''}>Linear</option>
-          <option value="cubic-bezier(0.16, 1, 0.3, 1)" ${el.animEasing?.includes('cubic') ? 'selected' : ''}>Bouncy Spring</option>
-        </select>
+        <div class="custom-select-wrapper" id="customEasingSelect">
+          <div class="custom-select-trigger">
+            <span class="selected-text">${el.animEasing?.includes('cubic') ? 'Bouncy Spring' : el.animEasing === 'linear' ? 'Linear' : 'Smooth (Ease)'}</span>
+            <span class="arrow-icon">▼</span>
+          </div>
+          <div class="custom-select-options">
+            <div class="custom-select-option ${el.animEasing === 'ease-in-out' ? 'selected' : ''}" data-val="ease-in-out">Smooth (Ease In-Out)</div>
+            <div class="custom-select-option ${el.animEasing === 'linear' ? 'selected' : ''}" data-val="linear">Linear (Constant)</div>
+            <div class="custom-select-option ${el.animEasing?.includes('cubic') ? 'selected' : ''}" data-val="cubic-bezier(0.16, 1, 0.3, 1)">Bouncy Spring</div>
+          </div>
+        </div>
       </div>
     </div>
 
     <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 10px;">▶️ Test Animation Live</button>
   `;
 
-  document.getElementById('propAnim').onchange = (e) => { el.animation = e.target.value; markDirty(); renderCanvas(); };
+  // Bind Animation Card Clicks
+  document.querySelectorAll('.anim-chip-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.anim-chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      el.animation = btn.dataset.anim;
+      markDirty();
+      renderCanvas();
+    };
+  });
+
+  // Bind Custom Selects
+  setupCustomDropdown('customIterSelect', (val) => {
+    el.animIteration = val;
+    markDirty();
+    renderCanvas();
+  });
+
+  setupCustomDropdown('customEasingSelect', (val) => {
+    el.animEasing = val;
+    markDirty();
+    renderCanvas();
+  });
+
   document.getElementById('propAnimDur').oninput = (e) => { el.animDuration = parseFloat(e.target.value) || 1.5; markDirty(); renderCanvas(); };
   document.getElementById('propAnimDelay').oninput = (e) => { el.animDelay = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
-  document.getElementById('propAnimIter').onchange = (e) => { el.animIteration = e.target.value; markDirty(); renderCanvas(); };
-  document.getElementById('propAnimEasing').onchange = (e) => { el.animEasing = e.target.value; markDirty(); renderCanvas(); };
 
   document.getElementById('replayAnimBtn').onclick = () => {
     const node = document.getElementById(el.id);
     if (node && el.animation !== 'none') {
       node.classList.remove(`anim-${el.animation}`);
-      void node.offsetWidth;
+      void node.offsetWidth; // Force reflow
       node.classList.add(`anim-${el.animation}`);
     }
   };
 }
+
+// --- Custom Dropdown Engine Helper ---
+function setupCustomDropdown(wrapperId, onSelectCallback) {
+  const wrapper = document.getElementById(wrapperId);
+  if (!wrapper) return;
+
+  const trigger = wrapper.querySelector('.custom-select-trigger');
+  const selectedText = trigger.querySelector('.selected-text');
+  const options = wrapper.querySelectorAll('.custom-select-option');
+
+  trigger.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+      if (w !== wrapper) w.classList.remove('open');
+    });
+    wrapper.classList.toggle('open');
+  };
+
+  options.forEach(opt => {
+    opt.onclick = (e) => {
+      e.stopPropagation();
+      options.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedText.innerText = opt.innerText;
+      wrapper.classList.remove('open');
+      if (onSelectCallback) onSelectCallback(opt.dataset.val);
+    };
+  });
+}
+
+// Global click dismiss for custom dropdowns
+window.addEventListener('click', () => {
+  document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+});
 
 // --- IN-PROJECT CODE LAB RENDERING ---
 function renderCodeLab() {
