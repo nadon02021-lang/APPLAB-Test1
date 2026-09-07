@@ -90,10 +90,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return defaultData;
   }
 
-  let userSettings = { theme: 'dark', mode: 'quality', apiKey: '' };
+  // Hardcoded API Key embedded here:
+  let userSettings = { 
+    theme: 'dark', 
+    mode: 'quality', 
+    apiKey: 'AQ.Ab8RN6KgcARR5EQoLybokBppMhqZJ_gV3C15p3PgZXHF7Bh4UA' 
+  };
   try {
     const s = localStorage.getItem(STORAGE_SETTINGS);
-    if (s) userSettings = JSON.parse(s);
+    if (s) {
+      const parsed = JSON.parse(s);
+      // Ensure hardcoded key is used if local settings lack it
+      if (!parsed.apiKey) parsed.apiKey = userSettings.apiKey;
+      userSettings = parsed;
+    } else {
+      localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
+    }
   } catch (e) {}
 
   let currentProject = JSON.parse(JSON.stringify(getStoredProjects()[0]));
@@ -374,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <button class="btn-icon" id="closeAiDrawer">&times;</button>
     </div>
     <div class="ai-drawer-body" id="aiChatLog">
-      <div class="ai-msg ai-bot">Hello! I am your AI assistant. Tell me what to build (e.g. <em>"Create a login form"</em> or <em>"Write script for button click"</em>), or configure your Gemini API key in Settings!</div>
+      <div class="ai-msg ai-bot">Hello! I am your AI assistant. Tell me what to build (e.g. <em>"Create a login form"</em> or <em>"Write script for button click"</em>).</div>
     </div>
     <div class="ai-drawer-footer">
       <input type="text" class="control-input" id="aiPromptInput" placeholder="Ask AI to design UI or write code...">
@@ -383,7 +395,6 @@ document.addEventListener('DOMContentLoaded', () => {
   `;
   document.body.appendChild(aiAssistantDrawer);
 
-  // Add AI Assistant button to header controls
   const actionsSec = document.querySelector('.actions-section');
   if (actionsSec) {
     const aiBtn = document.createElement('button');
@@ -391,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
     aiBtn.id = 'toggleAiDrawerBtn';
     aiBtn.innerHTML = '✨ AI Assistant';
     actionsSec.insertBefore(aiBtn, actionsSec.firstChild);
-
     aiBtn.onclick = () => aiAssistantDrawer.classList.toggle('hidden');
   }
 
@@ -405,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const promptText = aiPromptInput.value.trim();
     if (!promptText) return;
 
-    // Append User Message
     const userBubble = document.createElement('div');
     userBubble.className = 'ai-msg ai-user';
     userBubble.innerText = promptText;
@@ -413,7 +422,6 @@ document.addEventListener('DOMContentLoaded', () => {
     aiPromptInput.value = '';
     aiChatLog.scrollTop = aiChatLog.scrollHeight;
 
-    // Append Loading
     const botBubble = document.createElement('div');
     botBubble.className = 'ai-msg ai-bot';
     botBubble.innerText = 'Thinking...';
@@ -423,21 +431,18 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       let reply = '';
       if (userSettings.apiKey) {
-        // Call Gemini REST API directly
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userSettings.apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `You are an AI assistant for AppLab, a visual mobile/desktop app builder. The user wants: "${promptText}". If they want UI elements, give brief instructions and add a code suggestion or layout idea.` }] }]
+            contents: [{ parts: [{ text: `You are an AI assistant for AppLab, a visual mobile/desktop app builder. The user wants: "${promptText}". Give helpful UI guidance or code snippets.` }] }]
           })
         });
         const data = await res.json();
         reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.';
       } else {
-        // Local Smart Assistant Simulation Fallback
         const lower = promptText.toLowerCase();
         if (lower.includes('login') || lower.includes('form')) {
-          // Auto-generate login form on canvas
           const page = getCurrentPage();
           page.elements.push(
             { id: 'el_' + Date.now().toString().slice(-4), name: 'Login Title', type: 'label', x: 50, y: 80, width: 240, height: 40, text: 'Welcome Back', fontSize: 24, fontWeight: '700', textColor: '#fff', bgColor: 'transparent', borderColor: 'transparent', shape: 'rect' },
@@ -447,10 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
           renderCanvas();
           renderLayersTree();
           reply = 'I have automatically generated a login form onto your active screen canvas!';
-        } else if (lower.includes('script') || lower.includes('code')) {
-          reply = 'To add code, select any button on your canvas, open the Code Lab, and select "Real JavaScript Editor". You can use `app.showAlert("Hello")` or `element.style.backgroundColor = "#ff0055"`.';
         } else {
-          reply = `That sounds like a great feature! To build "${promptText}", use the component palette on the left to drag items onto your phone canvas, then style them using the right inspector. (Tip: Add your Gemini API key in Settings for live cloud AI generation!)`;
+          reply = `That sounds like a great feature! To build "${promptText}", use the component palette on the left to drag items onto your phone canvas, then style them using the right inspector.`;
         }
       }
       botBubble.innerText = reply;
@@ -724,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentProject.viewport = btn.dataset.device;
-      if (deviceFrame) deviceFrame.className = `device-mockup device-${btn.dataset.device}`;
+      if (deviceFrame) deviceFrame.className = `device-mockup device-${currentProject.viewport}`;
       markDirty();
     });
   });
@@ -1664,8 +1667,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Component Drag & Drop Palette
+  document.querySelectorAll('.draggable-card').forEach(card => {
+    card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
+  });
+
   // Academy Workspace Render
-  let activeTrackId = 'track_canvas';
+  let activeTrackId = 'track_shapes';
   let currentCoursePageIndex = 0;
 
   const courseTracks = [
@@ -1762,7 +1770,7 @@ document.addEventListener('DOMContentLoaded', () => {
             question: 'Why does AppLab use filter: drop-shadow instead of box-shadow for Hexagons and Diamonds?',
             options: [
               'box-shadow is deprecated in modern browsers',
-              'clip-path cuts off any pixels outside the polygon, including standard box-shadow',
+              'clip-path clips off any pixels outside the polygon, including standard box-shadow',
               'filter: drop-shadow runs faster on low-end processors'
             ],
             correctIndex: 1,
@@ -1787,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title: 'Chapter 2: Multi-Action Block Chaining',
           desc: 'Multiple actions can be stacked on a single component. When fired, the runtime loops down the action stack sequentially, applying mutations to target layers.',
           type: 'theory',
-          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action);\n}`,
+          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action;\n}`,
           quiz: null
         },
         {
