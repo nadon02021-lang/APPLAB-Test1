@@ -70,9 +70,8 @@
       <div class="section-heading-bar">
         <div class="folder-filter-bar">
           <span class="folder-label">Folder:</span>
-          <select class="control-input folder-select" id="folderFilterSelect">
-            <option value="all">📁 All Folders</option>
-          </select>
+          <!-- Custom Dropdown Container -->
+          <div id="folderFilterContainer" style="width: 190px;"></div>
           <button class="btn-top" id="createFolderBtn">+ New Folder</button>
         </div>
         <button class="btn-top btn-primary" id="dashNewBtn">+ Create New Project</button>
@@ -162,9 +161,8 @@
           </div>
           <div class="codelab-target-picker">
             <label>Target Element:</label>
-            <select class="control-input" id="codeLabTargetSelect">
-              <option value="">-- Choose Element to Script --</option>
-            </select>
+            <!-- Custom Dropdown Container -->
+            <div id="codeLabTargetContainer" style="min-width: 250px;"></div>
           </div>
         </div>
 
@@ -177,10 +175,8 @@
         <div class="codelab-panel" id="codeBlocksPanel">
           <div class="block-card">
             <div class="block-header event-header">⚡ When Event Occurs</div>
-            <select class="control-input" id="blockEventSelect">
-              <option value="click">When Clicked / Tapped</option>
-              <option value="hover">When Hovered with Mouse</option>
-            </select>
+            <!-- Custom Dropdown Container -->
+            <div id="blockEventContainer" style="width: 260px;"></div>
           </div>
 
           <div class="block-card">
@@ -243,8 +239,8 @@
         </div>
         <div class="tutorial-card">
           <div class="tutorial-badge">04</div>
-          <h3>Live Interactive Preview</h3>
-          <p>Press <strong>▶️ Preview</strong> to execute JavaScript actions, test button events, custom modal alerts, and animations.</p>
+          <h3>Custom Dropdown System</h3>
+          <p>All system options, font pickers, and settings use custom purple glassmorphism menus rather than system defaults.</p>
         </div>
       </div>
     </div>
@@ -307,7 +303,7 @@
           </div>
           <div class="control-group">
             <label>Assign Folder</label>
-            <select class="control-input" id="newProjFolderSelect"></select>
+            <div id="newProjFolderContainer"></div>
           </div>
         </div>
 
@@ -321,7 +317,7 @@
         </div>
 
         <div class="control-group">
-          <label>Starting Canvas Canvas Theme</label>
+          <label>Starting Canvas Theme</label>
           <div class="preset-choice-grid">
             <button class="choice-btn active" data-canvasbg="#0e0a1a">🌌 Obsidian Glass</button>
             <button class="choice-btn" data-canvasbg="#1a0c2e">🔮 Cyber Purple</button>
@@ -332,11 +328,7 @@
 
         <div class="control-group">
           <label>Starter Canvas Template</label>
-          <select class="control-input" id="newProjTemplate">
-            <option value="blank">Empty Blank Canvas</option>
-            <option value="starter_app">Mobile Action Landing App (Buttons, Header, Card)</option>
-            <option value="card_feed">Social Media Card Feed (Profile & Interactions)</option>
-          </select>
+          <div id="newProjTemplateContainer"></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -346,7 +338,7 @@
     </div>
   </div>
 
-  <!-- ================= CUSTOM APPLAB DIALOG (ALERT / CONFIRM / PROMPT) ================= -->
+  <!-- ================= CUSTOM APPLAB DIALOG ================= -->
   <div class="modal-overlay hidden" id="customDialogModal">
     <div class="modal-box modal-box-dialog">
       <div class="dialog-icon-bubble" id="dialogIcon">🔔</div>
@@ -355,9 +347,7 @@
       <div class="control-group hidden" id="dialogInputGroup">
         <input type="text" class="control-input" id="dialogInput" placeholder="Enter value...">
       </div>
-      <div class="modal-footer dialog-footer" id="dialogFooter">
-        <!-- Buttons rendered dynamically via JS -->
-      </div>
+      <div class="modal-footer dialog-footer" id="dialogFooter"></div>
     </div>
   </div>
 
@@ -371,18 +361,12 @@
       <div class="modal-body">
         <div class="control-group">
           <label>Theme</label>
-          <select class="control-input" id="settingTheme">
-            <option value="dark">🌙 Dark Glassmorphism</option>
-            <option value="light">☀️ Clean Daylight (Light Mode)</option>
-          </select>
+          <div id="settingThemeContainer"></div>
         </div>
 
         <div class="control-group">
           <label>Rendering Mode</label>
-          <select class="control-input" id="settingMode">
-            <option value="quality">✨ Quality Mode (Full Blurs, Shadows & Glows)</option>
-            <option value="performance">⚡ Performance Mode (Fast FPS, Low GPU Load)</option>
-          </select>
+          <div id="settingModeContainer"></div>
         </div>
       </div>
       <div class="modal-footer">
