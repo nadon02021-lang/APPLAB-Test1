@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 animEasing: 'ease-in-out',
                 animDirection: 'alternate',
                 animTrigger: 'ambient',
-                tooltip: 'Triggers the onboarding flow dialog pop-up',
+                tooltip: 'Tap here to trigger the demo onboarding alert!',
                 tooltipDuration: 3.5,
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
-  // ================= BEAUTIFUL SMART HUD TOOLTIP SYSTEM =================
+  // ================= DUAL-PURPOSE TOOLTIP SYSTEM =================
   let tooltipElem = document.querySelector('.app-tooltip');
   if (!tooltipElem) {
     tooltipElem = document.createElement('div');
@@ -339,20 +339,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(tooltipElem);
   }
 
-  // Ensure high-fidelity inline fallback styling
+  // Base styling for the glassmorphism floating HUD
   Object.assign(tooltipElem.style, {
     position: 'fixed',
     zIndex: '9999999',
     pointerEvents: 'none',
     transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
     willChange: 'left, top, transform, opacity',
-    minWidth: '220px',
-    maxWidth: '300px',
-    padding: '10px 14px',
-    borderRadius: '12px',
+    borderRadius: '10px',
     background: 'rgba(18, 12, 34, 0.94)',
     border: '1px solid rgba(157, 78, 221, 0.4)',
-    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), 0 0 16px rgba(157, 78, 221, 0.25)',
+    boxShadow: '0 10px 28px rgba(0, 0, 0, 0.6), 0 0 14px rgba(157, 78, 221, 0.25)',
     backdropFilter: 'blur(16px)',
     webkitBackdropFilter: 'blur(16px)',
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -375,24 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (autoDismissTimer) { clearTimeout(autoDismissTimer); autoDismissTimer = null; }
     activeTooltipNode = null;
     tooltipElem.style.opacity = '0';
-    tooltipElem.style.transform = 'translateY(6px) scale(0.96)';
+    tooltipElem.style.transform = 'translateY(5px) scale(0.96)';
     setTimeout(() => {
       if (!activeTooltipNode) tooltipElem.classList.add('hidden');
     }, 200);
   }
 
   function updateTooltipPosition(clientX, clientY) {
-    const offset = 16;
+    const offset = 14;
     const padding = 12;
 
     const rect = tooltipElem.getBoundingClientRect();
-    const width = rect.width || 240;
-    const height = rect.height || 60;
+    const width = rect.width || 200;
+    const height = rect.height || 40;
 
     let targetX = clientX + offset;
     let targetY = clientY + offset;
 
-    // Viewport collision bounds detection
+    // Screen bounds detection
     if (targetX + width > window.innerWidth - padding) {
       targetX = clientX - width - offset;
     }
@@ -407,71 +404,125 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipElem.style.top = `${Math.round(targetY)}px`;
   }
 
-  // Smart Discovery Tooltip Descriptor Library
-  const componentDescriptions = {
-    button: 'Interactive trigger for clicks and scripts. Fires logic block workflows or navigates screens.',
-    input: 'Single-line text entry box. Captures user keystrokes for variables and forms.',
-    textarea: 'Multi-line expandable text area for comments, prompts, or logs.',
-    image: 'Visual container rendering external image URLs or local assets with crop modes.',
-    toggle: 'Binary switch toggling true/false state variables in preview mode.',
-    slider: 'Continuous value range control for volumes, speeds, and numerical logic.',
-    progress: 'Percentage fill bar (0-100%) indicating task or state completion.',
-    divider: 'Thin visual separator line to organize screen layout boundaries.',
-    icon: 'Scalable graphic glyph used for badges, statuses, and decorative focal points.',
-    card: 'Elevated container box with glass blur for grouping child components.'
+  // 1. Sidebar Palette Discovery Catalog ("What is this thing?")
+  const paletteComponentDocs = {
+    button: {
+      title: 'Action Button',
+      desc: 'Interactive clickable button. Triggers JavaScript handlers, block stacks, or screen changes.',
+      hint: 'Drag onto canvas to place'
+    },
+    label: {
+      title: 'Text Label',
+      desc: 'Typography layer for headers, sub-headings, or body notes with custom fonts and sizes.',
+      hint: 'Drag onto canvas to place'
+    },
+    input: {
+      title: 'Single-line Input',
+      desc: 'Text field for collecting single-line user input, forms, and variables.',
+      hint: 'Drag onto canvas to place'
+    },
+    textarea: {
+      title: 'Multi-line Textarea',
+      desc: 'Expanded text block for multi-line inputs, logs, descriptions, or comments.',
+      hint: 'Drag onto canvas to place'
+    },
+    image: {
+      title: 'Image Frame',
+      desc: 'Renders remote URLs or SVG graphics with cover, contain, or fill cropping.',
+      hint: 'Drag onto canvas to place'
+    },
+    toggle: {
+      title: 'Toggle Switch',
+      desc: 'Interactive switch flipping between true/false states on tap.',
+      hint: 'Drag onto canvas to place'
+    },
+    slider: {
+      title: 'Range Slider',
+      desc: 'Linear scrubber for adjustable numbers between min and max bounds.',
+      hint: 'Drag onto canvas to place'
+    },
+    progress: {
+      title: 'Progress Bar',
+      desc: 'Status indicator with a percentage fill bar for state or loading feedback.',
+      hint: 'Drag onto canvas to place'
+    },
+    divider: {
+      title: 'Layout Divider',
+      desc: 'Visual accent rule to partition sections cleanly on your mobile layout.',
+      hint: 'Drag onto canvas to place'
+    },
+    icon: {
+      title: 'Emoji / Icon Badge',
+      desc: 'Compact glyph or emoji badge with customizable shapes and glow highlights.',
+      hint: 'Drag onto canvas to place'
+    },
+    card: {
+      title: 'Container Card',
+      desc: 'Frosted-glass background card with rounded corners to group layout elements.',
+      hint: 'Drag onto canvas to place'
+    }
   };
 
-  function triggerTooltipForNode(node, title, category, description, durationSec = 3.5, hint = '') {
-    hideAppTooltip();
-    activeTooltipNode = node;
+  function showStyledTooltip(html, durationSec = 3.5, minWidth = 200, maxWidth = 300) {
+    tooltipElem.style.minWidth = `${minWidth}px`;
+    tooltipElem.style.maxWidth = `${maxWidth}px`;
+    tooltipElem.style.padding = '10px 14px';
+    tooltipElem.innerHTML = html;
 
-    // 400ms ergonomic hover detection delay
-    hoverShowTimer = setTimeout(() => {
-      if (activeTooltipNode !== node) return;
+    tooltipElem.classList.remove('hidden');
+    updateTooltipPosition(currentMouseX, currentMouseY);
 
-      tooltipElem.innerHTML = `
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
-          <span style="font-weight:700; font-size:0.84rem; letter-spacing:0.3px; color:#fff;">${title}</span>
-          <span style="font-size:0.65rem; text-transform:uppercase; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(157,78,221,0.25); color:#d4a5ff; border:1px solid rgba(157,78,221,0.4);">${category}</span>
-        </div>
-        <div style="font-size:0.75rem; line-height:1.45; color:rgba(255,255,255,0.82);">${description}</div>
-        ${hint ? `<div style="margin-top:6px; font-size:0.68rem; color:#a29bfe; display:flex; align-items:center; gap:4px;"><span style="opacity:0.7;">💡</span> ${hint}</div>` : ''}
-      `;
+    void tooltipElem.offsetWidth;
+    tooltipElem.style.opacity = '1';
+    tooltipElem.style.transform = 'translateY(0) scale(1)';
 
-      tooltipElem.classList.remove('hidden');
-      updateTooltipPosition(currentMouseX, currentMouseY);
-
-      void tooltipElem.offsetWidth;
-      tooltipElem.style.opacity = '1';
-      tooltipElem.style.transform = 'translateY(0) scale(1)';
-
-      // Auto-dismiss after custom duration (defaults to ~3.5 seconds)
-      const stayDuration = Math.max(1.5, Math.min(12, durationSec)) * 1000;
-      autoDismissTimer = setTimeout(() => {
-        hideAppTooltip();
-      }, stayDuration);
-    }, 400);
+    const stayMs = Math.max(1.5, Math.min(10, durationSec)) * 1000;
+    autoDismissTimer = setTimeout(() => {
+      hideAppTooltip();
+    }, stayMs);
   }
 
+  // 2. Setup Canvas Elements -> ONLY Creator's Custom Tooltip
   function setupTooltips(node, model) {
     node._elementModel = model;
 
     node.addEventListener('mouseenter', () => {
       const live = node._elementModel || model;
-      const typeInfo = componentDescriptions[live.type] || 'Canvas UI Component Layer';
-      const customNotes = live.tooltip && live.tooltip.trim();
-      const desc = customNotes ? customNotes : typeInfo;
-      const hint = isPreviewMode ? 'Running in interactive sandbox' : 'Right-click for options • Drag to reposition';
-      const dur = parseFloat(live.tooltipDuration) || 3.5;
+      const customNotes = live.tooltip ? live.tooltip.trim() : '';
 
-      triggerTooltipForNode(
-        node,
-        live.name || `${live.type.toUpperCase()} Layer`,
-        live.type,
-        desc,
-        dur,
-        hint
-      );
+      // If in preview mode and the creator specified no tooltip, don't show anything
+      if (isPreviewMode && !customNotes) return;
+
+      hideAppTooltip();
+      activeTooltipNode = node;
+
+      hoverShowTimer = setTimeout(() => {
+        if (activeTooltipNode !== node) return;
+
+        let contentHtml = '';
+        if (customNotes) {
+          // Beautiful Creator Tooltip Display
+          contentHtml = `
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+              <span style="font-size:0.7rem; color:#d4a5ff;">💬</span>
+              <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#c77dff;">${live.name}</span>
+            </div>
+            <div style="font-size:0.8rem; line-height:1.4; color:#ffffff; font-weight:500;">${customNotes}</div>
+          `;
+        } else {
+          // Subtle hint in Design Mode only (lets creator know they can write a custom tooltip)
+          contentHtml = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+              <span style="font-size:0.75rem; font-weight:600; color:#eee;">${live.name}</span>
+              <span style="font-size:0.65rem; color:#888;">No tooltip set</span>
+            </div>
+            <div style="font-size:0.7rem; color:#aaa; margin-top:3px;">Set custom text in Inspector &rarr; Properties.</div>
+          `;
+        }
+
+        const dur = parseFloat(live.tooltipDuration) || 3.5;
+        showStyledTooltip(contentHtml, dur, 160, 260);
+      }, 450);
     });
 
     node.addEventListener('mousemove', (e) => {
@@ -486,21 +537,79 @@ document.addEventListener('DOMContentLoaded', () => {
     node.addEventListener('mousedown', hideAppTooltip);
   }
 
-  // App-wide tooltip registration for buttons, toolbars, and controls
-  function bindGlobalUiTooltips() {
+  // 3. Setup Components Tab & UI -> Educational "What is this?" Discovery Cards
+  function bindPaletteAndUiTooltips() {
+    // Component Palette items in the sidebar
+    document.querySelectorAll('.draggable-card').forEach(card => {
+      const type = card.dataset.type;
+      const info = paletteComponentDocs[type];
+      if (!info) return;
+
+      card.addEventListener('mouseenter', () => {
+        hideAppTooltip();
+        activeTooltipNode = card;
+
+        hoverShowTimer = setTimeout(() => {
+          if (activeTooltipNode !== card) return;
+
+          const html = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+              <span style="font-weight:700; font-size:0.82rem; color:#fff;">${info.title}</span>
+              <span style="font-size:0.62rem; text-transform:uppercase; font-weight:700; padding:2px 5px; border-radius:4px; background:rgba(157,78,221,0.25); color:#d4a5ff; border:1px solid rgba(157,78,221,0.4);">Component</span>
+            </div>
+            <div style="font-size:0.74rem; line-height:1.42; color:rgba(255,255,255,0.85);">${info.desc}</div>
+            <div style="margin-top:6px; font-size:0.68rem; color:#a29bfe; display:flex; align-items:center; gap:4px;">
+              <span>🖐️</span> ${info.hint}
+            </div>
+          `;
+          showStyledTooltip(html, 3.5, 220, 290);
+        }, 350);
+      });
+
+      card.addEventListener('mousemove', (e) => {
+        currentMouseX = e.clientX;
+        currentMouseY = e.clientY;
+        if (!tooltipElem.classList.contains('hidden') && activeTooltipNode === card) {
+          updateTooltipPosition(currentMouseX, currentMouseY);
+        }
+      });
+
+      card.addEventListener('mouseleave', hideAppTooltip);
+      card.addEventListener('mousedown', hideAppTooltip);
+    });
+
+    // General UI Controls with [data-info]
     document.querySelectorAll('[data-info]').forEach(el => {
-      el.removeEventListener('mouseenter', el._uiTooltipEnter);
-      el.removeEventListener('mouseleave', hideAppTooltip);
-      el.removeEventListener('mousedown', hideAppTooltip);
+      el.addEventListener('mouseenter', () => {
+        hideAppTooltip();
+        activeTooltipNode = el;
 
-      el._uiTooltipEnter = () => {
-        const title = el.getAttribute('data-title') || el.innerText.trim().slice(0, 20) || 'Control';
-        const info = el.getAttribute('data-info');
-        const hotkey = el.getAttribute('data-hotkey') || '';
-        triggerTooltipForNode(el, title, 'Tool', info, 3.2, hotkey);
-      };
+        hoverShowTimer = setTimeout(() => {
+          if (activeTooltipNode !== el) return;
+          const title = el.getAttribute('data-title') || el.innerText.trim().slice(0, 20) || 'Control';
+          const info = el.getAttribute('data-info');
+          const hotkey = el.getAttribute('data-hotkey') || '';
 
-      el.addEventListener('mouseenter', el._uiTooltipEnter);
+          const html = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:3px;">
+              <span style="font-weight:700; font-size:0.8rem; color:#fff;">${title}</span>
+              <span style="font-size:0.62rem; text-transform:uppercase; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(255,255,255,0.1); color:#ccc;">Tool</span>
+            </div>
+            <div style="font-size:0.74rem; line-height:1.4; color:rgba(255,255,255,0.8);">${info}</div>
+            ${hotkey ? `<div style="margin-top:5px; font-size:0.67rem; color:#a29bfe;">💡 ${hotkey}</div>` : ''}
+          `;
+          showStyledTooltip(html, 3.0, 180, 260);
+        }, 400);
+      });
+
+      el.addEventListener('mousemove', (e) => {
+        currentMouseX = e.clientX;
+        currentMouseY = e.clientY;
+        if (!tooltipElem.classList.contains('hidden') && activeTooltipNode === el) {
+          updateTooltipPosition(currentMouseX, currentMouseY);
+        }
+      });
+
       el.addEventListener('mouseleave', hideAppTooltip);
       el.addEventListener('mousedown', hideAppTooltip);
     });
@@ -716,8 +825,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (builderControls) builderControls.classList.add('hidden');
       if (viewId === 'homeView') renderProjectsDashboard();
     }
-
-    bindGlobalUiTooltips();
   }
 
   function switchStudioSubpage(subpage) {
@@ -741,7 +848,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dev) dev.style.display = 'none';
       renderCodeLab();
     }
-    bindGlobalUiTooltips();
   }
 
   if (subnavDesignBtn) subnavDesignBtn.addEventListener('click', () => switchStudioSubpage('design'));
@@ -1128,6 +1234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         node.dataset.elementId = el.id;
       }
 
+      // Hook up element tooltip
       setupTooltips(node, el);
       attachRuntimeExecution(node, el);
 
@@ -1752,12 +1859,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="control-group">
-          <label>Smart Tooltip Note (Hover Info)</label>
-          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Leave empty for smart discovery info...">
+          <label>Custom Creator Tooltip Note</label>
+          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Note or prompt shown to your users on hover...">
         </div>
 
         <div class="control-group">
-          <label>Tooltip Read Duration (Seconds)</label>
+          <label>Tooltip Display Duration (Seconds)</label>
           <input type="number" step="0.5" min="1.5" max="10" class="control-input" id="propTooltipDur" value="${el.tooltipDuration || 3.5}">
         </div>
 
@@ -2376,15 +2483,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Component Drag & Drop Palette with Discovery Tooltips
+  // Component Drag & Drop Palette
   document.querySelectorAll('.draggable-card').forEach(card => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
-    const t = card.dataset.type;
-    if (t && componentDescriptions[t]) {
-      card.setAttribute('data-title', `${t.charAt(0).toUpperCase() + t.slice(1)} Widget`);
-      card.setAttribute('data-info', componentDescriptions[t]);
-      card.setAttribute('data-hotkey', 'Drag onto screen to place');
-    }
   });
 
   if (canvas) {
@@ -2537,12 +2638,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const it = document.createElement('div');
       it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
       it.innerText = `📄 ${p.name}`;
-      it.setAttribute('data-title', p.name);
-      it.setAttribute('data-info', `Screen contains ${p.elements.length} components. Click to switch active view.`);
       it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
       pagesList.appendChild(it);
     });
-    bindGlobalUiTooltips();
   }
 
   function renderLayersTree() {
@@ -2552,12 +2650,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const l = document.createElement('div');
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
       l.innerText = el.name;
-      l.setAttribute('data-title', el.name);
-      l.setAttribute('data-info', `Type: ${el.type} • Pos: (${el.x}, ${el.y}) • Size: ${el.width}×${el.height}px`);
       l.onclick = () => selectElement(el.id);
       layersTree.appendChild(l);
     });
-    bindGlobalUiTooltips();
   }
 
   if (addPageBtn) {
@@ -3077,6 +3172,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+
+  // Bind UI & Palette discovery hover cards on initial boot
+  bindPaletteAndUiTooltips();
 
   // Initial Load
   switchMainView('homeView');
