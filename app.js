@@ -339,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(tooltipElem);
   }
 
-  // Base styling for the floating HUD
   Object.assign(tooltipElem.style, {
     position: 'fixed',
     zIndex: '9999999',
@@ -389,7 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let targetX = clientX + offset;
     let targetY = clientY + offset;
 
-    // Screen bounds detection
     if (targetX + width > window.innerWidth - padding) {
       targetX = clientX - width - offset;
     }
@@ -404,63 +402,18 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipElem.style.top = `${Math.round(targetY)}px`;
   }
 
-  // 1. Sidebar Palette Discovery Catalog ("What is this thing?")
   const paletteComponentDocs = {
-    button: {
-      title: 'Action Button',
-      desc: 'Interactive clickable button. Triggers JavaScript handlers, block stacks, or screen changes.',
-      hint: 'Drag onto canvas to place'
-    },
-    label: {
-      title: 'Text Label',
-      desc: 'Typography layer for headers, sub-headings, or body notes with custom fonts and sizes.',
-      hint: 'Drag onto canvas to place'
-    },
-    input: {
-      title: 'Single-line Input',
-      desc: 'Text field for collecting single-line user input, forms, and variables.',
-      hint: 'Drag onto canvas to place'
-    },
-    textarea: {
-      title: 'Multi-line Textarea',
-      desc: 'Expanded text block for multi-line inputs, logs, descriptions, or comments.',
-      hint: 'Drag onto canvas to place'
-    },
-    image: {
-      title: 'Image Frame',
-      desc: 'Renders remote URLs or SVG graphics with cover, contain, or fill cropping.',
-      hint: 'Drag onto canvas to place'
-    },
-    toggle: {
-      title: 'Toggle Switch',
-      desc: 'Interactive switch flipping between true/false states on tap.',
-      hint: 'Drag onto canvas to place'
-    },
-    slider: {
-      title: 'Range Slider',
-      desc: 'Linear scrubber for adjustable numbers between min and max bounds.',
-      hint: 'Drag onto canvas to place'
-    },
-    progress: {
-      title: 'Progress Bar',
-      desc: 'Status indicator with a percentage fill bar for state or loading feedback.',
-      hint: 'Drag onto canvas to place'
-    },
-    divider: {
-      title: 'Layout Divider',
-      desc: 'Visual accent rule to partition sections cleanly on your mobile layout.',
-      hint: 'Drag onto canvas to place'
-    },
-    icon: {
-      title: 'Emoji / Icon Badge',
-      desc: 'Compact glyph or emoji badge with customizable shapes and glow highlights.',
-      hint: 'Drag onto canvas to place'
-    },
-    card: {
-      title: 'Container Card',
-      desc: 'Frosted-glass background card with rounded corners to group layout elements.',
-      hint: 'Drag onto canvas to place'
-    }
+    button: { title: 'Action Button', desc: 'Interactive clickable button. Triggers JavaScript handlers, block stacks, or screen changes.', hint: 'Drag onto canvas or right-click to place' },
+    label: { title: 'Text Label', desc: 'Typography layer for headers, sub-headings, or body notes with custom fonts and sizes.', hint: 'Drag onto canvas or right-click to place' },
+    input: { title: 'Single-line Input', desc: 'Text field for collecting single-line user input, forms, and variables.', hint: 'Drag onto canvas or right-click to place' },
+    textarea: { title: 'Multi-line Textarea', desc: 'Expanded text block for multi-line inputs, logs, descriptions, or comments.', hint: 'Drag onto canvas or right-click to place' },
+    image: { title: 'Image Frame', desc: 'Renders remote URLs or SVG graphics with cover, contain, or fill cropping.', hint: 'Drag onto canvas or right-click to place' },
+    toggle: { title: 'Toggle Switch', desc: 'Interactive switch flipping between true/false states on tap.', hint: 'Drag onto canvas or right-click to place' },
+    slider: { title: 'Range Slider', desc: 'Linear scrubber for adjustable numbers between min and max bounds.', hint: 'Drag onto canvas or right-click to place' },
+    progress: { title: 'Progress Bar', desc: 'Status indicator with a percentage fill bar for state or loading feedback.', hint: 'Drag onto canvas or right-click to place' },
+    divider: { title: 'Layout Divider', desc: 'Visual accent rule to partition sections cleanly on your mobile layout.', hint: 'Drag onto canvas or right-click to place' },
+    icon: { title: 'Emoji / Icon Badge', desc: 'Compact glyph or emoji badge with customizable shapes and glow highlights.', hint: 'Drag onto canvas or right-click to place' },
+    card: { title: 'Container Card', desc: 'Frosted-glass background card with rounded corners to group layout elements.', hint: 'Drag onto canvas or right-click to place' }
   };
 
   function showStyledTooltip(html, durationSec = 3.5, minWidth = 160, maxWidth = 300) {
@@ -482,7 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, stayMs);
   }
 
-  // 2. Setup Canvas Elements -> ONLY Creator's Custom Tooltip (Pure Note, No Element Name)
   function setupTooltips(node, model) {
     node._elementModel = model;
 
@@ -490,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const live = node._elementModel || model;
       const customNotes = live.tooltip ? live.tooltip.trim() : '';
 
-      // If in preview mode and the creator specified no tooltip, don't show anything
       if (isPreviewMode && !customNotes) return;
 
       hideAppTooltip();
@@ -501,15 +452,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let contentHtml = '';
         if (customNotes) {
-          // Pure creator custom message without layer label or headers
-          contentHtml = `
-            <div style="font-size:0.8rem; line-height:1.45; color:#ffffff; font-weight:500;">${customNotes}</div>
-          `;
+          contentHtml = `<div style="font-size:0.8rem; line-height:1.45; color:#ffffff; font-weight:500;">${customNotes}</div>`;
         } else {
-          // Subtle hint in Design Mode only
-          contentHtml = `
-            <div style="font-size:0.72rem; color:#aaa; font-style:italic;">No tooltip set. Add one in Inspector &rarr; Properties.</div>
-          `;
+          contentHtml = `<div style="font-size:0.72rem; color:#aaa; font-style:italic;">No tooltip set. Add one in Inspector &rarr; Properties.</div>`;
         }
 
         const dur = parseFloat(live.tooltipDuration) || 3.5;
@@ -529,7 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
     node.addEventListener('mousedown', hideAppTooltip);
   }
 
-  // 3. Setup Components Tab & UI -> Educational "What is this?" Discovery Cards
   function bindPaletteAndUiTooltips() {
     document.querySelectorAll('.draggable-card').forEach(card => {
       const type = card.dataset.type;
@@ -1227,7 +1171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         node.dataset.elementId = el.id;
       }
 
-      // Hook up element tooltip
       setupTooltips(node, el);
       attachRuntimeExecution(node, el);
 
@@ -1310,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================= UNIVERSAL CONTEXT MENU SYSTEM =================
+  // ================= ADAPTIVE TARGET-AWARE CONTEXT MENU SYSTEM =================
   function showUniversalContextMenu(e, htmlContent, onReadyCallback) {
     if (!elementContextMenu) {
       elementContextMenu = document.createElement('div');
@@ -1343,9 +1286,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Target-aware context menu routing
   window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 
+    // 1. Placed item on canvas
     const placedItem = e.target.closest('.placed-item');
     if (placedItem && placedItem.dataset.elementId) {
       const elId = placedItem.dataset.elementId;
@@ -1355,12 +1300,35 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 2. Component palette item in left sidebar
+    const paletteItem = e.target.closest('.draggable-card');
+    if (paletteItem && paletteItem.dataset.type) {
+      openPaletteItemContextMenu(e, paletteItem.dataset.type);
+      return;
+    }
+
+    // 3. Layer item in Layers Tree sidebar
+    const layerItem = e.target.closest('.layer-item');
+    if (layerItem && layerItem.dataset.elementId) {
+      openLayerTreeContextMenu(e, layerItem.dataset.elementId);
+      return;
+    }
+
+    // 4. Page/Screen item in Screens tab
+    const pageItem = e.target.closest('.page-item');
+    if (pageItem && pageItem.dataset.pageId) {
+      openPageItemContextMenu(e, pageItem.dataset.pageId);
+      return;
+    }
+
+    // 5. Project card in Home Dashboard
     const projCard = e.target.closest('.project-card');
     if (projCard && projCard.dataset.projectId) {
       openProjectCardContextMenu(e, projCard.dataset.projectId);
       return;
     }
 
+    // 6. Device canvas area (empty space)
     const canvasArea = e.target.closest('#canvas') || e.target.closest('#deviceFrame');
     if (canvasArea) {
       const rect = canvas.getBoundingClientRect();
@@ -1372,9 +1340,290 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // 7. General workspace fallback
     openGlobalWorkspaceContextMenu(e);
   });
 
+  // Helper: Create element with full default parameters
+  function instantiateElement(type, text, x = 40, y = 80, w = 140, h = 44) {
+    let defaultBg = '#7b2cbf';
+    let defaultBorder = '#9d4edd';
+    let defaultBorderWidth = 1;
+    let defaultPadding = 8;
+    let defaultShape = 'rounded';
+    let defaultRadius = 10;
+    let defaultIsChecked = false;
+    let defaultCurrentVal = 50;
+
+    if (type === 'label') {
+      w = 160; h = 32; defaultBg = 'transparent'; defaultBorder = 'transparent'; defaultBorderWidth = 0; defaultPadding = 0;
+    } else if (type === 'input') {
+      w = 180; h = 40; defaultBg = 'rgba(255, 255, 255, 0.08)'; defaultBorder = 'rgba(255, 255, 255, 0.2)';
+    } else if (type === 'textarea') {
+      w = 200; h = 80; defaultBg = 'rgba(255, 255, 255, 0.08)'; defaultBorder = 'rgba(255, 255, 255, 0.2)';
+    } else if (type === 'toggle') {
+      w = 56; h = 30; defaultBg = 'transparent'; defaultBorder = 'transparent'; defaultBorderWidth = 0; defaultPadding = 0; defaultIsChecked = true;
+    } else if (type === 'slider') {
+      w = 180; h = 30; defaultBg = 'transparent'; defaultBorder = 'transparent'; defaultBorderWidth = 0; defaultPadding = 0;
+    } else if (type === 'progress') {
+      w = 200; h = 16; defaultBg = 'rgba(255, 255, 255, 0.1)'; defaultBorder = 'rgba(157, 78, 221, 0.3)'; defaultBorderWidth = 1; defaultRadius = 8; defaultCurrentVal = 65;
+    } else if (type === 'divider') {
+      w = 220; h = 10; defaultBg = 'transparent'; defaultBorder = '#9d4edd'; defaultBorderWidth = 0; defaultPadding = 0;
+    } else if (type === 'icon') {
+      w = 48; h = 48; defaultBg = 'rgba(157, 78, 221, 0.2)'; defaultBorder = '#9d4edd'; defaultShape = 'circle'; defaultRadius = 50;
+    } else if (type === 'card') {
+      w = 220; h = 120; defaultBg = 'rgba(255, 255, 255, 0.05)'; defaultBorder = 'rgba(255, 255, 255, 0.12)'; defaultPadding = 14;
+    }
+
+    return {
+      id: 'el_' + Date.now().toString().slice(-4),
+      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+      type: type,
+      x: x,
+      y: y,
+      width: w,
+      height: h,
+      text: text,
+      textColor: '#ffffff',
+      bgColor: defaultBg,
+      borderColor: defaultBorder,
+      borderWidth: defaultBorderWidth,
+      borderStyle: 'solid',
+      shape: defaultShape,
+      borderRadius: defaultRadius,
+      fontSize: 14,
+      fontFamily: fontOptions[0].value,
+      fontWeight: '500',
+      letterSpacing: 0,
+      lineHeight: 1.2,
+      textTransform: 'none',
+      textDecoration: 'none',
+      textAlign: 'center',
+      padding: defaultPadding,
+      backdropBlur: 0,
+      glowSize: 0,
+      glowColor: '#9d4edd',
+      opacity: 1,
+      rotation: 0,
+      animation: 'none',
+      animDuration: 1.5,
+      animDelay: 0,
+      animIteration: 'infinite',
+      animEasing: 'ease-in-out',
+      animDirection: 'normal',
+      animTrigger: 'ambient',
+      minVal: 0,
+      maxVal: 100,
+      currentVal: defaultCurrentVal,
+      isChecked: defaultIsChecked,
+      imageFit: 'cover',
+      tooltip: '',
+      tooltipDuration: 3.5,
+      codeMode: 'blocks',
+      customJs: '',
+      logic: { event: 'click', actions: [] }
+    };
+  }
+
+  // --- Context Menu: Palette Drag Item ---
+  function openPaletteItemContextMenu(e, type) {
+    const doc = paletteComponentDocs[type] || { title: type.toUpperCase(), desc: '' };
+    const menuHtml = `
+      <div class="context-item" id="ctxPaletteAddCenter">🎯 Add to Canvas Center</div>
+      <div class="context-item" id="ctxPaletteAddTop">↖️ Add to Canvas Top (0, 0)</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxPaletteInfo">ℹ️ View Component Docs</div>
+      <div class="context-item" id="ctxPaletteCode">⚡ Create Script Template</div>
+    `;
+
+    showUniversalContextMenu(e, menuHtml, () => {
+      document.getElementById('ctxPaletteAddCenter')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const centerX = canvas ? Math.max(10, Math.round((canvas.offsetWidth - 160) / 2)) : 60;
+        const centerY = canvas ? Math.max(10, Math.round((canvas.offsetHeight - 48) / 2)) : 120;
+        const newEl = instantiateElement(type, doc.title || 'New Item', centerX, centerY);
+        page.elements.push(newEl);
+        markDirty();
+        selectElement(newEl.id);
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxPaletteAddTop')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const newEl = instantiateElement(type, doc.title || 'New Item', 20, 20);
+        page.elements.push(newEl);
+        markDirty();
+        selectElement(newEl.id);
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxPaletteInfo')?.addEventListener('click', () => {
+        hideContextMenu();
+        AppLab.alert(`${doc.desc}\n\nDrag onto the canvas or right-click to place.`, doc.title, '🧩');
+      });
+
+      document.getElementById('ctxPaletteCode')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const newEl = instantiateElement(type, doc.title || 'New Item', 40, 80);
+        newEl.codeMode = 'realCode';
+        newEl.customJs = `// ${type} event script\napp.showAlert('${doc.title} triggered!');\napp.playBeep();`;
+        page.elements.push(newEl);
+        markDirty();
+        selectElement(newEl.id);
+        hideContextMenu();
+        switchStudioSubpage('code');
+      });
+    });
+  }
+
+  // --- Context Menu: Layers Tree Item ---
+  function openLayerTreeContextMenu(e, elId) {
+    const page = getCurrentPage();
+    const target = page.elements.find(i => i.id === elId);
+    if (!target) return;
+
+    selectElement(elId);
+
+    const menuHtml = `
+      <div class="context-item" id="ctxLayerRename">✏️ Rename Layer</div>
+      <div class="context-item" id="ctxLayerDuplicate">📋 Duplicate Layer</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxLayerBringFront">🔼 Bring to Front</div>
+      <div class="context-item" id="ctxLayerSendBack">🔽 Send to Back</div>
+      <div class="context-item" id="ctxLayerToggleVis">👁️ Toggle Visibility</div>
+      <div class="context-separator"></div>
+      <div class="context-item ctx-danger" id="ctxLayerDelete">🗑️ Delete Layer</div>
+    `;
+
+    showUniversalContextMenu(e, menuHtml, () => {
+      document.getElementById('ctxLayerRename')?.addEventListener('click', async () => {
+        hideContextMenu();
+        const newName = await AppLab.prompt('Enter layer name:', target.name, 'Rename Layer');
+        if (newName && newName.trim()) {
+          target.name = newName.trim();
+          markDirty();
+          renderLayersTree();
+          buildInspector();
+        }
+      });
+
+      document.getElementById('ctxLayerDuplicate')?.addEventListener('click', () => {
+        const clone = JSON.parse(JSON.stringify(target));
+        clone.id = 'el_' + Date.now().toString().slice(-4);
+        clone.name = clone.name + ' (Copy)';
+        clone.x += 15;
+        clone.y += 15;
+        page.elements.push(clone);
+        markDirty();
+        selectElement(clone.id);
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerBringFront')?.addEventListener('click', () => {
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx >= 0) {
+          const [item] = page.elements.splice(idx, 1);
+          page.elements.push(item);
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerSendBack')?.addEventListener('click', () => {
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx >= 0) {
+          const [item] = page.elements.splice(idx, 1);
+          page.elements.unshift(item);
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerToggleVis')?.addEventListener('click', () => {
+        target.opacity = (target.opacity === 0) ? 1 : 0;
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerDelete')?.addEventListener('click', () => {
+        page.elements = page.elements.filter(i => i.id !== elId);
+        if (activeElementId === elId) activeElementId = null;
+        markDirty();
+        renderCanvas();
+        renderLayersTree();
+        buildInspector();
+        hideContextMenu();
+      });
+    });
+  }
+
+  // --- Context Menu: Page Item in Screens list ---
+  function openPageItemContextMenu(e, pageId) {
+    const page = currentProject.pages.find(p => p.id === pageId);
+    if (!page) return;
+
+    activeScreenId = pageId;
+    renderPagesList();
+    renderCanvas();
+
+    const menuHtml = `
+      <div class="context-item" id="ctxPageRename">✏️ Rename Screen</div>
+      <div class="context-item" id="ctxPageDuplicate">📋 Duplicate Screen</div>
+      <div class="context-separator"></div>
+      <div class="context-item ctx-danger" id="ctxPageDelete">🗑️ Delete Screen</div>
+    `;
+
+    showUniversalContextMenu(e, menuHtml, () => {
+      document.getElementById('ctxPageRename')?.addEventListener('click', async () => {
+        hideContextMenu();
+        const newName = await AppLab.prompt('Enter screen title:', page.name, 'Rename Screen');
+        if (newName && newName.trim()) {
+          page.name = newName.trim();
+          markDirty();
+          renderPagesList();
+        }
+      });
+
+      document.getElementById('ctxPageDuplicate')?.addEventListener('click', () => {
+        const clone = JSON.parse(JSON.stringify(page));
+        clone.id = 'scr_' + Date.now().toString().slice(-4);
+        clone.name = clone.name + ' (Copy)';
+        currentProject.pages.push(clone);
+        activeScreenId = clone.id;
+        markDirty();
+        renderPagesList();
+        renderCanvas();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxPageDelete')?.addEventListener('click', async () => {
+        hideContextMenu();
+        if (currentProject.pages.length <= 1) {
+          AppLab.alert('You cannot delete the only screen in a project.', 'Action Prohibited', '⚠️');
+          return;
+        }
+        const confirmed = await AppLab.confirm(`Delete screen "${page.name}" and all its layers?`, 'Delete Screen', '🗑️');
+        if (confirmed) {
+          currentProject.pages = currentProject.pages.filter(p => p.id !== pageId);
+          activeScreenId = currentProject.pages[0].id;
+          activeElementId = null;
+          markDirty();
+          renderPagesList();
+          renderCanvas();
+          renderLayersTree();
+          buildInspector();
+        }
+      });
+    });
+  }
+
+  // --- Context Menu: Canvas Placed Element ---
   function openElementContextMenu(e, elId) {
     const menuHtml = `
       <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
@@ -1556,6 +1805,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Context Menu: Empty Canvas Area ---
   function openCanvasContextMenu(e) {
     const canvasMenuHtml = `
       <div class="context-item" id="ctxPasteElement">📋 Paste Copied Element</div>
@@ -1586,42 +1836,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const addQuickElement = (type, text, w, h) => {
-        const newEl = {
-          id: 'el_' + Date.now().toString().slice(-4),
-          name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-          type: type,
-          x: contextClickPos.x,
-          y: contextClickPos.y,
-          width: w,
-          height: h,
-          text: text,
-          textColor: '#ffffff',
-          bgColor: type === 'label' ? 'transparent' : '#7b2cbf',
-          borderColor: type === 'label' ? 'transparent' : '#9d4edd',
-          borderWidth: type === 'label' ? 0 : 1,
-          borderStyle: 'solid',
-          shape: type === 'button' ? 'pill' : 'rounded',
-          borderRadius: type === 'button' ? 9999 : 10,
-          fontSize: 14,
-          fontFamily: fontOptions[0].value,
-          fontWeight: '500',
-          textAlign: 'center',
-          padding: 8,
-          opacity: 1,
-          rotation: 0,
-          animation: 'none',
-          animDuration: 1.5,
-          animDelay: 0,
-          animIteration: 'infinite',
-          animEasing: 'ease-in-out',
-          animDirection: 'normal',
-          animTrigger: 'ambient',
-          codeMode: 'blocks',
-          customJs: '',
-          tooltip: '',
-          tooltipDuration: 3.5,
-          logic: { event: 'click', actions: [] }
-        };
+        const newEl = instantiateElement(type, text, contextClickPos.x, contextClickPos.y, w, h);
         getCurrentPage().elements.push(newEl);
         markDirty();
         selectElement(newEl.id);
@@ -1653,6 +1868,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Context Menu: Project Card on Home Dashboard ---
   function openProjectCardContextMenu(e, projId) {
     contextTargetProjectId = projId;
     const proj = getStoredProjects().find(p => p.id === projId);
@@ -1709,6 +1925,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Context Menu: Global Background / App Workspace ---
   function openGlobalWorkspaceContextMenu(e) {
     const globalMenuHtml = `
       <div class="context-item" id="ctxGlobalHome">🏠 Home Dashboard</div>
@@ -2488,134 +2705,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const type = e.dataTransfer.getData('type');
       if (!type) return;
       const rect = canvas.getBoundingClientRect();
-
-      let defaultWidth = 140;
-      let defaultHeight = 44;
-      let defaultText = 'Click Me';
-      let defaultBg = '#7b2cbf';
-      let defaultBorder = '#9d4edd';
-      let defaultBorderWidth = 1;
-      let defaultPadding = 8;
-      let defaultShape = 'rounded';
-      let defaultRadius = 10;
-      let defaultIsChecked = false;
-      let defaultCurrentVal = 50;
-
-      if (type === 'label') {
-        defaultWidth = 160;
-        defaultHeight = 32;
-        defaultText = 'Header Title';
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'input') {
-        defaultWidth = 180;
-        defaultHeight = 40;
-        defaultText = 'Type something...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'textarea') {
-        defaultWidth = 200;
-        defaultHeight = 80;
-        defaultText = 'Enter long paragraph comments...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'toggle') {
-        defaultWidth = 56;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-        defaultIsChecked = true;
-      } else if (type === 'slider') {
-        defaultWidth = 180;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'progress') {
-        defaultWidth = 200;
-        defaultHeight = 16;
-        defaultBg = 'rgba(255, 255, 255, 0.1)';
-        defaultBorder = 'rgba(157, 78, 221, 0.3)';
-        defaultBorderWidth = 1;
-        defaultRadius = 8;
-        defaultCurrentVal = 65;
-      } else if (type === 'divider') {
-        defaultWidth = 220;
-        defaultHeight = 10;
-        defaultBg = 'transparent';
-        defaultBorder = '#9d4edd';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'icon') {
-        defaultWidth = 48;
-        defaultHeight = 48;
-        defaultText = '⭐';
-        defaultBg = 'rgba(157, 78, 221, 0.2)';
-        defaultBorder = '#9d4edd';
-        defaultShape = 'circle';
-        defaultRadius = 50;
-      } else if (type === 'card') {
-        defaultWidth = 220;
-        defaultHeight = 120;
-        defaultText = 'Card Container Box';
-        defaultBg = 'rgba(255, 255, 255, 0.05)';
-        defaultBorder = 'rgba(255, 255, 255, 0.12)';
-        defaultPadding = 14;
-      }
-
-      const newEl = {
-        id: 'el_' + Date.now().toString().slice(-4),
-        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-        type: type,
-        x: Math.max(10, e.clientX - rect.left - 40),
-        y: Math.max(10, e.clientY - rect.top - 20),
-        width: defaultWidth,
-        height: defaultHeight,
-        text: defaultText,
-        textColor: '#ffffff',
-        bgColor: defaultBg,
-        borderColor: defaultBorder,
-        borderWidth: defaultBorderWidth,
-        borderStyle: 'solid',
-        shape: defaultShape,
-        borderRadius: defaultRadius,
-        fontSize: 14,
-        fontFamily: fontOptions[0].value,
-        fontWeight: '500',
-        letterSpacing: 0,
-        lineHeight: 1.2,
-        textTransform: 'none',
-        textDecoration: 'none',
-        textAlign: 'center',
-        padding: defaultPadding,
-        backdropBlur: 0,
-        glowSize: 0,
-        glowColor: '#9d4edd',
-        opacity: 1,
-        rotation: 0,
-        animation: 'none',
-        animDuration: 1.5,
-        animDelay: 0,
-        animIteration: 'infinite',
-        animEasing: 'ease-in-out',
-        animDirection: 'normal',
-        animTrigger: 'ambient',
-        minVal: 0,
-        maxVal: 100,
-        currentVal: defaultCurrentVal,
-        isChecked: defaultIsChecked,
-        imageFit: 'cover',
-        tooltip: '',
-        tooltipDuration: 3.5,
-        codeMode: 'blocks',
-        customJs: '',
-        logic: { event: 'click', actions: [] }
-      };
+      const newEl = instantiateElement(
+        type,
+        `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+        Math.max(10, e.clientX - rect.left - 40),
+        Math.max(10, e.clientY - rect.top - 20)
+      );
 
       getCurrentPage().elements.push(newEl);
       markDirty();
@@ -2630,6 +2725,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentProject.pages.forEach(p => {
       const it = document.createElement('div');
       it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
+      it.dataset.pageId = p.id;
       it.innerText = `📄 ${p.name}`;
       it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
       pagesList.appendChild(it);
@@ -2642,6 +2738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     getCurrentPage().elements.forEach(el => {
       const l = document.createElement('div');
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
+      l.dataset.elementId = el.id;
       l.innerText = el.name;
       l.onclick = () => selectElement(el.id);
       layersTree.appendChild(l);
@@ -2927,9 +3024,254 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       });
     }
+
+    courseStageEl.innerHTML = `
+      <div class="course-paper">
+        <div class="course-paper-header">
+          <span class="page-indicator-pill">${track.title.toUpperCase()} • CHAPTER ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
+          <div class="page-dots">${dotsHtml}</div>
+        </div>
+
+        <div class="lesson-headline">
+          <h2>${page.title}</h2>
+          <p>${page.desc}</p>
+        </div>
+
+        ${page.codeSnippet ? `
+          <div class="code-snippet-box">
+            <button class="btn-copy-code" data-code="${encodeURIComponent(page.codeSnippet)}">Copy Snippet</button>
+            <pre>${page.codeSnippet}</pre>
+          </div>
+        ` : ''}
+
+        ${interactiveHtml}
+
+        <div class="course-pagination-footer">
+          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Chapter</button>
+          <button class="btn-top btn-primary" id="nextCoursePageBtn">
+            ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Chapter &rarr;'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.querySelectorAll('.page-dot').forEach(dot => {
+      dot.onclick = () => {
+        currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
+        renderActiveCoursePage();
+      };
+    });
+
+    const prevBtn = document.getElementById('prevCoursePageBtn');
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        if (currentCoursePageIndex > 0) {
+          currentCoursePageIndex--;
+          renderActiveCoursePage();
+        }
+      };
+    }
+
+    const nextBtn = document.getElementById('nextCoursePageBtn');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        if (currentCoursePageIndex < track.pages.length - 1) {
+          currentCoursePageIndex++;
+          renderActiveCoursePage();
+        } else {
+          switchMainView('builderView');
+        }
+      };
+    }
+
+    document.querySelectorAll('.btn-copy-code').forEach(btn => {
+      btn.onclick = () => {
+        const text = decodeURIComponent(btn.dataset.code);
+        navigator.clipboard.writeText(text);
+        btn.innerText = 'Copied!';
+        setTimeout(() => btn.innerText = 'Copy Snippet', 1500);
+      };
+    });
+
+    const chip = document.getElementById('canvasLabChip');
+    if (chip) {
+      document.getElementById('moveChipLeft').onclick = () => {
+        let left = parseInt(chip.style.left) || 80;
+        chip.style.left = `${Math.max(10, left - 30)}px`;
+      };
+      document.getElementById('moveChipRight').onclick = () => {
+        let left = parseInt(chip.style.left) || 80;
+        chip.style.left = `${Math.min(260, left + 30)}px`;
+      };
+      document.getElementById('resetChipPos').onclick = () => {
+        chip.style.left = '80px';
+      };
+    }
+
+    const shapeChip = document.getElementById('courseShapeChip');
+    if (shapeChip) {
+      document.getElementById('shapePillBtn').onclick = () => {
+        shapeChip.style.clipPath = 'none';
+        shapeChip.style.borderRadius = '9999px';
+        shapeChip.style.boxShadow = '0 0 20px var(--accent-glow)';
+        shapeChip.style.filter = 'none';
+        shapeChip.innerText = '💊 Capsule';
+      };
+      document.getElementById('shapeDiamondBtn').onclick = () => {
+        shapeChip.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+        shapeChip.style.borderRadius = '0';
+        shapeChip.style.boxShadow = 'none';
+        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.innerText = '💠 Diamond';
+      };
+      document.getElementById('shapeHexagonBtn').onclick = () => {
+        shapeChip.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+        shapeChip.style.borderRadius = '0';
+        shapeChip.style.boxShadow = 'none';
+        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.innerText = '⬡ Hexagon';
+      };
+    }
+
+    const blockSimChip = document.getElementById('blockSimChip');
+    if (blockSimChip) {
+      document.getElementById('runBlockSimBtn').onclick = () => {
+        blockSimChip.innerText = '⚡ Step 1: Recoloring...';
+        blockSimChip.style.backgroundColor = '#00f2fe';
+        blockSimChip.style.boxShadow = '0 0 25px #00f2fe';
+        setTimeout(() => {
+          blockSimChip.innerText = '✨ Step 2: Pulsing...';
+          blockSimChip.className = 'lab-target-chip anim-pulse';
+        }, 600);
+      };
+      document.getElementById('resetBlockSimBtn').onclick = () => {
+        blockSimChip.className = 'lab-target-chip';
+        blockSimChip.style.backgroundColor = '';
+        blockSimChip.style.boxShadow = '';
+        blockSimChip.innerText = '⏹️ Idle Layer';
+      };
+    }
+
+    const runJsBtn = document.getElementById('runCourseJsBtn');
+    if (runJsBtn) {
+      runJsBtn.onclick = () => {
+        const jsTarget = document.getElementById('jsLabTarget');
+        jsTarget.style.backgroundColor = '#ff0077';
+        jsTarget.style.boxShadow = '0 0 25px #ff0077';
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator(); osc.connect(ctx.destination);
+          osc.start(); osc.stop(ctx.currentTime + 0.15);
+        } catch (e) {}
+        AppLab.alert('Sandbox code executed: Element recolored & audio tone synthesized!', 'Code Lab Live Runner', '⚡');
+      };
+    }
+
+    const applyBindingBtn = document.getElementById('applyBindingBtn');
+    if (applyBindingBtn) {
+      applyBindingBtn.onclick = () => {
+        const inputVal = document.getElementById('bindingInput').value;
+        const target = document.getElementById('bindingTargetChip');
+        target.innerText = inputVal || '(Empty)';
+        target.classList.add('anim-scalePop');
+        setTimeout(() => target.classList.remove('anim-scalePop'), 600);
+      };
+    }
+
+    const perfChip = document.getElementById('perfTargetChip');
+    if (perfChip) {
+      document.getElementById('perfToggleQuality').onclick = () => {
+        perfChip.style.backdropFilter = 'blur(20px)';
+        perfChip.style.boxShadow = '0 0 25px var(--accent-glow)';
+        perfChip.innerText = '✨ Quality Glass (Blur Active)';
+      };
+      document.getElementById('perfToggleFast').onclick = () => {
+        perfChip.style.backdropFilter = 'none';
+        perfChip.style.boxShadow = 'none';
+        perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
+      };
+    }
+
+    const animChip = document.getElementById('courseAnimChip');
+    if (animChip) {
+      const setChipAnim = (animClass, label) => {
+        animChip.className = `lab-target-chip anim-${animClass}`;
+        animChip.innerText = label;
+      };
+      document.getElementById('animPulseBtn').onclick = () => setChipAnim('pulse', '💓 Pulsing');
+      document.getElementById('animBounceBtn').onclick = () => setChipAnim('bounce', '🏀 Bouncing');
+      document.getElementById('animFloatBtn').onclick = () => setChipAnim('float', '🎈 Floating');
+      document.getElementById('animSpinBtn').onclick = () => setChipAnim('spin', '🔄 Spinning');
+      document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
+    }
+
+    const audioChip = document.getElementById('audioVisualizerChip');
+    if (audioChip) {
+      const playTone = (freq, duration, type = 'sine') => {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+          osc.start();
+          osc.stop(ctx.currentTime + duration);
+        } catch (e) {}
+      };
+
+      document.getElementById('playBeepToneBtn').onclick = () => {
+        audioChip.innerText = '🔊 Playing 440Hz Sine Wave...';
+        audioChip.style.boxShadow = '0 0 25px #00f2fe';
+        playTone(440, 0.25);
+        setTimeout(() => {
+          audioChip.innerText = '🎵 Audio Wave Ready';
+          audioChip.style.boxShadow = '';
+        }, 300);
+      };
+
+      document.getElementById('playChimeToneBtn').onclick = () => {
+        audioChip.innerText = '🔔 Playing Success Chime (C5 -> G5)...';
+        audioChip.style.boxShadow = '0 0 25px #2ed573';
+        playTone(523, 0.15);
+        setTimeout(() => playTone(784, 0.25), 150);
+        setTimeout(() => {
+          audioChip.innerText = '🎵 Audio Wave Ready';
+          audioChip.style.boxShadow = '';
+        }, 400);
+      };
+    }
+
+    if (page.type === 'quiz' && page.quiz) {
+      const q = page.quiz;
+      const feedbackBox = document.getElementById('quizFeedbackBox');
+      document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
+        optBtn.onclick = () => {
+          const chosenIdx = parseInt(optBtn.dataset.optIdx);
+          document.querySelectorAll('.quiz-option-btn').forEach(b => {
+            b.classList.remove('correct', 'incorrect');
+            b.disabled = true;
+          });
+
+          if (chosenIdx === q.correctIndex) {
+            optBtn.classList.add('correct');
+            feedbackBox.className = 'quiz-feedback show success';
+            feedbackBox.innerText = '✅ Correct! ' + q.explanation;
+          } else {
+            optBtn.classList.add('incorrect');
+            const correctBtn = document.querySelector(`[data-opt-idx="${q.correctIndex}"]`);
+            if (correctBtn) correctBtn.classList.add('correct');
+            feedbackBox.className = 'quiz-feedback show fail';
+            feedbackBox.innerText = '❌ Incorrect. ' + q.explanation;
+          }
+        };
+      });
+    }
   }
 
-  // Bind UI & Palette discovery hover cards on initial boot
   bindPaletteAndUiTooltips();
 
   // Initial Load
