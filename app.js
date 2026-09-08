@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function markDirty() { isDirty = true; }
   function markClean() { isDirty = false; }
 
-  // Clipboard buffer for copying styles between elements
+  // Clipboard buffers for copy/paste
   let clipboardStyles = null;
+  let clipboardElement = null;
 
   window.addEventListener('beforeunload', (e) => {
     if (isDirty) {
@@ -77,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 glowColor: '#9d4edd',
                 opacity: 1,
                 rotation: 0,
-                // Granular Animation Engine Settings
                 animation: 'pulse',
                 animDuration: 1.5,
                 animDelay: 0,
@@ -118,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let isPreviewMode = false;
   let activeFolderFilter = 'all';
   let contextTargetElementId = null;
+  let contextTargetProjectId = null;
+  let contextClickPos = { x: 50, y: 50 };
 
   let newProjConfig = {
     viewport: 'phone',
@@ -171,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const addBlockStepBtn = document.getElementById('addBlockStepBtn');
   const realJsInput = document.getElementById('realJsInput');
 
-  // Extended Context Menu References
   let elementContextMenu = document.getElementById('elementContextMenu');
 
   const startMenuToggleBtn = document.getElementById('startMenuToggleBtn');
@@ -540,6 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filtered.forEach(proj => {
       const card = document.createElement('div');
       card.className = 'project-card';
+      card.dataset.projectId = proj.id;
       card.innerHTML = `
         <div class="project-card-header">
           <span class="project-card-title">${proj.projectName}</span>
@@ -567,6 +569,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentProjectLabel) currentProjectLabel.innerText = currentProject.projectName;
         markClean();
         switchMainView('builderView');
+      });
+
+      // Right-click support on project dashboard cards
+      card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openProjectCardContextMenu(e, proj.id);
       });
 
       projectsGrid.appendChild(card);
@@ -833,7 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
       node.style.opacity = el.opacity !== undefined ? el.opacity : 1;
       node.style.transform = `rotate(${el.rotation || 0}deg)`;
 
-      // Apply Granular Animation Configuration
       if (el.animation && el.animation !== 'none') {
         const trigger = el.animTrigger || 'ambient';
         if (trigger === 'ambient' || trigger === 'mount') {
@@ -860,7 +868,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isPreviewMode) {
         attachMovement(node, el);
         attachResizer(node, el);
-        attachContextMenu(node, el);
+        attachElementContextMenu(node, el);
       }
 
       setupTooltips(node, el);
@@ -875,10 +883,9 @@ document.addEventListener('DOMContentLoaded', () => {
           renderCanvas();
         }
 
-        // Trigger on-click animation if configured
         if (el.animation && el.animation !== 'none' && el.animTrigger === 'click') {
           node.classList.remove(`anim-${el.animation}`);
-          void node.offsetWidth; // Force Reflow
+          void node.offsetWidth;
           node.classList.add(`anim-${el.animation}`);
           node.style.animationDuration = `${el.animDuration || 1.5}s`;
           node.style.animationIterationCount = el.animIteration || '1';
@@ -946,8 +953,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================= EXPANDED CONTEXT MENU ENGINE =================
-  function buildExpandedContextMenu() {
+  // ================= UNIVERSAL CONTEXT MENU ENGINE =================
+  function showUniversalContextMenu(e, htmlContent, onReadyCallback) {
     if (!elementContextMenu) {
       elementContextMenu = document.createElement('div');
       elementContextMenu.id = 'elementContextMenu';
@@ -955,250 +962,378 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(elementContextMenu);
     }
 
-    elementContextMenu.innerHTML = `
-      <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
-      <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
-      <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
-      <div class="context-separator"></div>
-      <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
-      <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
-      <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
-      <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
-      <div class="context-separator"></div>
-      <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
-      <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
-      <div class="context-item" id="ctxCenterBoth">🎯 Center on Screen</div>
-      <div class="context-separator"></div>
-      <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
-      <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
-      <div class="context-separator"></div>
-      <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
-    `;
+    elementContextMenu.innerHTML = htmlContent;
 
-    bindContextMenuActions();
+    const menuWidth = 220;
+    const menuHeight = 360;
+    const posX = (e.clientX + menuWidth > window.innerWidth) ? (e.clientX - menuWidth) : e.clientX;
+    const posY = (e.clientY + menuHeight > window.innerHeight) ? (e.clientY - menuHeight) : e.clientY;
+
+    elementContextMenu.style.left = `${posX}px`;
+    elementContextMenu.style.top = `${posY}px`;
+    elementContextMenu.classList.remove('hidden');
+
+    if (onReadyCallback) onReadyCallback();
   }
 
-  function bindContextMenuActions() {
-    // 1. Duplicate
-    document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      const target = page.elements.find(i => i.id === contextTargetElementId);
-      if (target) {
-        const clone = JSON.parse(JSON.stringify(target));
-        clone.id = 'el_' + Date.now().toString().slice(-4);
-        clone.name = clone.name + ' (Copy)';
-        clone.x += 20;
-        clone.y += 20;
-        page.elements.push(clone);
-        markDirty();
-        selectElement(clone.id);
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 2. Copy Style
-    document.getElementById('ctxCopyStyle')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target) {
-        clipboardStyles = {
-          bgColor: target.bgColor,
-          textColor: target.textColor,
-          borderColor: target.borderColor,
-          borderWidth: target.borderWidth,
-          borderStyle: target.borderStyle,
-          shape: target.shape,
-          borderRadius: target.borderRadius,
-          fontSize: target.fontSize,
-          fontFamily: target.fontFamily,
-          fontWeight: target.fontWeight,
-          letterSpacing: target.letterSpacing,
-          lineHeight: target.lineHeight,
-          textTransform: target.textTransform,
-          textDecoration: target.textDecoration,
-          textAlign: target.textAlign,
-          padding: target.padding,
-          backdropBlur: target.backdropBlur,
-          glowSize: target.glowSize,
-          glowColor: target.glowColor,
-          opacity: target.opacity,
-          animation: target.animation,
-          animDuration: target.animDuration,
-          animDelay: target.animDelay,
-          animIteration: target.animIteration,
-          animEasing: target.animEasing,
-          animDirection: target.animDirection,
-          animTrigger: target.animTrigger
-        };
-        AppLab.alert('Element styling copied to clipboard buffer!', 'Style Copied', '🎨');
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 3. Paste Style
-    document.getElementById('ctxPasteStyle')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target && clipboardStyles) {
-        Object.assign(target, JSON.parse(JSON.stringify(clipboardStyles)));
-        markDirty();
-        renderCanvas();
-        buildInspector();
-        AppLab.alert('Pasted styles to active element!', 'Style Applied', '🖌️');
-      } else if (!clipboardStyles) {
-        AppLab.alert('No styles copied yet! Copy a style from an element first.', 'Clipboard Empty', '⚠️');
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 4. Layer Ordering: Front & Back
-    document.getElementById('ctxBringFront')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-      if (idx >= 0) {
-        const [item] = page.elements.splice(idx, 1);
-        page.elements.push(item);
-        markDirty();
-        renderCanvas();
-        renderLayersTree();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    document.getElementById('ctxSendBack')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-      if (idx >= 0) {
-        const [item] = page.elements.splice(idx, 1);
-        page.elements.unshift(item);
-        markDirty();
-        renderCanvas();
-        renderLayersTree();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 5. Layer Ordering: Step Up & Down (+1 / -1)
-    document.getElementById('ctxLayerUp')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-      if (idx >= 0 && idx < page.elements.length - 1) {
-        const temp = page.elements[idx];
-        page.elements[idx] = page.elements[idx + 1];
-        page.elements[idx + 1] = temp;
-        markDirty();
-        renderCanvas();
-        renderLayersTree();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    document.getElementById('ctxLayerDown')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-      if (idx > 0) {
-        const temp = page.elements[idx];
-        page.elements[idx] = page.elements[idx - 1];
-        page.elements[idx - 1] = temp;
-        markDirty();
-        renderCanvas();
-        renderLayersTree();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 6. Canvas Alignments
-    document.getElementById('ctxCenterH')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target && canvas) {
-        target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
-        markDirty();
-        renderCanvas();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    document.getElementById('ctxCenterV')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target && canvas) {
-        target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
-        markDirty();
-        renderCanvas();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target && canvas) {
-        target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
-        target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
-        markDirty();
-        renderCanvas();
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 7. Play Animation Live
-    document.getElementById('ctxPlayAnim')?.addEventListener('click', () => {
-      const target = getActiveElementModel();
-      if (target && target.animation && target.animation !== 'none') {
-        const node = document.getElementById(target.id);
-        if (node) {
-          node.classList.remove(`anim-${target.animation}`);
-          void node.offsetWidth;
-          node.classList.add(`anim-${target.animation}`);
-        }
-      }
-      elementContextMenu.classList.add('hidden');
-    });
-
-    // 8. Open In Code Lab
-    document.getElementById('ctxOpenCode')?.addEventListener('click', () => {
-      activeElementId = contextTargetElementId;
-      elementContextMenu.classList.add('hidden');
-      switchStudioSubpage('code');
-    });
-
-    // 9. Delete Element
-    document.getElementById('ctxDelete')?.addEventListener('click', () => {
-      const page = getCurrentPage();
-      page.elements = page.elements.filter(i => i.id !== contextTargetElementId);
-      if (activeElementId === contextTargetElementId) activeElementId = null;
-      markDirty();
-      renderCanvas();
-      renderLayersTree();
-      buildInspector();
-      elementContextMenu.classList.add('hidden');
-    });
+  function hideContextMenu() {
+    if (elementContextMenu) elementContextMenu.classList.add('hidden');
   }
 
-  buildExpandedContextMenu();
+  window.addEventListener('click', (e) => {
+    if (elementContextMenu && !elementContextMenu.contains(e.target)) {
+      hideContextMenu();
+    }
+  });
 
-  function attachContextMenu(node, model) {
+  // 1. Right-Clicking Elements inside Canvas
+  function attachElementContextMenu(node, model) {
     node.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
       selectElement(model.id);
       contextTargetElementId = model.id;
 
-      if (elementContextMenu) {
-        // Adjust for viewport boundary so menu stays on screen
-        const menuWidth = 200;
-        const menuHeight = 360;
-        const posX = (e.clientX + menuWidth > window.innerWidth) ? (e.clientX - menuWidth) : e.clientX;
-        const posY = (e.clientY + menuHeight > window.innerHeight) ? (e.clientY - menuHeight) : e.clientY;
+      const menuHtml = `
+        <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
+        <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
+        <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
+        <div class="context-separator"></div>
+        <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
+        <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
+        <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
+        <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
+        <div class="context-separator"></div>
+        <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
+        <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
+        <div class="context-item" id="ctxCenterBoth">🎯 Center on Canvas</div>
+        <div class="context-separator"></div>
+        <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
+        <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
+        <div class="context-separator"></div>
+        <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
+      `;
 
-        elementContextMenu.style.left = `${posX}px`;
-        elementContextMenu.style.top = `${posY}px`;
-        elementContextMenu.classList.remove('hidden');
+      showUniversalContextMenu(e, menuHtml, () => {
+        document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          const target = page.elements.find(i => i.id === contextTargetElementId);
+          if (target) {
+            const clone = JSON.parse(JSON.stringify(target));
+            clone.id = 'el_' + Date.now().toString().slice(-4);
+            clone.name = clone.name + ' (Copy)';
+            clone.x += 20;
+            clone.y += 20;
+            page.elements.push(clone);
+            markDirty();
+            selectElement(clone.id);
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxCopyStyle')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target) {
+            clipboardStyles = JSON.parse(JSON.stringify(target));
+            clipboardElement = JSON.parse(JSON.stringify(target));
+            AppLab.alert('Element & styles copied to clipboard buffer!', 'Copied', '🎨');
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxPasteStyle')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target && clipboardStyles) {
+            const forbidden = ['id', 'x', 'y', 'name'];
+            Object.keys(clipboardStyles).forEach(k => {
+              if (!forbidden.includes(k)) target[k] = clipboardStyles[k];
+            });
+            markDirty();
+            renderCanvas();
+            buildInspector();
+          } else if (!clipboardStyles) {
+            AppLab.alert('No element style copied yet!', 'Clipboard Empty', '⚠️');
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxBringFront')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+          if (idx >= 0) {
+            const [item] = page.elements.splice(idx, 1);
+            page.elements.push(item);
+            markDirty();
+            renderCanvas();
+            renderLayersTree();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxSendBack')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+          if (idx >= 0) {
+            const [item] = page.elements.splice(idx, 1);
+            page.elements.unshift(item);
+            markDirty();
+            renderCanvas();
+            renderLayersTree();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxLayerUp')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+          if (idx >= 0 && idx < page.elements.length - 1) {
+            const temp = page.elements[idx];
+            page.elements[idx] = page.elements[idx + 1];
+            page.elements[idx + 1] = temp;
+            markDirty();
+            renderCanvas();
+            renderLayersTree();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxLayerDown')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+          if (idx > 0) {
+            const temp = page.elements[idx];
+            page.elements[idx] = page.elements[idx - 1];
+            page.elements[idx - 1] = temp;
+            markDirty();
+            renderCanvas();
+            renderLayersTree();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxCenterH')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target && canvas) {
+            target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+            markDirty();
+            renderCanvas();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxCenterV')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target && canvas) {
+            target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+            markDirty();
+            renderCanvas();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target && canvas) {
+            target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+            target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+            markDirty();
+            renderCanvas();
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxPlayAnim')?.addEventListener('click', () => {
+          const target = getActiveElementModel();
+          if (target && target.animation && target.animation !== 'none') {
+            const n = document.getElementById(target.id);
+            if (n) {
+              n.classList.remove(`anim-${target.animation}`);
+              void n.offsetWidth;
+              n.classList.add(`anim-${target.animation}`);
+            }
+          }
+          hideContextMenu();
+        });
+
+        document.getElementById('ctxOpenCode')?.addEventListener('click', () => {
+          activeElementId = contextTargetElementId;
+          hideContextMenu();
+          switchStudioSubpage('code');
+        });
+
+        document.getElementById('ctxDelete')?.addEventListener('click', () => {
+          const page = getCurrentPage();
+          page.elements = page.elements.filter(i => i.id !== contextTargetElementId);
+          if (activeElementId === contextTargetElementId) activeElementId = null;
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+          buildInspector();
+          hideContextMenu();
+        });
+      });
+    });
+  }
+
+  // 2. Right-Clicking Empty Canvas or Device Mockup
+  if (canvas) {
+    canvas.addEventListener('contextmenu', (e) => {
+      // If user directly right-clicked the canvas background rather than an element
+      if (e.target === canvas || e.target.id === 'canvas' || e.target.id === 'deviceFrame') {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        contextClickPos = {
+          x: Math.max(10, Math.round(e.clientX - rect.left)),
+          y: Math.max(10, Math.round(e.clientY - rect.top))
+        };
+
+        const canvasMenuHtml = `
+          <div class="context-item" id="ctxPasteElement">📋 Paste Copied Element</div>
+          <div class="context-separator"></div>
+          <div class="context-item" id="ctxAddButton">🔘 Add Button Here</div>
+          <div class="context-item" id="ctxAddLabel">📝 Add Label Here</div>
+          <div class="context-item" id="ctxAddInput">⌨️ Add Text Field Here</div>
+          <div class="context-item" id="ctxAddCard">🪟 Add Container Card Here</div>
+          <div class="context-separator"></div>
+          <div class="context-item" id="ctxTogglePreview">▶️ Toggle Live Preview</div>
+          <div class="context-item ctx-danger" id="ctxClearScreen">🗑️ Clear Screen Elements</div>
+        `;
+
+        showUniversalContextMenu(e, canvasMenuHtml, () => {
+          document.getElementById('ctxPasteElement')?.addEventListener('click', () => {
+            if (clipboardElement) {
+              const clone = JSON.parse(JSON.stringify(clipboardElement));
+              clone.id = 'el_' + Date.now().toString().slice(-4);
+              clone.x = contextClickPos.x;
+              clone.y = contextClickPos.y;
+              getCurrentPage().elements.push(clone);
+              markDirty();
+              selectElement(clone.id);
+            } else {
+              AppLab.alert('No element copied yet!', 'Clipboard Empty', '⚠️');
+            }
+            hideContextMenu();
+          });
+
+          const addQuickElement = (type, text, w, h) => {
+            const newEl = {
+              id: 'el_' + Date.now().toString().slice(-4),
+              name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+              type: type,
+              x: contextClickPos.x,
+              y: contextClickPos.y,
+              width: w,
+              height: h,
+              text: text,
+              textColor: '#ffffff',
+              bgColor: type === 'label' ? 'transparent' : '#7b2cbf',
+              borderColor: type === 'label' ? 'transparent' : '#9d4edd',
+              borderWidth: type === 'label' ? 0 : 1,
+              borderStyle: 'solid',
+              shape: type === 'button' ? 'pill' : 'rounded',
+              borderRadius: type === 'button' ? 9999 : 10,
+              fontSize: 14,
+              fontFamily: fontOptions[0].value,
+              fontWeight: '500',
+              textAlign: 'center',
+              padding: 8,
+              opacity: 1,
+              rotation: 0,
+              animation: 'none',
+              animDuration: 1.5,
+              codeMode: 'blocks',
+              customJs: '',
+              logic: { event: 'click', actions: [] }
+            };
+            getCurrentPage().elements.push(newEl);
+            markDirty();
+            selectElement(newEl.id);
+            hideContextMenu();
+          };
+
+          document.getElementById('ctxAddButton')?.addEventListener('click', () => addQuickElement('button', 'Click Me', 140, 44));
+          document.getElementById('ctxAddLabel')?.addEventListener('click', () => addQuickElement('label', 'Header Title', 160, 32));
+          document.getElementById('ctxAddInput')?.addEventListener('click', () => addQuickElement('input', 'Enter text...', 180, 40));
+          document.getElementById('ctxAddCard')?.addEventListener('click', () => addQuickElement('card', 'Container Card', 220, 120));
+
+          document.getElementById('ctxTogglePreview')?.addEventListener('click', () => {
+            modeToggleBtn.click();
+            hideContextMenu();
+          });
+
+          document.getElementById('ctxClearScreen')?.addEventListener('click', async () => {
+            hideContextMenu();
+            const confirmed = await AppLab.confirm('Clear all elements on this screen?', 'Clear Screen', '🗑️');
+            if (confirmed) {
+              getCurrentPage().elements = [];
+              activeElementId = null;
+              markDirty();
+              renderCanvas();
+              renderLayersTree();
+              buildInspector();
+            }
+          });
+        });
       }
     });
   }
 
-  window.addEventListener('click', (e) => {
-    if (elementContextMenu && !elementContextMenu.contains(e.target)) {
-      elementContextMenu.classList.add('hidden');
-    }
-  });
+  // 3. Right-Clicking Project Cards on Dashboard
+  function openProjectCardContextMenu(e, projId) {
+    contextTargetProjectId = projId;
+    const proj = getStoredProjects().find(p => p.id === projId);
+    if (!proj) return;
+
+    const projMenuHtml = `
+      <div class="context-item" id="ctxOpenProj">🚀 Open in Studio</div>
+      <div class="context-item" id="ctxDuplicateProj">📋 Duplicate Project</div>
+      <div class="context-item" id="ctxRenameProj">✏️ Rename Project</div>
+      <div class="context-separator"></div>
+      <div class="context-item ctx-danger" id="ctxDeleteProj">🗑️ Delete Project</div>
+    `;
+
+    showUniversalContextMenu(e, projMenuHtml, () => {
+      document.getElementById('ctxOpenProj')?.addEventListener('click', () => {
+        hideContextMenu();
+        currentProject = JSON.parse(JSON.stringify(proj));
+        activeScreenId = currentProject.pages[0].id;
+        if (currentProjectLabel) currentProjectLabel.innerText = currentProject.projectName;
+        switchMainView('builderView');
+      });
+
+      document.getElementById('ctxDuplicateProj')?.addEventListener('click', () => {
+        hideContextMenu();
+        const clone = JSON.parse(JSON.stringify(proj));
+        clone.id = 'proj_' + Date.now();
+        clone.projectName = clone.projectName + ' (Copy)';
+        clone.lastModified = new Date().toLocaleDateString();
+        const list = getStoredProjects();
+        list.unshift(clone);
+        localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(list));
+        renderProjectsDashboard();
+      });
+
+      document.getElementById('ctxRenameProj')?.addEventListener('click', async () => {
+        hideContextMenu();
+        const newTitle = await AppLab.prompt('Enter new project title:', proj.projectName, 'Rename Project');
+        if (newTitle && newTitle.trim()) {
+          const list = getStoredProjects();
+          const p = list.find(i => i.id === projId);
+          if (p) {
+            p.projectName = newTitle.trim();
+            p.lastModified = new Date().toLocaleDateString();
+            localStorage.setItem(STORAGE_PROJECTS, JSON.stringify(list));
+            renderProjectsDashboard();
+          }
+        }
+      });
+
+      document.getElementById('ctxDeleteProj')?.addEventListener('click', () => {
+        hideContextMenu();
+        deleteStoredProject(projId);
+      });
+    });
+  }
 
   function attachRuntimeExecution(node, model) {
     node.addEventListener(model.logic?.event === 'hover' ? 'mouseenter' : 'click', () => {
@@ -1266,7 +1401,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. Style & UI Tab
     if (propertiesTab) {
       let extraComponentControls = '';
       if (el.type === 'slider' || el.type === 'progress') {
@@ -1584,7 +1718,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Opacity (0 to 1)</label>
-          <input type="range" min="0.05" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
+          <input type="range" min="0.1" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
         </div>
         <div class="control-group">
           <label>Rotation Angle (degrees)</label>
@@ -1599,7 +1733,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Enhanced Animation Tab (Maximum Customizability)
+    // 4. Enhanced Animation Tab
     if (animationsTab) {
       animationsTab.innerHTML = `
         <div class="control-group">
@@ -1642,7 +1776,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 14px;">▶️ Test Animation Trigger</button>
       `;
 
-      // Preset Options
       const animOpts = [
         { label: '🚫 None', value: 'none' },
         { label: '✨ Fade In', value: 'fadeIn' },
@@ -1662,7 +1795,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.animation = val; markDirty(); renderCanvas(); }
       );
 
-      // Trigger Options
       const triggerOpts = [
         { label: '🔁 Ambient Constant Loop', value: 'ambient' },
         { label: '🚀 On Screen Load / Mount', value: 'mount' },
@@ -1676,7 +1808,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.animTrigger = val; markDirty(); renderCanvas(); }
       );
 
-      // Iteration Options
       const iterOpts = [
         { label: '🔁 Infinite Loop', value: 'infinite' },
         { label: '1 Time Only', value: '1' },
@@ -1691,7 +1822,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.animIteration = val; markDirty(); renderCanvas(); }
       );
 
-      // Direction Options
       const directionOpts = [
         { label: 'Normal (Forward)', value: 'normal' },
         { label: 'Reverse (Backward)', value: 'reverse' },
@@ -1705,7 +1835,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.animDirection = val; markDirty(); renderCanvas(); }
       );
 
-      // Easing Curve Options
       const easingOpts = [
         { label: 'Smooth (Ease-In-Out)', value: 'ease-in-out' },
         { label: 'Linear (Constant Speed)', value: 'linear' },
@@ -1720,7 +1849,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
       );
 
-      // Numeric inputs
       document.getElementById('propAnimDur').oninput = (e) => {
         el.animDuration = parseFloat(e.target.value) || 1.5;
         markDirty();
@@ -1737,7 +1865,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const node = document.getElementById(el.id);
         if (node && el.animation !== 'none') {
           node.classList.remove(`anim-${el.animation}`);
-          void node.offsetWidth; // Force Reflow
+          void node.offsetWidth;
           node.classList.add(`anim-${el.animation}`);
           node.style.animationDuration = `${el.animDuration || 1.5}s`;
           node.style.animationDelay = `${el.animDelay || 0}s`;
@@ -1927,147 +2055,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
   });
 
-  if (canvas) {
-    canvas.ondragover = (e) => e.preventDefault();
-    canvas.ondrop = (e) => {
-      e.preventDefault();
-      const type = e.dataTransfer.getData('type');
-      if (!type) return;
-      const rect = canvas.getBoundingClientRect();
-
-      let defaultWidth = 140;
-      let defaultHeight = 44;
-      let defaultText = 'Click Me';
-      let defaultBg = '#7b2cbf';
-      let defaultBorder = '#9d4edd';
-      let defaultBorderWidth = 1;
-      let defaultPadding = 8;
-      let defaultShape = 'rounded';
-      let defaultRadius = 10;
-      let defaultIsChecked = false;
-      let defaultCurrentVal = 50;
-
-      if (type === 'label') {
-        defaultWidth = 160;
-        defaultHeight = 32;
-        defaultText = 'Header Title';
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'input') {
-        defaultWidth = 180;
-        defaultHeight = 40;
-        defaultText = 'Type something...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'textarea') {
-        defaultWidth = 200;
-        defaultHeight = 80;
-        defaultText = 'Enter long paragraph comments...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'toggle') {
-        defaultWidth = 56;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-        defaultIsChecked = true;
-      } else if (type === 'slider') {
-        defaultWidth = 180;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'progress') {
-        defaultWidth = 200;
-        defaultHeight = 16;
-        defaultBg = 'rgba(255, 255, 255, 0.1)';
-        defaultBorder = 'rgba(157, 78, 221, 0.3)';
-        defaultBorderWidth = 1;
-        defaultRadius = 8;
-        defaultCurrentVal = 65;
-      } else if (type === 'divider') {
-        defaultWidth = 220;
-        defaultHeight = 10;
-        defaultBg = 'transparent';
-        defaultBorder = '#9d4edd';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'icon') {
-        defaultWidth = 48;
-        defaultHeight = 48;
-        defaultText = '⭐';
-        defaultBg = 'rgba(157, 78, 221, 0.2)';
-        defaultBorder = '#9d4edd';
-        defaultShape = 'circle';
-        defaultRadius = 50;
-      } else if (type === 'card') {
-        defaultWidth = 220;
-        defaultHeight = 120;
-        defaultText = 'Card Container Box';
-        defaultBg = 'rgba(255, 255, 255, 0.05)';
-        defaultBorder = 'rgba(255, 255, 255, 0.12)';
-        defaultPadding = 14;
-      }
-
-      const newEl = {
-        id: 'el_' + Date.now().toString().slice(-4),
-        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-        type: type,
-        x: Math.max(10, e.clientX - rect.left - 40),
-        y: Math.max(10, e.clientY - rect.top - 20),
-        width: defaultWidth,
-        height: defaultHeight,
-        text: defaultText,
-        textColor: '#ffffff',
-        bgColor: defaultBg,
-        borderColor: defaultBorder,
-        borderWidth: defaultBorderWidth,
-        borderStyle: 'solid',
-        shape: defaultShape,
-        borderRadius: defaultRadius,
-        fontSize: 14,
-        fontFamily: fontOptions[0].value,
-        fontWeight: '500',
-        letterSpacing: 0,
-        lineHeight: 1.2,
-        textTransform: 'none',
-        textDecoration: 'none',
-        textAlign: 'center',
-        padding: defaultPadding,
-        backdropBlur: 0,
-        glowSize: 0,
-        glowColor: '#9d4edd',
-        opacity: 1,
-        rotation: 0,
-        animation: 'none',
-        animDuration: 1.5,
-        animDelay: 0,
-        animIteration: 'infinite',
-        animEasing: 'ease-in-out',
-        animDirection: 'normal',
-        animTrigger: 'ambient',
-        minVal: 0,
-        maxVal: 100,
-        currentVal: defaultCurrentVal,
-        isChecked: defaultIsChecked,
-        imageFit: 'cover',
-        tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
-        codeMode: 'blocks',
-        customJs: '',
-        logic: { event: 'click', actions: [] }
-      };
-
-      getCurrentPage().elements.push(newEl);
-      markDirty();
-      selectElement(newEl.id);
-    };
-  }
-
+  // Pages List & Layers Tree
   function renderPagesList() {
     if (!pagesList) return;
     pagesList.innerHTML = '';
@@ -2088,6 +2076,24 @@ document.addEventListener('DOMContentLoaded', () => {
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
       l.innerText = el.name;
       l.onclick = () => selectElement(el.id);
+
+      // Right-click support on layers tree items
+      l.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectElement(el.id);
+        const node = document.getElementById(el.id);
+        if (node) {
+          const fakeEvent = {
+            clientX: e.clientX,
+            clientY: e.clientY,
+            preventDefault: () => {},
+            stopPropagation: () => {}
+          };
+          node.dispatchEvent(new MouseEvent('contextmenu', fakeEvent));
+        }
+      });
+
       layersTree.appendChild(l);
     });
   }
@@ -2196,7 +2202,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // ================= EXPANDED 8-TRACK MULTI-PAGE CURRICULUM =================
+  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS =================
+  let activeTrackId = 'track_canvas';
+  let currentCoursePageIndex = 0;
+
   const courseTracks = [
     {
       id: 'track_canvas',
@@ -2232,7 +2241,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Canvas Architecture',
+          title: 'Chapter 5: Quiz: Canvas Architecture',
           desc: 'Verify your mastery over coordinate geometry and hardware frames.',
           type: 'quiz',
           codeSnippet: null,
@@ -2283,7 +2292,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Contours & Glass',
+          title: 'Chapter 5: Quiz: Contours & Glass',
           desc: 'Confirm your understanding of CSS polygon rendering.',
           type: 'quiz',
           codeSnippet: null,
@@ -2334,7 +2343,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Block Logic',
+          title: 'Chapter 5: Quiz: Block Logic',
           desc: 'Test your grasp of block execution sequencing.',
           type: 'quiz',
           codeSnippet: null,
@@ -2385,7 +2394,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: JavaScript Sandbox',
+          title: 'Chapter 5: Quiz: JavaScript Sandbox',
           desc: 'Verify your knowledge of the scoped runtime APIs.',
           type: 'quiz',
           codeSnippet: null,
@@ -2430,13 +2439,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
           title: 'Chapter 4: Z-Index Layer Ordering Dynamics',
-          desc: 'Elements stack in order of placement. Using the Windows-style context menu, layers can be brought to front or sent to back to manage overlays and modals.',
+          desc: 'Elements stack in order of placement. Using the desktop-style context menu, layers can be brought to front or sent to back to manage overlays and modals.',
           type: 'theory',
           codeSnippet: `// Re-order active layer:\ncanvas.appendChild(targetElement); // Brings to front`,
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Inputs & State',
+          title: 'Chapter 5: Quiz: Inputs & State',
           desc: 'Confirm your understanding of dynamic component data handling.',
           type: 'quiz',
           codeSnippet: null,
@@ -2487,7 +2496,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Performance & Bundles',
+          title: 'Chapter 5: Quiz: Performance & Bundles',
           desc: 'Test your understanding of optimization and project portability.',
           type: 'quiz',
           codeSnippet: null,
@@ -2538,7 +2547,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Motion Dynamics',
+          title: 'Chapter 5: Quiz: Motion Dynamics',
           desc: 'Verify your knowledge of keyframe animations and easing.',
           type: 'quiz',
           codeSnippet: null,
@@ -2589,7 +2598,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quiz: null
         },
         {
-          title: 'Chapter 5: Master Quiz: Audio Synthesis',
+          title: 'Chapter 5: Quiz: Audio Synthesis',
           desc: 'Test your understanding of browser audio generation.',
           type: 'quiz',
           codeSnippet: null,
@@ -2609,32 +2618,40 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function renderCourseWorkspace() {
-    if (!trackMenu || !courseStage) return;
+    const trackMenuEl = document.getElementById('trackMenu');
+    const courseStageEl = document.getElementById('courseStage');
+    if (!trackMenuEl || !courseStageEl) return;
 
-    trackMenu.innerHTML = '';
+    trackMenuEl.innerHTML = '';
     courseTracks.forEach(track => {
       const item = document.createElement('div');
       item.className = `track-item ${track.id === activeTrackId ? 'active' : ''}`;
       item.innerHTML = `
         <h4>${track.title}</h4>
-        <span class="track-meta">${track.pages.length} Pages • ${track.desc}</span>
+        <span class="track-meta">${track.pages.length} Chapters • ${track.desc}</span>
       `;
       item.onclick = () => {
         activeTrackId = track.id;
         currentCoursePageIndex = 0;
         renderCourseWorkspace();
       };
-      trackMenu.appendChild(item);
+      trackMenuEl.appendChild(item);
     });
 
     renderActiveCoursePage();
   }
 
   function renderActiveCoursePage() {
-    const track = courseTracks.find(t => t.id === activeTrackId);
-    if (!track) return;
+    const courseStageEl = document.getElementById('courseStage');
+    if (!courseStageEl) return;
 
-    const page = track.pages[currentCoursePageIndex];
+    let track = courseTracks.find(t => t.id === activeTrackId);
+    if (!track) {
+      activeTrackId = courseTracks[0].id;
+      track = courseTracks[0];
+    }
+
+    const page = track.pages[currentCoursePageIndex] || track.pages[0];
     if (!page) return;
 
     let dotsHtml = track.pages.map((p, idx) => `
@@ -2766,10 +2783,10 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    courseStage.innerHTML = `
+    courseStageEl.innerHTML = `
       <div class="course-paper">
         <div class="course-paper-header">
-          <span class="page-indicator-pill">${track.title.toUpperCase()} • PAGE ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
+          <span class="page-indicator-pill">${track.title.toUpperCase()} • CHAPTER ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
           <div class="page-dots">${dotsHtml}</div>
         </div>
 
@@ -2788,9 +2805,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ${interactiveHtml}
 
         <div class="course-pagination-footer">
-          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Page</button>
+          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Chapter</button>
           <button class="btn-top btn-primary" id="nextCoursePageBtn">
-            ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Page &rarr;'}
+            ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Chapter &rarr;'}
           </button>
         </div>
       </div>
