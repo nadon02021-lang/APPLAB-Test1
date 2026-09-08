@@ -85,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 animEasing: 'ease-in-out',
                 animDirection: 'alternate',
                 animTrigger: 'ambient',
-                tooltip: 'Primary call-to-action button for initiating workflows',
+                tooltip: 'Triggers the onboarding flow dialog pop-up',
+                tooltipDuration: 3.5,
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
                 logic: {
@@ -138,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  // Course Tracks Data for Academy
   let activeTrackId = 'track_basics';
   let currentCoursePageIndex = 0;
   const courseTracks = [
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
-  // ================= UPGRADED 2-SECOND HOVER TOOLTIP SYSTEM =================
+  // ================= BEAUTIFUL SMART HUD TOOLTIP SYSTEM =================
   let tooltipElem = document.querySelector('.app-tooltip');
   if (!tooltipElem) {
     tooltipElem = document.createElement('div');
@@ -339,16 +339,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(tooltipElem);
   }
 
-  // Base persistent styling for dynamic calculation & boundary safety
+  // Ensure high-fidelity inline fallback styling
   Object.assign(tooltipElem.style, {
     position: 'fixed',
-    zIndex: '999999',
+    zIndex: '9999999',
     pointerEvents: 'none',
-    transition: 'opacity 0.15s ease, transform 0.15s ease',
-    willChange: 'left, top, transform'
+    transition: 'opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+    willChange: 'left, top, transform, opacity',
+    minWidth: '220px',
+    maxWidth: '300px',
+    padding: '10px 14px',
+    borderRadius: '12px',
+    background: 'rgba(18, 12, 34, 0.94)',
+    border: '1px solid rgba(157, 78, 221, 0.4)',
+    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.65), 0 0 16px rgba(157, 78, 221, 0.25)',
+    backdropFilter: 'blur(16px)',
+    webkitBackdropFilter: 'blur(16px)',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    color: '#ffffff'
   });
 
-  let hoverTimer = null;
+  let hoverShowTimer = null;
+  let autoDismissTimer = null;
   let activeTooltipNode = null;
   let currentMouseX = 0;
   let currentMouseY = 0;
@@ -359,26 +371,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: true });
 
   function hideAppTooltip() {
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      hoverTimer = null;
-    }
+    if (hoverShowTimer) { clearTimeout(hoverShowTimer); hoverShowTimer = null; }
+    if (autoDismissTimer) { clearTimeout(autoDismissTimer); autoDismissTimer = null; }
     activeTooltipNode = null;
-    tooltipElem.classList.add('hidden');
+    tooltipElem.style.opacity = '0';
+    tooltipElem.style.transform = 'translateY(6px) scale(0.96)';
+    setTimeout(() => {
+      if (!activeTooltipNode) tooltipElem.classList.add('hidden');
+    }, 200);
   }
 
   function updateTooltipPosition(clientX, clientY) {
-    const offset = 14;
+    const offset = 16;
     const padding = 12;
 
     const rect = tooltipElem.getBoundingClientRect();
-    const width = rect.width || 180;
-    const height = rect.height || 36;
+    const width = rect.width || 240;
+    const height = rect.height || 60;
 
     let targetX = clientX + offset;
     let targetY = clientY + offset;
 
-    // Viewport collision bounds check
+    // Viewport collision bounds detection
     if (targetX + width > window.innerWidth - padding) {
       targetX = clientX - width - offset;
     }
@@ -393,39 +407,103 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipElem.style.top = `${Math.round(targetY)}px`;
   }
 
+  // Smart Discovery Tooltip Descriptor Library
+  const componentDescriptions = {
+    button: 'Interactive trigger for clicks and scripts. Fires logic block workflows or navigates screens.',
+    input: 'Single-line text entry box. Captures user keystrokes for variables and forms.',
+    textarea: 'Multi-line expandable text area for comments, prompts, or logs.',
+    image: 'Visual container rendering external image URLs or local assets with crop modes.',
+    toggle: 'Binary switch toggling true/false state variables in preview mode.',
+    slider: 'Continuous value range control for volumes, speeds, and numerical logic.',
+    progress: 'Percentage fill bar (0-100%) indicating task or state completion.',
+    divider: 'Thin visual separator line to organize screen layout boundaries.',
+    icon: 'Scalable graphic glyph used for badges, statuses, and decorative focal points.',
+    card: 'Elevated container box with glass blur for grouping child components.'
+  };
+
+  function triggerTooltipForNode(node, title, category, description, durationSec = 3.5, hint = '') {
+    hideAppTooltip();
+    activeTooltipNode = node;
+
+    // 400ms ergonomic hover detection delay
+    hoverShowTimer = setTimeout(() => {
+      if (activeTooltipNode !== node) return;
+
+      tooltipElem.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+          <span style="font-weight:700; font-size:0.84rem; letter-spacing:0.3px; color:#fff;">${title}</span>
+          <span style="font-size:0.65rem; text-transform:uppercase; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(157,78,221,0.25); color:#d4a5ff; border:1px solid rgba(157,78,221,0.4);">${category}</span>
+        </div>
+        <div style="font-size:0.75rem; line-height:1.45; color:rgba(255,255,255,0.82);">${description}</div>
+        ${hint ? `<div style="margin-top:6px; font-size:0.68rem; color:#a29bfe; display:flex; align-items:center; gap:4px;"><span style="opacity:0.7;">💡</span> ${hint}</div>` : ''}
+      `;
+
+      tooltipElem.classList.remove('hidden');
+      updateTooltipPosition(currentMouseX, currentMouseY);
+
+      void tooltipElem.offsetWidth;
+      tooltipElem.style.opacity = '1';
+      tooltipElem.style.transform = 'translateY(0) scale(1)';
+
+      // Auto-dismiss after custom duration (defaults to ~3.5 seconds)
+      const stayDuration = Math.max(1.5, Math.min(12, durationSec)) * 1000;
+      autoDismissTimer = setTimeout(() => {
+        hideAppTooltip();
+      }, stayDuration);
+    }, 400);
+  }
+
   function setupTooltips(node, model) {
     node._elementModel = model;
 
-    node.addEventListener('mouseenter', (e) => {
-      hideAppTooltip();
-      activeTooltipNode = node;
-      currentMouseX = e.clientX;
-      currentMouseY = e.clientY;
+    node.addEventListener('mouseenter', () => {
+      const live = node._elementModel || model;
+      const typeInfo = componentDescriptions[live.type] || 'Canvas UI Component Layer';
+      const customNotes = live.tooltip && live.tooltip.trim();
+      const desc = customNotes ? customNotes : typeInfo;
+      const hint = isPreviewMode ? 'Running in interactive sandbox' : 'Right-click for options • Drag to reposition';
+      const dur = parseFloat(live.tooltipDuration) || 3.5;
 
-      hoverTimer = setTimeout(() => {
-        if (activeTooltipNode !== node) return;
-
-        const liveModel = node._elementModel || model;
-        const desc = (liveModel.tooltip && liveModel.tooltip.trim())
-          ? liveModel.tooltip.trim()
-          : `Layer: ${liveModel.name} (${liveModel.type})`;
-
-        tooltipElem.textContent = desc;
-        tooltipElem.classList.remove('hidden');
-        updateTooltipPosition(currentMouseX, currentMouseY);
-      }, 2000);
+      triggerTooltipForNode(
+        node,
+        live.name || `${live.type.toUpperCase()} Layer`,
+        live.type,
+        desc,
+        dur,
+        hint
+      );
     });
 
     node.addEventListener('mousemove', (e) => {
       currentMouseX = e.clientX;
       currentMouseY = e.clientY;
-      if (!tooltipElem.classList.contains('hidden')) {
+      if (!tooltipElem.classList.contains('hidden') && activeTooltipNode === node) {
         updateTooltipPosition(currentMouseX, currentMouseY);
       }
     });
 
     node.addEventListener('mouseleave', hideAppTooltip);
     node.addEventListener('mousedown', hideAppTooltip);
+  }
+
+  // App-wide tooltip registration for buttons, toolbars, and controls
+  function bindGlobalUiTooltips() {
+    document.querySelectorAll('[data-info]').forEach(el => {
+      el.removeEventListener('mouseenter', el._uiTooltipEnter);
+      el.removeEventListener('mouseleave', hideAppTooltip);
+      el.removeEventListener('mousedown', hideAppTooltip);
+
+      el._uiTooltipEnter = () => {
+        const title = el.getAttribute('data-title') || el.innerText.trim().slice(0, 20) || 'Control';
+        const info = el.getAttribute('data-info');
+        const hotkey = el.getAttribute('data-hotkey') || '';
+        triggerTooltipForNode(el, title, 'Tool', info, 3.2, hotkey);
+      };
+
+      el.addEventListener('mouseenter', el._uiTooltipEnter);
+      el.addEventListener('mouseleave', hideAppTooltip);
+      el.addEventListener('mousedown', hideAppTooltip);
+    });
   }
 
   window.addEventListener('scroll', hideAppTooltip, { passive: true });
@@ -638,6 +716,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (builderControls) builderControls.classList.add('hidden');
       if (viewId === 'homeView') renderProjectsDashboard();
     }
+
+    bindGlobalUiTooltips();
   }
 
   function switchStudioSubpage(subpage) {
@@ -661,6 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dev) dev.style.display = 'none';
       renderCodeLab();
     }
+    bindGlobalUiTooltips();
   }
 
   if (subnavDesignBtn) subnavDesignBtn.addEventListener('click', () => switchStudioSubpage('design'));
@@ -1437,7 +1518,8 @@ document.addEventListener('DOMContentLoaded', () => {
           animTrigger: 'ambient',
           codeMode: 'blocks',
           customJs: '',
-          tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Layer Component`,
+          tooltip: '',
+          tooltipDuration: 3.5,
           logic: { event: 'click', actions: [] }
         };
         getCurrentPage().elements.push(newEl);
@@ -1670,8 +1752,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="control-group">
-          <label>Tooltip Description (2s Hover)</label>
-          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Description shown on hover...">
+          <label>Smart Tooltip Note (Hover Info)</label>
+          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Leave empty for smart discovery info...">
+        </div>
+
+        <div class="control-group">
+          <label>Tooltip Read Duration (Seconds)</label>
+          <input type="number" step="0.5" min="1.5" max="10" class="control-input" id="propTooltipDur" value="${el.tooltipDuration || 3.5}">
         </div>
 
         <div class="control-group">
@@ -1871,11 +1958,16 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propTooltip').oninput = (e) => {
         el.tooltip = e.target.value;
         const canvasNode = document.getElementById(el.id);
-        if (canvasNode) {
-          canvasNode._elementModel = el;
-        }
+        if (canvasNode) canvasNode._elementModel = el;
         markDirty();
       };
+      document.getElementById('propTooltipDur').oninput = (e) => {
+        el.tooltipDuration = parseFloat(e.target.value) || 3.5;
+        const canvasNode = document.getElementById(el.id);
+        if (canvasNode) canvasNode._elementModel = el;
+        markDirty();
+      };
+
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
       document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
@@ -2284,9 +2376,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Component Drag & Drop Palette
+  // Component Drag & Drop Palette with Discovery Tooltips
   document.querySelectorAll('.draggable-card').forEach(card => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
+    const t = card.dataset.type;
+    if (t && componentDescriptions[t]) {
+      card.setAttribute('data-title', `${t.charAt(0).toUpperCase() + t.slice(1)} Widget`);
+      card.setAttribute('data-info', componentDescriptions[t]);
+      card.setAttribute('data-hotkey', 'Drag onto screen to place');
+    }
   });
 
   if (canvas) {
@@ -2418,7 +2516,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentVal: defaultCurrentVal,
         isChecked: defaultIsChecked,
         imageFit: 'cover',
-        tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
+        tooltip: '',
+        tooltipDuration: 3.5,
         codeMode: 'blocks',
         customJs: '',
         logic: { event: 'click', actions: [] }
@@ -2438,9 +2537,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const it = document.createElement('div');
       it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
       it.innerText = `📄 ${p.name}`;
+      it.setAttribute('data-title', p.name);
+      it.setAttribute('data-info', `Screen contains ${p.elements.length} components. Click to switch active view.`);
       it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
       pagesList.appendChild(it);
     });
+    bindGlobalUiTooltips();
   }
 
   function renderLayersTree() {
@@ -2450,9 +2552,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const l = document.createElement('div');
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
       l.innerText = el.name;
+      l.setAttribute('data-title', el.name);
+      l.setAttribute('data-info', `Type: ${el.type} • Pos: (${el.x}, ${el.y}) • Size: ${el.width}×${el.height}px`);
       l.onclick = () => selectElement(el.id);
       layersTree.appendChild(l);
     });
+    bindGlobalUiTooltips();
   }
 
   if (addPageBtn) {
