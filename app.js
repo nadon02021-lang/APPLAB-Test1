@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  // ================= EXPANDED 8-TRACK CURRICULUM WITH UNIQUE LAB INTERACTIONS =================
+  // ================= EXPANDED 8-TRACK CURRICULUM (5+ PAGES PER TOPIC) =================
   let activeTrackId = 'track_layout';
   let currentCoursePageIndex = 0;
 
@@ -177,21 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           title: 'Multi-Device Viewport Scaling',
           tag: 'Responsive Architecture',
-          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Test viewport frame scaling below.',
+          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Elements use pixel coordinates bounded by the current viewport frame width and height.',
           type: 'practice_viewport_scaler',
           codeSnippet: '// Viewport scaling toggle logic:\ndeviceFrame.style.width = isTablet ? "768px" : "380px";'
         },
         {
           title: 'Safe Margins & Collision Detection',
           tag: 'Precision Geometry',
-          desc: 'Test bounding box intersection testing to prevent layered components from overlapping unintentionally.',
+          desc: 'Bounding box collision testing prevents layered components from overlapping unintentionally. The algorithm evaluates overlapping axes via AABB (Axis-Aligned Bounding Box) logic.',
           type: 'practice_aabb_collision',
           codeSnippet: 'function checkCollision(r1, r2) {\n  return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);\n}'
         },
         {
           title: 'Z-Index Stack Hierarchy',
           tag: 'Layer Ordering',
-          desc: 'Canvas layers are painted in array sequence. Test re-stacking items in the visual layer stack builder below.',
+          desc: 'Canvas layers are painted in array sequence. The first element in the pages array is rendered on the bottom floor, while the final element sits at the very top of the stack.',
           type: 'practice_zindex_stack',
           codeSnippet: 'const [item] = elements.splice(index, 1);\nelements.push(item); // Brings to front'
         }
@@ -657,6 +657,85 @@ document.addEventListener('DOMContentLoaded', () => {
   const effectsTab = document.getElementById('effectsTab');
   const animationsTab = document.getElementById('animationsTab');
 
+  // ================= UNIVERSAL CUSTOM RANGE SLIDER COMPONENT =================
+  function createCustomRangeSlider(container, min, max, step, initialValue, onInputCallback) {
+    if (!container) return;
+    container.innerHTML = '';
+
+    let val = parseFloat(initialValue);
+    if (isNaN(val)) val = min;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-slider-wrapper';
+    wrapper.style.cssText = 'display:flex; align-items:center; gap:10px; width:100%;';
+
+    const track = document.createElement('div');
+    track.className = 'custom-slider-track';
+    track.style.cssText = 'flex:1; height:6px; background:rgba(255,255,255,0.12); border-radius:9999px; position:relative; cursor:pointer;';
+
+    const fill = document.createElement('div');
+    fill.className = 'custom-slider-fill';
+    const pct = ((val - min) / (max - min)) * 100;
+    fill.style.cssText = `width:${Math.max(0, Math.min(100, pct))}%; height:100%; background:linear-gradient(90deg, #7b2cbf, #c77dff); border-radius:9999px; pointer-events:none;`;
+
+    const thumb = document.createElement('div');
+    thumb.className = 'custom-slider-thumb';
+    thumb.style.cssText = `position:absolute; top:50%; left:${Math.max(0, Math.min(100, pct))}%; transform:translate(-50%, -50%); width:16px; height:16px; background:#fff; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.4); pointer-events:none; transition: transform 0.1s;`;
+
+    const valBadge = document.createElement('span');
+    valBadge.className = 'custom-slider-value';
+    valBadge.style.cssText = 'font-family:monospace; font-size:0.75rem; min-width:32px; text-align:right; color:#a29bfe;';
+    valBadge.innerText = val;
+
+    track.appendChild(fill);
+    track.appendChild(thumb);
+    wrapper.appendChild(track);
+    wrapper.appendChild(valBadge);
+    container.appendChild(wrapper);
+
+    let isDragging = false;
+
+    function updateValueFromClientX(clientX) {
+      const rect = track.getBoundingClientRect();
+      let x = clientX - rect.left;
+      let ratio = Math.max(0, Math.min(1, x / rect.width));
+      let rawVal = min + ratio * (max - min);
+
+      if (step) {
+        rawVal = Math.round(rawVal / step) * step;
+      }
+      val = parseFloat(rawVal.toFixed(step < 1 ? 2 : 0));
+
+      const p = ((val - min) / (max - min)) * 100;
+      fill.style.width = `${p}%`;
+      thumb.style.left = `${p}%`;
+      valBadge.innerText = val;
+
+      if (onInputCallback) onInputCallback(val);
+    }
+
+    track.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      thumb.style.transform = 'translate(-50%, -50%) scale(1.2)';
+      updateValueFromClientX(e.clientX);
+
+      function onMove(ev) {
+        if (!isDragging) return;
+        updateValueFromClientX(ev.clientX);
+      }
+
+      function onUp() {
+        isDragging = false;
+        thumb.style.transform = 'translate(-50%, -50%) scale(1)';
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      }
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+  }
+
   // ================= DUAL-PURPOSE TOOLTIP SYSTEM =================
   let tooltipElem = document.querySelector('.app-tooltip');
   if (!tooltipElem) {
@@ -958,7 +1037,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
-        dialogInputGroup.classList.add('hidden');
+        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = '<button class="btn-top btn-primary" id="dlgOkBtn">Acknowledge</button>';
         customDialogModal.classList.remove('hidden');
 
@@ -978,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
-        dialogInputGroup.classList.add('hidden');
+        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgCancelBtn">Cancel</button>
           <button class="btn-top btn-primary" id="dlgYesBtn">Proceed</button>
@@ -1006,7 +1085,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
         dialogInput.value = defaultValue;
-        dialogInputGroup.classList.remove('hidden');
+        if (dialogInputGroup) dialogInputGroup.classList.remove('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgPromptCancel">Cancel</button>
           <button class="btn-top btn-primary" id="dlgPromptOk">Submit</button>
@@ -1032,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = '⚠️';
         dialogTitle.innerText = 'Unsaved Changes';
         dialogMessage.innerText = 'You have unsaved changes in your project. Do you want to save first, discard changes, or stay?';
-        dialogInputGroup.classList.add('hidden');
+        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgStayBtn">Stay Here</button>
           <button class="btn-top" id="dlgDiscardBtn" style="color:#ff6b6b">Discard</button>
@@ -2385,7 +2464,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="control-group">
           <label>Tooltip Display Duration (Seconds)</label>
-          <input type="number" step="0.5" min="1.5" max="10" class="control-input" id="propTooltipDur" value="${el.tooltipDuration || 3.5}">
+          <div id="propTooltipDurContainer"></div>
         </div>
 
         <div class="control-group">
@@ -2440,7 +2519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="control-group">
           <label>Inner Padding (px)</label>
-          <input type="range" min="0" max="40" value="${el.padding || 0}" class="control-input" id="propPadding">
+          <div id="propPaddingContainer"></div>
         </div>
 
         <div class="control-row">
@@ -2480,6 +2559,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <button class="btn-top" style="color:#ff6b6b; margin-top:14px;" id="delElemBtn">Remove Element</button>
       `;
+
+      createCustomRangeSlider(document.getElementById('propPaddingContainer'), 0, 40, 1, el.padding || 0, (v) => { el.padding = v; markDirty(); renderCanvas(); });
+      createCustomRangeSlider(document.getElementById('propTooltipDurContainer'), 1.5, 10, 0.5, el.tooltipDuration || 3.5, (v) => {
+        el.tooltipDuration = v;
+        const canvasNode = document.getElementById(el.id);
+        if (canvasNode) canvasNode._elementModel = el;
+        markDirty();
+      });
 
       createCustomSelect(
         document.getElementById('propFontContainer'),
@@ -2588,18 +2675,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (canvasNode) canvasNode._elementModel = el;
         markDirty();
       };
-      document.getElementById('propTooltipDur').oninput = (e) => {
-        el.tooltipDuration = parseFloat(e.target.value) || 3.5;
-        const canvasNode = document.getElementById(el.id);
-        if (canvasNode) canvasNode._elementModel = el;
-        markDirty();
-      };
 
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
       document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
       document.getElementById('propLineHeight').oninput = (e) => { el.lineHeight = parseFloat(e.target.value) || 1.2; markDirty(); renderCanvas(); };
-      document.getElementById('propPadding').oninput = (e) => { el.padding = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
       document.getElementById('propBorderWidth').oninput = (e) => { el.borderWidth = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
 
       bindColorPair('propTextColorPicker', 'propTextColor', (v) => { el.textColor = v; markDirty(); renderCanvas(); });
@@ -2630,7 +2710,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Corner Radius (px)</label>
-          <input type="range" min="0" max="80" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
+          <div id="propRadiusContainer"></div>
         </div>
       `;
 
@@ -2643,12 +2723,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       });
 
-      document.getElementById('propRadiusRange').oninput = (e) => {
-        el.borderRadius = parseInt(e.target.value);
+      createCustomRangeSlider(document.getElementById('propRadiusContainer'), 0, 80, 1, el.borderRadius || 8, (v) => {
+        el.borderRadius = v;
         el.shape = 'rounded';
         markDirty();
         renderCanvas();
-      };
+      });
     }
 
     // Effects Tab
@@ -2656,11 +2736,11 @@ document.addEventListener('DOMContentLoaded', () => {
       effectsTab.innerHTML = `
         <div class="control-group">
           <label>Glass Backdrop Blur (px)</label>
-          <input type="range" min="0" max="40" value="${el.backdropBlur || 0}" class="control-input" id="propBlur">
+          <div id="propBlurContainer"></div>
         </div>
         <div class="control-group">
           <label>Neon Glow / Shadow Spread (px)</label>
-          <input type="range" min="0" max="50" value="${el.glowSize || 0}" class="control-input" id="propGlowSize">
+          <div id="propGlowContainer"></div>
         </div>
         <div class="control-group">
           <label>Glow / Shadow Color</label>
@@ -2671,19 +2751,20 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="control-group">
           <label>Opacity (0 to 1)</label>
-          <input type="range" min="0.1" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
+          <div id="propOpacityContainer"></div>
         </div>
         <div class="control-group">
           <label>Rotation Angle (degrees)</label>
-          <input type="range" min="0" max="360" value="${el.rotation || 0}" class="control-input" id="propRotation">
+          <div id="propRotationContainer"></div>
         </div>
       `;
 
-      document.getElementById('propBlur').oninput = (e) => { el.backdropBlur = parseInt(e.target.value); markDirty(); renderCanvas(); };
-      document.getElementById('propGlowSize').oninput = (e) => { el.glowSize = parseInt(e.target.value); markDirty(); renderCanvas(); };
+      createCustomRangeSlider(document.getElementById('propBlurContainer'), 0, 40, 1, el.backdropBlur || 0, (v) => { el.backdropBlur = v; markDirty(); renderCanvas(); });
+      createCustomRangeSlider(document.getElementById('propGlowContainer'), 0, 50, 1, el.glowSize || 0, (v) => { el.glowSize = v; markDirty(); renderCanvas(); });
+      createCustomRangeSlider(document.getElementById('propOpacityContainer'), 0.1, 1, 0.05, el.opacity !== undefined ? el.opacity : 1, (v) => { el.opacity = v; markDirty(); renderCanvas(); });
+      createCustomRangeSlider(document.getElementById('propRotationContainer'), 0, 360, 1, el.rotation || 0, (v) => { el.rotation = v; markDirty(); renderCanvas(); });
+
       bindColorPair('propGlowColorPicker', 'propGlowColorText', (v) => { el.glowColor = v; markDirty(); renderCanvas(); });
-      document.getElementById('propOpacity').oninput = (e) => { el.opacity = parseFloat(e.target.value); markDirty(); renderCanvas(); };
-      document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
     // Animations Tab
@@ -2702,11 +2783,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="control-row" style="margin-top: 6px;">
           <div class="control-group">
             <label>Duration (Seconds)</label>
-            <input type="number" step="0.1" min="0.1" max="20" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
+            <div id="propAnimDurContainer"></div>
           </div>
           <div class="control-group">
             <label>Start Delay (Seconds)</label>
-            <input type="number" step="0.1" min="0" max="10" class="control-input" id="propAnimDelay" value="${el.animDelay || 0}">
+            <div id="propAnimDelayContainer"></div>
           </div>
         </div>
 
@@ -2728,6 +2809,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 14px;">▶️ Test Animation Trigger</button>
       `;
+
+      createCustomRangeSlider(document.getElementById('propAnimDurContainer'), 0.1, 10, 0.1, el.animDuration || 1.5, (v) => { el.animDuration = v; markDirty(); renderCanvas(); });
+      createCustomRangeSlider(document.getElementById('propAnimDelayContainer'), 0, 5, 0.1, el.animDelay || 0, (v) => { el.animDelay = v; markDirty(); renderCanvas(); });
 
       const animOpts = [
         { label: '🚫 None', value: 'none' },
@@ -2801,18 +2885,6 @@ document.addEventListener('DOMContentLoaded', () => {
         el.animEasing || 'ease-in-out',
         (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
       );
-
-      document.getElementById('propAnimDur').oninput = (e) => {
-        el.animDuration = parseFloat(e.target.value) || 1.5;
-        markDirty();
-        renderCanvas();
-      };
-
-      document.getElementById('propAnimDelay').oninput = (e) => {
-        el.animDelay = parseFloat(e.target.value) || 0;
-        markDirty();
-        renderCanvas();
-      };
 
       document.getElementById('replayAnimBtn').onclick = () => {
         const node = document.getElementById(el.id);
@@ -3214,7 +3286,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let interactiveHtml = '';
 
-    // ================= UNIQUE LAB INTERACTION PER PAGE TYPE =================
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3299,7 +3370,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="shapePillBtn">💊 Capsule</button>
             <button class="btn-top" id="shapeDiamondBtn">💠 Diamond</button>
-            <button class="btn-top" id="shapeHexagonBtn">⬡ Hexagon</button>
+            <button class="btn-top" id="shapeHexagonBtn">⡡ Hexagon</button>
             <button class="btn-top" id="shapeCircleBtn">⚪ Circle</button>
           </div>
         </div>
@@ -3316,7 +3387,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
             <label style="font-size: 0.75rem; color:#ccc;">Top Vertex X:</label>
-            <input type="range" min="0" max="100" value="50" id="vertexTopSlider" style="accent-color: #9d4edd; width: 180px;">
+            <div id="vertexSliderContainer" style="width: 200px;"></div>
           </div>
         </div>
       `;
@@ -3331,7 +3402,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="radiusMorphBox" style="width: 140px; height: 60px; background: linear-gradient(135deg, #7b2cbf, #2ed573); border-radius: 16px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.8rem; font-weight:600; transition: border-radius 0.2s ease;">Morph Box</div>
           </div>
           <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
-            <input type="range" min="0" max="50" value="16" id="radiusSlider" style="accent-color: #2ed573; width: 220px;">
+            <div id="radiusSliderContainer" style="width: 220px;"></div>
           </div>
         </div>
       `;
@@ -3477,7 +3548,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span id="sliderMirrorBadge" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #d4a5ff;">Value: 50%</span>
           </div>
           <div style="margin-bottom: 14px;">
-            <input type="range" min="0" max="100" value="50" id="sliderMirrorRange" style="width: 100%; accent-color: #9d4edd;">
+            <div id="sliderMirrorContainer"></div>
           </div>
           <div style="height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow:hidden;">
             <div id="sliderMirrorBar" style="width: 50%; height: 100%; background: linear-gradient(90deg, #7b2cbf, #00f2fe); transition: width 0.1s ease;"></div>
@@ -3574,7 +3645,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span id="pitchReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Frequency: 440 Hz</span>
           </div>
           <div style="margin-bottom: 14px;">
-            <input type="range" min="100" max="1200" value="440" id="pitchSlider" style="width: 100%; accent-color: #00f2fe;">
+            <div id="pitchSliderContainer"></div>
           </div>
           <div style="display:flex; justify-content:center;">
             <button class="btn-top btn-primary" id="playPitchSweepBtn">🔊 Play Continuous Pitch</button>
@@ -3709,7 +3780,6 @@ document.addEventListener('DOMContentLoaded', () => {
       let boxPos = 30;
       const evaluateCollision = (pos) => {
         boxMov.style.left = `${pos}px`;
-        // Target box static is at [180, 260]
         const isIntersecting = pos + 80 > 180;
         if (isIntersecting) {
           boxMov.style.background = '#ff0077';
@@ -3784,25 +3854,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const vertexBox = document.getElementById('vertexPolyBox');
-    const vertexSlider = document.getElementById('vertexTopSlider');
     const vertexReadout = document.getElementById('vertexReadout');
-    if (vertexBox && vertexSlider) {
-      vertexSlider.oninput = (e) => {
-        const val = e.target.value;
+    if (vertexBox) {
+      createCustomRangeSlider(document.getElementById('vertexSliderContainer'), 0, 100, 1, 50, (val) => {
         vertexBox.style.clipPath = `polygon(${val}% 0%, 100% 50%, 50% 100%, 0% 50%)`;
         if (vertexReadout) vertexReadout.innerText = `Top Point: ${val}%`;
-      };
+      });
     }
 
     const radiusBox = document.getElementById('radiusMorphBox');
-    const radiusSlider = document.getElementById('radiusSlider');
     const radiusReadout = document.getElementById('radiusReadout');
-    if (radiusBox && radiusSlider) {
-      radiusSlider.oninput = (e) => {
-        const val = e.target.value;
+    if (radiusBox) {
+      createCustomRangeSlider(document.getElementById('radiusSliderContainer'), 0, 50, 1, 16, (val) => {
         radiusBox.style.borderRadius = `${val}px`;
         if (radiusReadout) radiusReadout.innerText = `Radius: ${val}px`;
-      };
+      });
     }
 
     const blockSimChip = document.getElementById('blockSimChip');
@@ -3949,15 +4015,13 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    const sliderRange = document.getElementById('sliderMirrorRange');
     const sliderBar = document.getElementById('sliderMirrorBar');
     const sliderBadge = document.getElementById('sliderMirrorBadge');
-    if (sliderRange && sliderBar) {
-      sliderRange.oninput = (e) => {
-        const val = e.target.value;
+    if (sliderBar) {
+      createCustomRangeSlider(document.getElementById('sliderMirrorContainer'), 0, 100, 1, 50, (val) => {
         sliderBar.style.width = `${val}%`;
         if (sliderBadge) sliderBadge.innerText = `Value: ${val}%`;
-      };
+      });
     }
 
     const perfChip = document.getElementById('perfTargetChip');
@@ -4100,14 +4164,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    const pitchSlider = document.getElementById('pitchSlider');
     const pitchReadout = document.getElementById('pitchReadout');
-    if (pitchSlider) {
-      pitchSlider.oninput = (e) => {
-        if (pitchReadout) pitchReadout.innerText = `Frequency: ${e.target.value} Hz`;
-      };
+    if (document.getElementById('pitchSliderContainer')) {
+      createCustomRangeSlider(document.getElementById('pitchSliderContainer'), 100, 1200, 10, 440, (val) => {
+        if (pitchReadout) pitchReadout.innerText = `Frequency: ${val} Hz`;
+      });
       document.getElementById('playPitchSweepBtn')?.addEventListener('click', () => {
-        const f = parseInt(pitchSlider.value) || 440;
+        const sliderValEl = document.querySelector('#pitchSliderContainer .custom-slider-value');
+        const f = sliderValEl ? parseFloat(sliderValEl.innerText) || 440 : 440;
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
           const osc = ctx.createOscillator();
