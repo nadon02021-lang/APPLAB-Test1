@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(tooltipElem);
   }
 
-  // Base styling for the glassmorphism floating HUD
+  // Base styling for the floating HUD
   Object.assign(tooltipElem.style, {
     position: 'fixed',
     zIndex: '9999999',
@@ -463,10 +463,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  function showStyledTooltip(html, durationSec = 3.5, minWidth = 200, maxWidth = 300) {
+  function showStyledTooltip(html, durationSec = 3.5, minWidth = 160, maxWidth = 300) {
     tooltipElem.style.minWidth = `${minWidth}px`;
     tooltipElem.style.maxWidth = `${maxWidth}px`;
-    tooltipElem.style.padding = '10px 14px';
+    tooltipElem.style.padding = '8px 12px';
     tooltipElem.innerHTML = html;
 
     tooltipElem.classList.remove('hidden');
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, stayMs);
   }
 
-  // 2. Setup Canvas Elements -> ONLY Creator's Custom Tooltip
+  // 2. Setup Canvas Elements -> ONLY Creator's Custom Tooltip (Pure Note, No Element Name)
   function setupTooltips(node, model) {
     node._elementModel = model;
 
@@ -501,27 +501,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let contentHtml = '';
         if (customNotes) {
-          // Beautiful Creator Tooltip Display
+          // Pure creator custom message without layer label or headers
           contentHtml = `
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
-              <span style="font-size:0.7rem; color:#d4a5ff;">💬</span>
-              <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#c77dff;">${live.name}</span>
-            </div>
-            <div style="font-size:0.8rem; line-height:1.4; color:#ffffff; font-weight:500;">${customNotes}</div>
+            <div style="font-size:0.8rem; line-height:1.45; color:#ffffff; font-weight:500;">${customNotes}</div>
           `;
         } else {
-          // Subtle hint in Design Mode only (lets creator know they can write a custom tooltip)
+          // Subtle hint in Design Mode only
           contentHtml = `
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-              <span style="font-size:0.75rem; font-weight:600; color:#eee;">${live.name}</span>
-              <span style="font-size:0.65rem; color:#888;">No tooltip set</span>
-            </div>
-            <div style="font-size:0.7rem; color:#aaa; margin-top:3px;">Set custom text in Inspector &rarr; Properties.</div>
+            <div style="font-size:0.72rem; color:#aaa; font-style:italic;">No tooltip set. Add one in Inspector &rarr; Properties.</div>
           `;
         }
 
         const dur = parseFloat(live.tooltipDuration) || 3.5;
-        showStyledTooltip(contentHtml, dur, 160, 260);
+        showStyledTooltip(contentHtml, dur, 140, 260);
       }, 450);
     });
 
@@ -539,7 +531,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Setup Components Tab & UI -> Educational "What is this?" Discovery Cards
   function bindPaletteAndUiTooltips() {
-    // Component Palette items in the sidebar
     document.querySelectorAll('.draggable-card').forEach(card => {
       const type = card.dataset.type;
       const info = paletteComponentDocs[type];
@@ -578,7 +569,6 @@ document.addEventListener('DOMContentLoaded', () => {
       card.addEventListener('mousedown', hideAppTooltip);
     });
 
-    // General UI Controls with [data-info]
     document.querySelectorAll('[data-info]').forEach(el => {
       el.addEventListener('mouseenter', () => {
         hideAppTooltip();
@@ -825,6 +815,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (builderControls) builderControls.classList.add('hidden');
       if (viewId === 'homeView') renderProjectsDashboard();
     }
+
+    bindPaletteAndUiTooltips();
   }
 
   function switchStudioSubpage(subpage) {
@@ -848,6 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (dev) dev.style.display = 'none';
       renderCodeLab();
     }
+    bindPaletteAndUiTooltips();
   }
 
   if (subnavDesignBtn) subnavDesignBtn.addEventListener('click', () => switchStudioSubpage('design'));
@@ -2910,243 +2903,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     } else if (page.type === 'quiz' && page.quiz) {
-      const q = page.quiz;
-      const optsHtml = q.options.map((opt, i) => `
-        <button class="quiz-option-btn" data-opt-idx="${i}">
-          <span style="opacity: 0.6;">[${String.fromCharCode(65 + i)}]</span> ${opt}
-        </button>
-      `).join('');
-
-      interactiveHtml = `
-        <div class="quiz-card">
-          <div class="quiz-question">${q.question}</div>
-          <div class="quiz-options" id="quizOptionsContainer">${optsHtml}</div>
-          <div class="quiz-feedback" id="quizFeedbackBox">${q.explanation}</div>
-        </div>
-      `;
-    }
-
-    courseStageEl.innerHTML = `
-      <div class="course-paper">
-        <div class="course-paper-header">
-          <span class="page-indicator-pill">${track.title.toUpperCase()} • CHAPTER ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
-          <div class="page-dots">${dotsHtml}</div>
-        </div>
-
-        <div class="lesson-headline">
-          <h2>${page.title}</h2>
-          <p>${page.desc}</p>
-        </div>
-
-        ${page.codeSnippet ? `
-          <div class="code-snippet-box">
-            <button class="btn-copy-code" data-code="${encodeURIComponent(page.codeSnippet)}">Copy Snippet</button>
-            <pre>${page.codeSnippet}</pre>
-          </div>
-        ` : ''}
-
-        ${interactiveHtml}
-
-        <div class="course-pagination-footer">
-          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Chapter</button>
-          <button class="btn-top btn-primary" id="nextCoursePageBtn">
-            ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Chapter &rarr;'}
-          </button>
-        </div>
-      </div>
-    `;
-
-    document.querySelectorAll('.page-dot').forEach(dot => {
-      dot.onclick = () => {
-        currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
-        renderActiveCoursePage();
-      };
-    });
-
-    const prevBtn = document.getElementById('prevCoursePageBtn');
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        if (currentCoursePageIndex > 0) {
-          currentCoursePageIndex--;
-          renderActiveCoursePage();
-        }
-      };
-    }
-
-    const nextBtn = document.getElementById('nextCoursePageBtn');
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        if (currentCoursePageIndex < track.pages.length - 1) {
-          currentCoursePageIndex++;
-          renderActiveCoursePage();
-        } else {
-          switchMainView('builderView');
-        }
-      };
-    }
-
-    document.querySelectorAll('.btn-copy-code').forEach(btn => {
-      btn.onclick = () => {
-        const text = decodeURIComponent(btn.dataset.code);
-        navigator.clipboard.writeText(text);
-        btn.innerText = 'Copied!';
-        setTimeout(() => btn.innerText = 'Copy Snippet', 1500);
-      };
-    });
-
-    const chip = document.getElementById('canvasLabChip');
-    if (chip) {
-      document.getElementById('moveChipLeft').onclick = () => {
-        let left = parseInt(chip.style.left) || 80;
-        chip.style.left = `${Math.max(10, left - 30)}px`;
-      };
-      document.getElementById('moveChipRight').onclick = () => {
-        let left = parseInt(chip.style.left) || 80;
-        chip.style.left = `${Math.min(260, left + 30)}px`;
-      };
-      document.getElementById('resetChipPos').onclick = () => {
-        chip.style.left = '80px';
-      };
-    }
-
-    const shapeChip = document.getElementById('courseShapeChip');
-    if (shapeChip) {
-      document.getElementById('shapePillBtn').onclick = () => {
-        shapeChip.style.clipPath = 'none';
-        shapeChip.style.borderRadius = '9999px';
-        shapeChip.style.boxShadow = '0 0 20px var(--accent-glow)';
-        shapeChip.style.filter = 'none';
-        shapeChip.innerText = '💊 Capsule';
-      };
-      document.getElementById('shapeDiamondBtn').onclick = () => {
-        shapeChip.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
-        shapeChip.style.borderRadius = '0';
-        shapeChip.style.boxShadow = 'none';
-        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
-        shapeChip.innerText = '💠 Diamond';
-      };
-      document.getElementById('shapeHexagonBtn').onclick = () => {
-        shapeChip.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
-        shapeChip.style.borderRadius = '0';
-        shapeChip.style.boxShadow = 'none';
-        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
-        shapeChip.innerText = '⬡ Hexagon';
-      };
-    }
-
-    const blockSimChip = document.getElementById('blockSimChip');
-    if (blockSimChip) {
-      document.getElementById('runBlockSimBtn').onclick = () => {
-        blockSimChip.innerText = '⚡ Step 1: Recoloring...';
-        blockSimChip.style.backgroundColor = '#00f2fe';
-        blockSimChip.style.boxShadow = '0 0 25px #00f2fe';
-        setTimeout(() => {
-          blockSimChip.innerText = '✨ Step 2: Pulsing...';
-          blockSimChip.className = 'lab-target-chip anim-pulse';
-        }, 600);
-      };
-      document.getElementById('resetBlockSimBtn').onclick = () => {
-        blockSimChip.className = 'lab-target-chip';
-        blockSimChip.style.backgroundColor = '';
-        blockSimChip.style.boxShadow = '';
-        blockSimChip.innerText = '⏹️ Idle Layer';
-      };
-    }
-
-    const runJsBtn = document.getElementById('runCourseJsBtn');
-    if (runJsBtn) {
-      runJsBtn.onclick = () => {
-        const jsTarget = document.getElementById('jsLabTarget');
-        jsTarget.style.backgroundColor = '#ff0077';
-        jsTarget.style.boxShadow = '0 0 25px #ff0077';
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator(); osc.connect(ctx.destination);
-          osc.start(); osc.stop(ctx.currentTime + 0.15);
-        } catch (e) {}
-        AppLab.alert('Sandbox code executed: Element recolored & audio tone synthesized!', 'Code Lab Live Runner', '⚡');
-      };
-    }
-
-    const applyBindingBtn = document.getElementById('applyBindingBtn');
-    if (applyBindingBtn) {
-      applyBindingBtn.onclick = () => {
-        const inputVal = document.getElementById('bindingInput').value;
-        const target = document.getElementById('bindingTargetChip');
-        target.innerText = inputVal || '(Empty)';
-        target.classList.add('anim-scalePop');
-        setTimeout(() => target.classList.remove('anim-scalePop'), 600);
-      };
-    }
-
-    const perfChip = document.getElementById('perfTargetChip');
-    if (perfChip) {
-      document.getElementById('perfToggleQuality').onclick = () => {
-        perfChip.style.backdropFilter = 'blur(20px)';
-        perfChip.style.boxShadow = '0 0 25px var(--accent-glow)';
-        perfChip.innerText = '✨ Quality Glass (Blur Active)';
-      };
-      document.getElementById('perfToggleFast').onclick = () => {
-        perfChip.style.backdropFilter = 'none';
-        perfChip.style.boxShadow = 'none';
-        perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
-      };
-    }
-
-    const animChip = document.getElementById('courseAnimChip');
-    if (animChip) {
-      const setChipAnim = (animClass, label) => {
-        animChip.className = `lab-target-chip anim-${animClass}`;
-        animChip.innerText = label;
-      };
-      document.getElementById('animPulseBtn').onclick = () => setChipAnim('pulse', '💓 Pulsing');
-      document.getElementById('animBounceBtn').onclick = () => setChipAnim('bounce', '🏀 Bouncing');
-      document.getElementById('animFloatBtn').onclick = () => setChipAnim('float', '🎈 Floating');
-      document.getElementById('animSpinBtn').onclick = () => setChipAnim('spin', '🔄 Spinning');
-      document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
-    }
-
-    const audioChip = document.getElementById('audioVisualizerChip');
-    if (audioChip) {
-      const playTone = (freq, duration, type = 'sine') => {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, ctx.currentTime);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-          osc.start();
-          osc.stop(ctx.currentTime + duration);
-        } catch (e) {}
-      };
-
-      document.getElementById('playBeepToneBtn').onclick = () => {
-        audioChip.innerText = '🔊 Playing 440Hz Sine Wave...';
-        audioChip.style.boxShadow = '0 0 25px #00f2fe';
-        playTone(440, 0.25);
-        setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
-        }, 300);
-      };
-
-      document.getElementById('playChimeToneBtn').onclick = () => {
-        audioChip.innerText = '🔔 Playing Success Chime (C5 -> G5)...';
-        audioChip.style.boxShadow = '0 0 25px #2ed573';
-        playTone(523, 0.15);
-        setTimeout(() => playTone(784, 0.25), 150);
-        setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
-        }, 400);
-      };
-    }
-
-    if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
       document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
