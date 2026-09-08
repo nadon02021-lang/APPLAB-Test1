@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  // ================= EXPANDED 8-TRACK CURRICULUM (5+ PAGES PER TOPIC) =================
+  // ================= EXPANDED 8-TRACK CURRICULUM WITH UNIQUE LAB INTERACTIONS =================
   let activeTrackId = 'track_layout';
   let currentCoursePageIndex = 0;
 
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: '// Boundary Clamping Formula:\nconst clampX = Math.max(0, Math.min(canvasWidth - elemWidth, targetX));\nconst clampY = Math.max(0, Math.min(canvasHeight - elemHeight, targetY));'
         },
         {
-          title: 'Viewport Boundary Mechanics',
+          title: 'Precision Positioning Quiz',
           tag: 'Knowledge Check',
           desc: 'Verify your understanding of spatial constraints on custom mobile viewports.',
           type: 'quiz',
@@ -177,33 +177,23 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           title: 'Multi-Device Viewport Scaling',
           tag: 'Responsive Architecture',
-          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Elements use pixel coordinates bounded by the current viewport frame width and height.',
-          type: 'practice_canvas',
-          codeSnippet: '// Centering an element programmatically:\nelement.x = Math.round((deviceFrame.clientWidth - element.width) / 2);\nelement.y = Math.round((deviceFrame.clientHeight - element.height) / 2);'
+          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Test viewport frame scaling below.',
+          type: 'practice_viewport_scaler',
+          codeSnippet: '// Viewport scaling toggle logic:\ndeviceFrame.style.width = isTablet ? "768px" : "380px";'
         },
         {
           title: 'Safe Margins & Collision Detection',
           tag: 'Precision Geometry',
-          desc: 'Bounding box collision testing prevents layered components from overlapping unintentionally. The algorithm evaluates overlapping axes via AABB (Axis-Aligned Bounding Box) logic.',
-          type: 'practice_canvas',
+          desc: 'Test bounding box intersection testing to prevent layered components from overlapping unintentionally.',
+          type: 'practice_aabb_collision',
           codeSnippet: 'function checkCollision(r1, r2) {\n  return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);\n}'
         },
         {
           title: 'Z-Index Stack Hierarchy',
           tag: 'Layer Ordering',
-          desc: 'Canvas layers are painted in array sequence. The first element in the pages array is rendered on the bottom floor, while the final element sits at the very top of the stack.',
-          type: 'quiz',
-          quiz: {
-            question: 'How does bringing a layer to the front affect its index in project data?',
-            options: [
-              'It moves the element object to the end of the elements array',
-              'It assigns a negative z-index value',
-              'It duplicates the layer automatically',
-              'It locks the coordinates to zero'
-            ],
-            correctIndex: 0,
-            explanation: 'In DOM rendering pipelines, elements appended last in the array naturally render on top of previous sibling nodes.'
-          }
+          desc: 'Canvas layers are painted in array sequence. Test re-stacking items in the visual layer stack builder below.',
+          type: 'practice_zindex_stack',
+          codeSnippet: 'const [item] = elements.splice(index, 1);\nelements.push(item); // Brings to front'
         }
       ]
     },
@@ -238,18 +228,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         {
-          title: 'Diamond Geometry Math',
-          tag: 'Matrix Coordinates',
-          desc: 'A diamond shape is plotted using four coordinate vertices: top-center (50% 0%), right-center (100% 50%), bottom-center (50% 100%), and left-center (0% 50%).',
-          type: 'practice_shapes',
-          codeSnippet: '/* Diamond Geometry */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);'
+          title: 'Custom Vertex Point Adjuster',
+          tag: 'Vertex Editor',
+          desc: 'Adjust individual polygon percentage sliders to dynamically twist and reshape vector masks.',
+          type: 'practice_vertex_editor',
+          codeSnippet: 'clip-path: polygon(v1X v1Y, v2X v2Y, v3X v3Y, v4X v4Y);'
         },
         {
           title: 'Pill & Capsule Curvature',
           tag: 'Border Radii',
-          desc: 'A capsule or pill contour is generated using an ultra-high border-radius (e.g. 9999px). The browser clamps the corner curvature to exactly half of the element height.',
-          type: 'practice_shapes',
-          codeSnippet: '/* Capsule Geometry */\nborder-radius: 9999px;\nclip-path: none;\nbox-shadow: 0 0 20px rgba(157, 78, 221, 0.5);'
+          desc: 'Toggle border radius interpolation parameters to witness smooth morphing from rigid boxes to complete circles.',
+          type: 'practice_radius_interpolator',
+          codeSnippet: 'border-radius: ${radiusVal}px;'
         },
         {
           title: 'Vector Performance Analysis',
@@ -301,18 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         },
         {
-          title: 'Screen Routing Pipelines',
-          tag: 'Navigation Stack',
-          desc: 'Page navigation blocks update the activeScreenId state variable, instantly triggering canvas re-rendering to display the target screen layers.',
-          type: 'practice_blocks',
-          codeSnippet: '// Screen Navigation Trigger:\naction: { type: "navigate", target: "screen_dashboard" };\n// Runtime execution:\nactiveScreenId = action.target;\nrenderCanvas();'
+          title: 'Visual Logic Builder Flow',
+          tag: 'Drag & Connect Simulator',
+          desc: 'Assemble a mini 3-block pipeline (Trigger -> Condition -> Action) and test execution validity.',
+          type: 'practice_logic_builder',
+          codeSnippet: 'if (trigger.fired) {\n  executeActions(pipelineStack);\n}'
         },
         {
-          title: 'Dynamic Style Mutation',
-          tag: 'Reactive Properties',
-          desc: 'Action blocks can update layer background colors, border tones, and text strings on external target elements across the canvas simultaneously.',
-          type: 'practice_blocks',
-          codeSnippet: '// Target element mutation:\nconst target = document.getElementById(action.target);\nif (target) {\n  target.style.backgroundColor = action.value;\n}'
+          title: 'Conditional Branching Logic',
+          tag: 'If/Else Stacks',
+          desc: 'Test true/false branches in visual blocks where variable comparisons determine which child action executes.',
+          type: 'practice_conditional_branch',
+          codeSnippet: 'if (variable.score > 50) {\n  runActions(successBranch);\n} else {\n  runActions(retryBranch);\n}'
         },
         {
           title: 'Trigger Event Types',
@@ -354,11 +344,18 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: 'const scriptFn = new Function("element", "app", "canvas", model.customJs);\nscriptFn(node, appApi, canvasNode);'
         },
         {
-          title: 'Procedural Audio API Hooks',
-          tag: 'Sound Generation',
-          desc: 'AppLab provides built-in synthesizer hooks like app.playBeep() to allow creators to trigger procedural tactile audio without downloading MP3 sound files.',
-          type: 'practice_js',
-          codeSnippet: '// Trigger audio cue:\napp.playBeep();\nelement.style.backgroundColor = "#ff0077";'
+          title: 'Interactive Console Debugger',
+          tag: 'Live REPL',
+          desc: 'Type and evaluate custom JavaScript property assignments live on a test object in real-time.',
+          type: 'practice_repl_console',
+          codeSnippet: 'element.style.color = "#00f2fe";\nelement.style.borderRadius = "20px";'
+        },
+        {
+          title: 'Custom Math Calculator Script',
+          tag: 'Algorithm Runner',
+          desc: 'Execute math formula scripts inside the virtual machine to calculate dynamic layout offsets.',
+          type: 'practice_math_runner',
+          codeSnippet: 'const radius = 50;\nconst area = Math.PI * Math.pow(radius, 2);\nreturn area;'
         },
         {
           title: 'Handling Runtime Errors',
@@ -376,13 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
             correctIndex: 0,
             explanation: 'Runtime execution is enclosed in a try/catch block that intercepts the Error object and presents a clean alert dialog with the line error.'
           }
-        },
-        {
-          title: 'Screen Switching via Code',
-          tag: 'Custom Routing',
-          desc: 'In custom JS mode, creators can invoke app.navigateTo(screenId) to conditionally direct users between multi-page screens.',
-          type: 'practice_js',
-          codeSnippet: 'if (element.dataset.verified === "true") {\n  app.navigateTo("screen_dashboard");\n} else {\n  app.showAlert("Verification required!");\n}'
         }
       ]
     },
@@ -397,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
           tag: 'State Reactivity',
           desc: 'Connecting user text inputs directly to display headers gives users immediate visual validation. Try updating the input in the lab below.',
           type: 'practice_binding',
-          codeSnippet: 'input.addEventListener("input", (e) => {\n  const val = e.target.value;\n  targetChip.innerText = val || "Placeholder";\n  targetChip.classList.add("anim-pulse");\n});'
+          codeSnippet: 'input.addEventListener("input", (e) => {\n  const val = e.target.value;\n  targetChip.innerText = val || "Placeholder";\n  targetChip.classList.add("anim-scalePop");\n});'
         },
         {
           title: 'Sanitizing Bound Text Content',
@@ -407,18 +397,18 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: '// Safe binding:\ntargetLayer.innerText = userInputField.value;\n// Unsafe:\ntargetLayer.innerHTML = userInputField.value; // Vulnerable to XSS'
         },
         {
-          title: 'Debounced State Updates',
-          tag: 'Performance Engineering',
-          desc: 'Debouncing high-frequency keystrokes delays expensive rendering passes until the user pauses typing for a specified number of milliseconds.',
-          type: 'practice_binding',
-          codeSnippet: 'let debounceTimer;\ninput.oninput = () => {\n  clearTimeout(debounceTimer);\n  debounceTimer = setTimeout(() => updateState(input.value), 250);\n};'
+          title: 'Color Hex Code Synchronizer',
+          tag: 'Style Binding Lab',
+          desc: 'Type any valid CSS color hex code or name to instantly re-theme a live UI component.',
+          type: 'practice_color_sync',
+          codeSnippet: 'previewCard.style.backgroundColor = colorInput.value;'
         },
         {
-          title: 'Reactive Text Transform',
-          tag: 'Data Formatting',
-          desc: 'Bound state can be piped through formatting transforms like toUpperCase(), string truncations, or currency formatting before hitting the canvas display.',
-          type: 'practice_binding',
-          codeSnippet: 'targetLayer.innerText = `$${parseFloat(val || 0).toFixed(2)}`;'
+          title: 'Slider Number Formatter',
+          tag: 'Value Interpolation',
+          desc: 'Bind a range slider to dynamically scale a numerical badge from 0% to 100% in real-time.',
+          type: 'practice_slider_mirror',
+          codeSnippet: 'badge.innerText = `${slider.value}% Completed`;\nbar.style.width = `${slider.value}%`;'
         },
         {
           title: 'Data Binding Principles',
@@ -460,11 +450,11 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: 'will-change: transform, opacity;\ntransform: translateZ(0);'
         },
         {
-          title: 'Fill Rate Bottlenecks',
-          tag: 'Rasterization Performance',
-          desc: 'Overdraw occurs when several semi-transparent blurred layers overlap on top of each other, forcing the GPU to calculate blur passes repeatedly for the same pixel.',
-          type: 'practice_perf',
-          codeSnippet: '// Keep overlapping blurred layers to a maximum of 2 for stable mobile FPS'
+          title: 'FPS Frame Rate Stress Tester',
+          tag: 'Benchmark Lab',
+          desc: 'Simulate high-load DOM painting stress tests with glowing elements to test browser compositing limits.',
+          type: 'practice_fps_stress',
+          codeSnippet: '// Simulating 100 animated glowing DOM nodes:\ncreateGlowNodes(100);'
         },
         {
           title: 'Quality vs Performance Modes',
@@ -513,11 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: '/* Ambient Loop */\nanimation-iteration-count: infinite;\n/* Event Pulse */\nanimation-iteration-count: 1;'
         },
         {
-          title: 'Keyframe Easing Mathematical Curves',
-          tag: 'Physics Curves',
-          desc: 'The cubic-bezier function takes four parameters: (x1, y1, x2, y2) representing the two control handle tangents of a cubic polynomial curve.',
-          type: 'practice_anim',
-          codeSnippet: '/* Snappy iOS-style spring curve */\ntransition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);'
+          title: 'Interactive Spring Bounce Tester',
+          tag: 'Spring Physics Lab',
+          desc: 'Click the trigger box to test custom tension and friction spring curves.',
+          type: 'practice_spring_tester',
+          codeSnippet: 'transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);'
         },
         {
           title: 'Motion Design Accessibility',
@@ -566,11 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
           codeSnippet: 'osc.type = "sine";     // Smooth click\nosc.type = "triangle"; // Warm chime\nosc.type = "sawtooth"; // Warning buzzer'
         },
         {
-          title: 'Synthesizing Musical Chords',
-          tag: 'Polyphonic Audio',
-          desc: 'Playing multiple frequencies simultaneously or in rapid arpeggio (such as C5 523Hz followed by G5 784Hz) signals success and positive confirmation.',
-          type: 'practice_audio',
-          codeSnippet: '// Arpeggio success chord:\nplayTone(523, 0.15);\nsetTimeout(() => playTone(784, 0.25), 120);'
+          title: 'Custom Frequency Pitch Slider',
+          tag: 'Frequency Synth Lab',
+          desc: 'Drag the frequency slider to sweep an oscillator pitch live from 100Hz to 1200Hz.',
+          type: 'practice_pitch_sweep',
+          codeSnippet: 'oscillator.frequency.setValueAtTime(slider.value, audioCtx.currentTime);'
         },
         {
           title: 'Audio Gain Envelopes (ADSR)',
@@ -3224,6 +3214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let interactiveHtml = '';
 
+    // ================= UNIQUE LAB INTERACTION PER PAGE TYPE =================
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3240,6 +3231,58 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="btn-top" id="moveChipRight">Step Right (+30px) ➡️</button>
             <button class="btn-top" id="moveChipFarRight">Max (260px) ⏭️</button>
             <button class="btn-top" id="resetChipPos">Reset</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_viewport_scaler') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Viewport Frame Scaler</span>
+            <span id="scalerReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Width: 380px (Phone)</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 120px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="scalerBox" style="width: 240px; height: 75px; background: linear-gradient(135deg, #00f2fe, #7b2cbf); border-radius: 10px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; transition: width 0.3s ease;">📱 Adaptive Box</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top" id="scalePhoneBtn">📱 Phone (320px)</button>
+            <button class="btn-top" id="scaleTabletBtn">📟 Tablet (480px)</button>
+            <button class="btn-top" id="scaleDesktopBtn">💻 Desktop (600px)</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_aabb_collision') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 AABB Box Collision Matrix</span>
+            <span id="collisionStatus" style="font-family: monospace; font-size: 0.75rem; background: rgba(46,213,115,0.2); border: 1px solid rgba(46,213,115,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">Status: No Intersection</span>
+          </div>
+          <div style="position:relative; height: 110px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 12px; overflow:hidden;">
+            <div id="boxStatic" style="position:absolute; left: 180px; top: 25px; width: 80px; height: 60px; background: rgba(255,255,255,0.1); border: 2px dashed #aaa; border-radius: 6px; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:0.7rem;">Target</div>
+            <div id="boxMovable" style="position:absolute; left: 30px; top: 25px; width: 80px; height: 60px; background: #7b2cbf; border: 2px solid #9d4edd; border-radius: 6px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.7rem; font-weight:600; transition: left 0.1s ease;">Draggable</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top" id="moveBoxLeft">&larr; Move Left</button>
+            <button class="btn-top" id="moveBoxRight">Move Right &rarr;</button>
+            <button class="btn-top btn-primary" id="moveBoxIntersect">🎯 Snap to Intersect</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_zindex_stack') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Visual Layer Stack Reorder</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Z-Index Manager</span>
+          </div>
+          <div id="stackStage" style="position:relative; height: 110px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 12px; display:flex; align-items:center; justify-content:center;">
+            <div id="layerA" style="position:absolute; width: 120px; height: 50px; background: #ff0077; border-radius: 8px; left: 160px; top: 30px; z-index: 1; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.75rem; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.4);">Layer A (Back)</div>
+            <div id="layerB" style="position:absolute; width: 120px; height: 50px; background: #00f2fe; border-radius: 8px; left: 210px; top: 45px; z-index: 2; display:flex; align-items:center; justify-content:center; color:#000; font-size:0.75rem; font-weight:700; box-shadow:0 4px 12px rgba(0,0,0,0.4);">Layer B (Front)</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top btn-primary" id="bringATopBtn">🔼 Bring Layer A to Front</button>
+            <button class="btn-top" id="bringBTopBtn">🔼 Bring Layer B to Front</button>
           </div>
         </div>
       `;
@@ -3261,6 +3304,37 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
+    } else if (page.type === 'practice_vertex_editor') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Polygon Vertex Customizer</span>
+            <span id="vertexReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Top Point: 50%</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 120px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="vertexPolyBox" style="width: 90px; height: 90px; background: #9d4edd; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); box-shadow: 0 0 20px rgba(157,78,221,0.5); transition: clip-path 0.2s ease;"></div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
+            <label style="font-size: 0.75rem; color:#ccc;">Top Vertex X:</label>
+            <input type="range" min="0" max="100" value="50" id="vertexTopSlider" style="accent-color: #9d4edd; width: 180px;">
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_radius_interpolator') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Border Radius Morph Lab</span>
+            <span id="radiusReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #d4a5ff;">Radius: 16px</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 110px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="radiusMorphBox" style="width: 140px; height: 60px; background: linear-gradient(135deg, #7b2cbf, #2ed573); border-radius: 16px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.8rem; font-weight:600; transition: border-radius 0.2s ease;">Morph Box</div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; justify-content: center;">
+            <input type="range" min="0" max="50" value="16" id="radiusSlider" style="accent-color: #2ed573; width: 220px;">
+          </div>
+        </div>
+      `;
     } else if (page.type === 'practice_blocks') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3274,6 +3348,43 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top btn-primary" id="runBlockSimBtn">▶️ Trigger 3-Stage Pipeline</button>
             <button class="btn-top" id="resetBlockSimBtn">Reset Layer</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_logic_builder') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Drag-and-Connect Pipeline Builder</span>
+            <span id="builderStatus" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Pipeline: 3 Blocks Ready</span>
+          </div>
+          <div style="display:flex; gap: 8px; justify-content:center; align-items:center; height: 100px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px; padding: 0 10px;">
+            <div style="padding:8px 12px; background:#2b1b4d; border:1px solid #9d4edd; border-radius:6px; color:#c77dff; font-size:0.75rem; font-weight:600;">1. On Click</div>
+            <span style="color:#666;">&rarr;</span>
+            <div style="padding:8px 12px; background:#2b1b4d; border:1px solid #9d4edd; border-radius:6px; color:#c77dff; font-size:0.75rem; font-weight:600;">2. If Active</div>
+            <span style="color:#666;">&rarr;</span>
+            <div style="padding:8px 12px; background:#00f2fe; border-radius:6px; color:#000; font-size:0.75rem; font-weight:700;">3. Show Alert</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top btn-primary" id="testPipelineBtn">⚡ Test Run Pipeline</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_conditional_branch') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 If/Else Variable Evaluator</span>
+            <span id="branchResultTag" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">Branch: Success</span>
+          </div>
+          <div style="display:flex; justify-content:space-around; align-items:center; height: 100px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px; padding: 0 16px;">
+            <div style="text-align:center;">
+              <div style="font-size:0.7rem; color:#aaa; margin-bottom:4px;">Variable Score</div>
+              <input type="number" id="branchScoreInput" value="75" class="control-input" style="width: 80px; text-align:center;">
+            </div>
+            <div id="branchOutputCard" style="padding: 10px 18px; background: rgba(46,213,115,0.2); border: 1px solid #2ed573; border-radius: 8px; color: #2ed573; font-weight:700; font-size:0.8rem;">
+              Score > 50 &rarr; Success Branch
+            </div>
           </div>
         </div>
       `;
@@ -3293,6 +3404,39 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
+    } else if (page.type === 'practice_repl_console') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Live REPL Script Console</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Command Line</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 90px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="replTargetCard" style="padding: 10px 20px; background: #7b2cbf; border-radius: 8px; color: #fff; font-size: 0.8rem; font-weight: 600;">REPL Target Box</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+            <input type="text" class="control-input" id="replCommandInput" value="element.style.backgroundColor = '#00f2fe'" style="max-width: 260px; font-family:monospace; font-size:0.75rem;">
+            <button class="btn-top btn-primary" id="evalReplBtn">Run</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_math_runner') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Algorithm Formula Runner</span>
+            <span id="mathResultBadge" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">Result: 7854</span>
+          </div>
+          <div style="display:flex; gap: 12px; align-items:center; justify-content:center; height: 90px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <span style="font-size:0.78rem; color:#ccc;">Radius (r):</span>
+            <input type="number" id="mathRadiusInput" value="50" class="control-input" style="width: 70px; text-align:center;">
+            <span style="font-size:0.78rem; color:#ccc;">Area = &pi; &times; r&sup2;</span>
+          </div>
+          <div style="display:flex; justify-content:center;">
+            <button class="btn-top btn-primary" id="calcMathBtn">🧮 Compute Formula</button>
+          </div>
+        </div>
+      `;
     } else if (page.type === 'practice_binding') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3306,6 +3450,37 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div style="display:flex; justify-content:center; align-items:center; height: 90px; background: rgba(0,0,0,0.25); border-radius: 8px;">
             <div id="bindingTargetChip" style="padding: 10px 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(157,78,221,0.4); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600;">Interactive AppLab</div>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_color_sync') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Hex Color Theme Synchronizer</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Live CSS Binding</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 100px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="colorSyncCard" style="padding: 12px 24px; background: #7b2cbf; border-radius: 10px; color: #fff; font-size: 0.8rem; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.4);">Themed Component Box</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+            <input type="color" id="colorSyncPicker" value="#7b2cbf" style="width: 36px; height: 36px; border:none; background:none; cursor:pointer;">
+            <input type="text" class="control-input" id="colorSyncText" value="#7b2cbf" style="width: 110px; font-family:monospace; text-align:center;">
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_slider_mirror') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Slider Progress Interpolator</span>
+            <span id="sliderMirrorBadge" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #d4a5ff;">Value: 50%</span>
+          </div>
+          <div style="margin-bottom: 14px;">
+            <input type="range" min="0" max="100" value="50" id="sliderMirrorRange" style="width: 100%; accent-color: #9d4edd;">
+          </div>
+          <div style="height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow:hidden;">
+            <div id="sliderMirrorBar" style="width: 50%; height: 100%; background: linear-gradient(90deg, #7b2cbf, #00f2fe); transition: width 0.1s ease;"></div>
           </div>
         </div>
       `;
@@ -3323,6 +3498,22 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="perfToggleQuality">✨ Quality Mode (Full Blur)</button>
             <button class="btn-top" id="perfToggleFast">⚡ Performance Mode (0ms Shader Overhead)</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_fps_stress') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 DOM Paint Stress Simulator</span>
+            <span id="fpsReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(46,213,115,0.2); border: 1px solid rgba(46,213,115,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">FPS: 60 (Smooth)</span>
+          </div>
+          <div id="stressStage" style="position:relative; height: 100px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 12px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+            <div id="stressCounter" style="font-size: 1rem; font-weight:700; color:#fff; z-index:2;">Active Nodes: 1</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn-top btn-primary" id="addStressNodesBtn">➕ Spawn 50 Glow Nodes</button>
+            <button class="btn-top" id="clearStressNodesBtn">Clear All</button>
           </div>
         </div>
       `;
@@ -3345,6 +3536,19 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
+    } else if (page.type === 'practice_spring_tester') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Spring Physics Inspector</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Cubic-Bezier Spring</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 110px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <button id="springTestBtn" style="padding: 12px 28px; background: #7b2cbf; border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 16px rgba(157,78,221,0.4);">Click to Bounce</button>
+          </div>
+          <div style="text-align:center; font-size:0.74rem; color:#aaa;">Notice the tactile over-shoot and bounce physics on click.</div>
+        </div>
+      `;
     } else if (page.type === 'practice_audio') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3359,6 +3563,21 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="btn-top btn-primary" id="playBeepToneBtn">🔊 440Hz Sine Beep</button>
             <button class="btn-top btn-primary" id="playChimeToneBtn">🔔 Two-Tone Chime (C5 &rarr; G5)</button>
             <button class="btn-top" id="playAlertToneBtn">⚠️ Descending Warning</button>
+          </div>
+        </div>
+      `;
+    } else if (page.type === 'practice_pitch_sweep') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Live Frequency Pitch Sweeper</span>
+            <span id="pitchReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Frequency: 440 Hz</span>
+          </div>
+          <div style="margin-bottom: 14px;">
+            <input type="range" min="100" max="1200" value="440" id="pitchSlider" style="width: 100%; accent-color: #00f2fe;">
+          </div>
+          <div style="display:flex; justify-content:center;">
+            <button class="btn-top btn-primary" id="playPitchSweepBtn">🔊 Play Continuous Pitch</button>
           </div>
         </div>
       `;
@@ -3451,7 +3670,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    // Track 1 Lab Event Handlers
+    // ================= UNIQUE LAB EVENT BINDINGS =================
     const chip = document.getElementById('canvasLabChip');
     const readout = document.getElementById('clampingReadout');
     if (chip) {
@@ -3460,18 +3679,78 @@ document.addEventListener('DOMContentLoaded', () => {
         chip.style.left = `${clamped}px`;
         if (readout) readout.innerText = `X: ${clamped}px | Bounds: [10, 260]`;
       };
-      document.getElementById('moveChipLeft')?.addEventListener('click', () => {
-        updateClampedPos((parseInt(chip.style.left) || 90) - 30);
-      });
-      document.getElementById('moveChipRight')?.addEventListener('click', () => {
-        updateClampedPos((parseInt(chip.style.left) || 90) + 30);
-      });
+      document.getElementById('moveChipLeft')?.addEventListener('click', () => updateClampedPos((parseInt(chip.style.left) || 90) - 30));
+      document.getElementById('moveChipRight')?.addEventListener('click', () => updateClampedPos((parseInt(chip.style.left) || 90) + 30));
       document.getElementById('moveChipFarLeft')?.addEventListener('click', () => updateClampedPos(0));
       document.getElementById('moveChipFarRight')?.addEventListener('click', () => updateClampedPos(300));
       document.getElementById('resetChipPos')?.addEventListener('click', () => updateClampedPos(90));
     }
 
-    // Track 2 Lab Event Handlers
+    const scalerBox = document.getElementById('scalerBox');
+    const scalerReadout = document.getElementById('scalerReadout');
+    if (scalerBox) {
+      document.getElementById('scalePhoneBtn')?.addEventListener('click', () => {
+        scalerBox.style.width = '180px';
+        if (scalerReadout) scalerReadout.innerText = 'Width: 320px (Phone)';
+      });
+      document.getElementById('scaleTabletBtn')?.addEventListener('click', () => {
+        scalerBox.style.width = '260px';
+        if (scalerReadout) scalerReadout.innerText = 'Width: 480px (Tablet)';
+      });
+      document.getElementById('scaleDesktopBtn')?.addEventListener('click', () => {
+        scalerBox.style.width = '320px';
+        if (scalerReadout) scalerReadout.innerText = 'Width: 600px (Desktop)';
+      });
+    }
+
+    const boxMov = document.getElementById('boxMovable');
+    const colStatus = document.getElementById('collisionStatus');
+    if (boxMov) {
+      let boxPos = 30;
+      const evaluateCollision = (pos) => {
+        boxMov.style.left = `${pos}px`;
+        // Target box static is at [180, 260]
+        const isIntersecting = pos + 80 > 180;
+        if (isIntersecting) {
+          boxMov.style.background = '#ff0077';
+          if (colStatus) {
+            colStatus.innerText = 'Status: INTERSECTION DETECTED!';
+            colStatus.style.background = 'rgba(255,71,87,0.2)';
+            colStatus.style.borderColor = 'rgba(255,71,87,0.4)';
+            colStatus.style.color = '#ff4757';
+          }
+        } else {
+          boxMov.style.background = '#7b2cbf';
+          if (colStatus) {
+            colStatus.innerText = 'Status: No Intersection';
+            colStatus.style.background = 'rgba(46,213,115,0.2)';
+            colStatus.style.borderColor = 'rgba(46,213,115,0.4)';
+            colStatus.style.color = '#2ed573';
+          }
+        }
+      };
+      document.getElementById('moveBoxLeft')?.addEventListener('click', () => { boxPos = Math.max(10, boxPos - 25); evaluateCollision(boxPos); });
+      document.getElementById('moveBoxRight')?.addEventListener('click', () => { boxPos = Math.min(220, boxPos + 25); evaluateCollision(boxPos); });
+      document.getElementById('moveBoxIntersect')?.addEventListener('click', () => { boxPos = 150; evaluateCollision(boxPos); });
+    }
+
+    const layerA = document.getElementById('layerA');
+    const layerB = document.getElementById('layerB');
+    if (layerA && layerB) {
+      document.getElementById('bringATopBtn')?.addEventListener('click', () => {
+        layerA.style.zIndex = '10';
+        layerB.style.zIndex = '1';
+        layerA.innerText = 'Layer A (Front)';
+        layerB.innerText = 'Layer B (Back)';
+      });
+      document.getElementById('bringBTopBtn')?.addEventListener('click', () => {
+        layerB.style.zIndex = '10';
+        layerA.style.zIndex = '1';
+        layerB.innerText = 'Layer B (Front)';
+        layerA.innerText = 'Layer A (Back)';
+      });
+    }
+
     const shapeChip = document.getElementById('courseShapeChip');
     if (shapeChip) {
       document.getElementById('shapePillBtn')?.addEventListener('click', () => {
@@ -3493,7 +3772,7 @@ document.addEventListener('DOMContentLoaded', () => {
         shapeChip.style.borderRadius = '0';
         shapeChip.style.boxShadow = 'none';
         shapeChip.style.filter = 'drop-shadow(0 0 16px rgba(157,78,221,0.7))';
-        shapeChip.innerText = '⬡ Hexagon';
+        shapeChip.innerText = '⡡ Hexagon';
       });
       document.getElementById('shapeCircleBtn')?.addEventListener('click', () => {
         shapeChip.style.clipPath = 'none';
@@ -3504,7 +3783,28 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Track 3 Lab Event Handlers
+    const vertexBox = document.getElementById('vertexPolyBox');
+    const vertexSlider = document.getElementById('vertexTopSlider');
+    const vertexReadout = document.getElementById('vertexReadout');
+    if (vertexBox && vertexSlider) {
+      vertexSlider.oninput = (e) => {
+        const val = e.target.value;
+        vertexBox.style.clipPath = `polygon(${val}% 0%, 100% 50%, 50% 100%, 0% 50%)`;
+        if (vertexReadout) vertexReadout.innerText = `Top Point: ${val}%`;
+      };
+    }
+
+    const radiusBox = document.getElementById('radiusMorphBox');
+    const radiusSlider = document.getElementById('radiusSlider');
+    const radiusReadout = document.getElementById('radiusReadout');
+    if (radiusBox && radiusSlider) {
+      radiusSlider.oninput = (e) => {
+        const val = e.target.value;
+        radiusBox.style.borderRadius = `${val}px`;
+        if (radiusReadout) radiusReadout.innerText = `Radius: ${val}px`;
+      };
+    }
+
     const blockSimChip = document.getElementById('blockSimChip');
     const blockLog = document.getElementById('blockLogReadout');
     if (blockSimChip) {
@@ -3537,7 +3837,29 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Track 4 Lab Event Handlers
+    document.getElementById('testPipelineBtn')?.addEventListener('click', () => {
+      AppLab.alert('Pipeline executed successfully: 3 blocks evaluated without syntax error.', 'Pipeline Test', '⚡');
+    });
+
+    const scoreInput = document.getElementById('branchScoreInput');
+    const branchCard = document.getElementById('branchOutputCard');
+    if (scoreInput && branchCard) {
+      scoreInput.oninput = (e) => {
+        const score = parseInt(e.target.value) || 0;
+        if (score > 50) {
+          branchCard.style.color = '#2ed573';
+          branchCard.style.borderColor = '#2ed573';
+          branchCard.style.background = 'rgba(46,213,115,0.2)';
+          branchCard.innerText = `Score (${score}) > 50 ➔ Success Branch`;
+        } else {
+          branchCard.style.color = '#ff4757';
+          branchCard.style.borderColor = '#ff4757';
+          branchCard.style.background = 'rgba(255,71,87,0.2)';
+          branchCard.innerText = `Score (${score}) <= 50 ➔ Retry Branch`;
+        }
+      };
+    }
+
     const jsTarget = document.getElementById('jsLabTarget');
     if (jsTarget) {
       document.getElementById('runCourseJsBtn')?.addEventListener('click', () => {
@@ -3570,7 +3892,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Track 5 Lab Event Handlers
+    const replBox = document.getElementById('replTargetCard');
+    const replInput = document.getElementById('replCommandInput');
+    if (replBox && replInput) {
+      document.getElementById('evalReplBtn')?.addEventListener('click', () => {
+        try {
+          const element = replBox;
+          const cmd = replInput.value;
+          const fn = new Function('element', cmd);
+          fn(element);
+          AppLab.alert('REPL Statement executed successfully!', 'Console Eval', '⚡');
+        } catch (err) {
+          AppLab.alert(err.message, 'Evaluation Error', '⚠️');
+        }
+      });
+    }
+
+    const mathRadiusInput = document.getElementById('mathRadiusInput');
+    const mathBadge = document.getElementById('mathResultBadge');
+    if (mathRadiusInput && mathBadge) {
+      document.getElementById('calcMathBtn')?.addEventListener('click', () => {
+        const r = parseFloat(mathRadiusInput.value) || 0;
+        const area = Math.round(Math.PI * Math.pow(r, 2) * 100) / 100;
+        mathBadge.innerText = `Result: ${area}`;
+        AppLab.alert(`Computed circle area for radius ${r}: ${area}`, 'Algorithm Result', '🧮');
+      });
+    }
+
     const bindInput = document.getElementById('bindingInput');
     const bindTarget = document.getElementById('bindingTargetChip');
     if (bindInput && bindTarget) {
@@ -3585,7 +3933,33 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Track 6 Lab Event Handlers
+    const colorSyncCard = document.getElementById('colorSyncCard');
+    const colorPicker = document.getElementById('colorSyncPicker');
+    const colorText = document.getElementById('colorSyncText');
+    if (colorSyncCard && colorPicker && colorText) {
+      colorPicker.oninput = (e) => {
+        const val = e.target.value;
+        colorText.value = val;
+        colorSyncCard.style.backgroundColor = val;
+      };
+      colorText.oninput = (e) => {
+        const val = e.target.value;
+        colorSyncCard.style.backgroundColor = val;
+        if (/^#[0-9A-F]{6}$/i.test(val)) colorPicker.value = val;
+      };
+    }
+
+    const sliderRange = document.getElementById('sliderMirrorRange');
+    const sliderBar = document.getElementById('sliderMirrorBar');
+    const sliderBadge = document.getElementById('sliderMirrorBadge');
+    if (sliderRange && sliderBar) {
+      sliderRange.oninput = (e) => {
+        const val = e.target.value;
+        sliderBar.style.width = `${val}%`;
+        if (sliderBadge) sliderBadge.innerText = `Value: ${val}%`;
+      };
+    }
+
     const perfChip = document.getElementById('perfTargetChip');
     const perfTag = document.getElementById('perfMetricTag');
     if (perfChip) {
@@ -3611,7 +3985,42 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Track 7 Lab Event Handlers
+    const stressStage = document.getElementById('stressStage');
+    const stressCounter = document.getElementById('stressCounter');
+    const fpsReadout = document.getElementById('fpsReadout');
+    if (stressStage) {
+      let nodeCount = 1;
+      document.getElementById('addStressNodesBtn')?.addEventListener('click', () => {
+        nodeCount += 50;
+        for (let i = 0; i < 50; i++) {
+          const glow = document.createElement('div');
+          glow.style.position = 'absolute';
+          glow.style.width = '20px';
+          glow.style.height = '20px';
+          glow.style.background = '#00f2fe';
+          glow.style.borderRadius = '50%';
+          glow.style.boxShadow = '0 0 12px #00f2fe';
+          glow.style.left = `${Math.random() * 90}%`;
+          glow.style.top = `${Math.random() * 80}%`;
+          stressStage.appendChild(glow);
+        }
+        if (stressCounter) stressCounter.innerText = `Active Nodes: ${nodeCount}`;
+        if (nodeCount > 100 && fpsReadout) {
+          fpsReadout.innerText = 'FPS: 42 (Moderate Load)';
+          fpsReadout.style.color = '#ffa502';
+        }
+      });
+      document.getElementById('clearStressNodesBtn')?.addEventListener('click', () => {
+        nodeCount = 1;
+        stressStage.querySelectorAll('div:not(#stressCounter)').forEach(n => n.remove());
+        if (stressCounter) stressCounter.innerText = `Active Nodes: ${nodeCount}`;
+        if (fpsReadout) {
+          fpsReadout.innerText = 'FPS: 60 (Smooth)';
+          fpsReadout.style.color = '#2ed573';
+        }
+      });
+    }
+
     const animChip = document.getElementById('courseAnimChip');
     const animCurveTag = document.getElementById('animCurveTag');
     if (animChip) {
@@ -3627,7 +4036,14 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('animShakeBtn')?.addEventListener('click', () => setChipAnim('shake', '📳 High-Frequency Keyer', 'ease-in-out'));
     }
 
-    // Track 8 Lab Event Handlers
+    const springBtn = document.getElementById('springTestBtn');
+    if (springBtn) {
+      springBtn.onclick = () => {
+        springBtn.style.transform = 'scale(1.18)';
+        setTimeout(() => springBtn.style.transform = 'scale(1)', 400);
+      };
+    }
+
     const audioChip = document.getElementById('audioVisualizerChip');
     const audioTag = document.getElementById('audioStatusTag');
     if (audioChip) {
@@ -3681,6 +4097,29 @@ document.addEventListener('DOMContentLoaded', () => {
           audioChip.style.boxShadow = '0 0 14px rgba(157,78,221,0.3)';
           if (audioTag) audioTag.innerText = 'AudioContext: Ready';
         }, 400);
+      });
+    }
+
+    const pitchSlider = document.getElementById('pitchSlider');
+    const pitchReadout = document.getElementById('pitchReadout');
+    if (pitchSlider) {
+      pitchSlider.oninput = (e) => {
+        if (pitchReadout) pitchReadout.innerText = `Frequency: ${e.target.value} Hz`;
+      };
+      document.getElementById('playPitchSweepBtn')?.addEventListener('click', () => {
+        const f = parseInt(pitchSlider.value) || 440;
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.frequency.setValueAtTime(f, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        } catch (e) {}
       });
     }
 
