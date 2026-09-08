@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function markDirty() { isDirty = true; }
   function markClean() { isDirty = false; }
 
-  // Clipboard buffers for copy/paste
   let clipboardStyles = null;
   let clipboardElement = null;
 
@@ -85,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 animEasing: 'ease-in-out',
                 animDirection: 'alternate',
                 animTrigger: 'ambient',
-                tooltip: 'Primary call-to-action button for initiating workflows',
+                tooltip: 'Primary button for starting actions',
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
                 logic: {
@@ -216,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(tooltipElem);
   }
 
-  // Ensure CSS properties support dynamic positioning
   tooltipElem.style.position = 'fixed';
   tooltipElem.style.zIndex = '999999';
   tooltipElem.style.pointerEvents = 'none';
@@ -238,7 +236,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const tooltipWidth = tooltipElem.offsetWidth || 180;
     const tooltipHeight = tooltipElem.offsetHeight || 40;
 
-    // Viewport collision bounds check
     if (targetX + tooltipWidth > window.innerWidth) {
       targetX = clientX - tooltipWidth - offset;
     }
@@ -606,6 +603,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentProjectLabel) currentProjectLabel.innerText = currentProject.projectName;
         markClean();
         switchMainView('builderView');
+      });
+
+      card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openProjectCardContextMenu(e, proj.id);
       });
 
       projectsGrid.appendChild(card);
@@ -1020,7 +1023,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 
-    // Check if right-clicking an element placed on canvas
     const placedItem = e.target.closest('.placed-item');
     if (placedItem && placedItem.dataset.elementId) {
       const elId = placedItem.dataset.elementId;
@@ -1030,14 +1032,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Check if right-clicking a project card in home view
     const projCard = e.target.closest('.project-card');
     if (projCard && projCard.dataset.projectId) {
       openProjectCardContextMenu(e, projCard.dataset.projectId);
       return;
     }
 
-    // Check if right-clicking inside screen canvas / device frame
     const canvasArea = e.target.closest('#canvas') || e.target.closest('#deviceFrame');
     if (canvasArea) {
       const rect = canvas.getBoundingClientRect();
@@ -1049,7 +1049,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Default global workspace right-click
     openGlobalWorkspaceContextMenu(e);
   });
 
@@ -1384,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const globalMenuHtml = `
       <div class="context-item" id="ctxGlobalHome">🏠 Home Dashboard</div>
       <div class="context-item" id="ctxGlobalStudio">🚀 Studio Builder</div>
-      <div class="context-item" id="ctxGlobalTutorials">📚 Tutorials & Academy</div>
+      <div class="context-item" id="ctxGlobalTutorials">📚 Tutorials</div>
       <div class="context-separator"></div>
       <div class="context-item" id="ctxGlobalNewProj">📄 Create New Project</div>
       <div class="context-item" id="ctxGlobalSettings">⚙️ Open Settings</div>
@@ -1415,997 +1414,196 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function attachRuntimeExecution(node, model) {
-    node.addEventListener(model.logic?.event === 'hover' ? 'mouseenter' : 'click', () => {
-      if (!isPreviewMode) return;
-
-      if (model.codeMode === 'realCode' && model.customJs) {
-        try {
-          const scriptFn = new Function('element', 'app', 'canvas', model.customJs);
-          scriptFn(node, {
-            navigateTo: (id) => { activeScreenId = id; renderCanvas(); renderPagesList(); },
-            showAlert: (msg) => AppLab.alert(msg, 'App Message', '📱'),
-            playBeep: () => {
-              try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator(); osc.connect(ctx.destination);
-                osc.start(); osc.stop(ctx.currentTime + 0.15);
-              } catch (e) {}
-            }
-          }, canvas);
-        } catch (err) {
-          AppLab.alert(err.message, 'JavaScript Error', '⚠️');
-        }
-      } else if (model.logic && model.logic.actions) {
-        model.logic.actions.forEach(act => {
-          if (act.type === 'alert') AppLab.alert(act.value || 'Action trigger!', 'App Message', '📱');
-          if (act.type === 'navigate') { activeScreenId = act.target; renderCanvas(); renderPagesList(); }
-          if (act.type === 'setText') {
-            const target = document.getElementById(act.target);
-            if (target) target.innerText = act.value;
+  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS (SHORT "HOW IT WORKS" FORMAT) =================
+  const courseTracks = [
+    {
+      id: 'track_canvas',
+      title: '1. Canvas & Layouts',
+      desc: 'Screen sizes, coordinates & routing',
+      pages: [
+        {
+          title: 'Viewport Frames & Coordinates',
+          howItWorks: [
+            'Each device frame (Phone, Tablet, Desktop) has a fixed pixel dimension.',
+            'Elements are positioned using absolute coordinates: left (X) and top (Y).',
+            'Switching viewports changes the bezel frame but never displaces your elements.'
+          ],
+          type: 'theory',
+          codeSnippet: `// Coordinate bounds:\nconst maxX = canvas.offsetWidth - element.offsetWidth;\nconst maxY = canvas.offsetHeight - element.offsetHeight;`,
+          quiz: null
+        },
+        {
+          title: 'Practice: Coordinate Clamping',
+          howItWorks: [
+            'Elements are constrained within hardware borders.',
+            'Coordinates clamp to 0 at the left and (frame width - element width) at the right.',
+            'Click the arrows below to test clamping math live.'
+          ],
+          type: 'practice_canvas',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Quiz: Canvas Architecture',
+          howItWorks: [
+            'Test your understanding of AppLab viewport coordinates.'
+          ],
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'What happens to element positions when switching from Phone to Tablet view?',
+            options: [
+              'Elements stay in their exact pixel coordinates',
+              'Elements are deleted',
+              'Elements stretch to 100% width'
+            ],
+            correctIndex: 0,
+            explanation: 'AppLab preserves exact pixel coordinates so layouts stay intact across device previews.'
           }
-          if (act.type === 'setBg') {
-            const target = document.getElementById(act.target);
-            if (target) target.style.backgroundColor = act.value;
-          }
-        });
-      }
-    });
-  }
-
-  function selectElement(id) {
-    activeElementId = id;
-    renderCanvas();
-    renderLayersTree();
-    buildInspector();
-  }
-
-  document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tabs-nav .tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-      btn.classList.add('active');
-      const targetTab = document.getElementById(btn.dataset.tab);
-      if (targetTab) targetTab.classList.remove('hidden');
-    });
-  });
-
-  // ================= MAXIMUM CUSTOMIZABILITY PROPERTIES INSPECTOR =================
-  function buildInspector() {
-    const el = getActiveElementModel();
-    if (!el) {
-      if (propertiesTab) propertiesTab.innerHTML = '<p class="empty-state">Select an element to customize styling.</p>';
-      if (shapesTab) shapesTab.innerHTML = '<p class="empty-state">Select an element to customize shapes.</p>';
-      if (effectsTab) effectsTab.innerHTML = '<p class="empty-state">Select an element to customize effects.</p>';
-      if (animationsTab) animationsTab.innerHTML = '<p class="empty-state">Select an element to configure animations.</p>';
-      return;
-    }
-
-    if (propertiesTab) {
-      let extraComponentControls = '';
-      if (el.type === 'slider' || el.type === 'progress') {
-        extraComponentControls = `
-          <div class="control-row">
-            <div class="control-group">
-              <label>Min Value</label>
-              <input type="number" class="control-input" id="propMinVal" value="${el.minVal || 0}">
-            </div>
-            <div class="control-group">
-              <label>Max Value</label>
-              <input type="number" class="control-input" id="propMaxVal" value="${el.maxVal || 100}">
-            </div>
-          </div>
-          <div class="control-group">
-            <label>Current Value</label>
-            <input type="number" class="control-input" id="propCurVal" value="${el.currentVal || 50}">
-          </div>
-        `;
-      } else if (el.type === 'image') {
-        extraComponentControls = `
-          <div class="control-group">
-            <label>Image Fit Mode</label>
-            <div id="propImageFitContainer"></div>
-          </div>
-        `;
-      } else if (el.type === 'toggle') {
-        extraComponentControls = `
-          <div class="control-group">
-            <label>Default State</label>
-            <div id="propToggleStateContainer"></div>
-          </div>
-        `;
-      }
-
-      propertiesTab.innerHTML = `
-        <div class="control-group">
-          <label>Layer Label Identifier</label>
-          <input type="text" class="control-input" id="propName" value="${el.name}">
-        </div>
-
-        <div class="control-group">
-          <label>Tooltip Description (2s Hover)</label>
-          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Description shown on hover...">
-        </div>
-
-        <div class="control-group">
-          <label>${el.type === 'image' ? 'Image Source (URL or File)' : 'Text Content / Placeholder'}</label>
-          <input type="text" class="control-input" id="propText" value="${el.text}">
-        </div>
-
-        ${extraComponentControls}
-
-        <div class="control-group" style="margin-top: 6px;">
-          <label>Font Family</label>
-          <div id="propFontContainer"></div>
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Font Size (px)</label>
-            <input type="number" class="control-input" id="propFontSize" value="${el.fontSize || 14}">
-          </div>
-          <div class="control-group">
-            <label>Font Weight</label>
-            <div id="propWeightContainer"></div>
-          </div>
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Letter Spacing (px)</label>
-            <input type="number" step="0.5" class="control-input" id="propLetterSpacing" value="${el.letterSpacing || 0}">
-          </div>
-          <div class="control-group">
-            <label>Line Height</label>
-            <input type="number" step="0.1" class="control-input" id="propLineHeight" value="${el.lineHeight || 1.2}">
-          </div>
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Text Transform</label>
-            <div id="propTransformContainer"></div>
-          </div>
-          <div class="control-group">
-            <label>Text Decoration</label>
-            <div id="propDecorContainer"></div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Text Alignment</label>
-          <div id="propAlignContainer"></div>
-        </div>
-
-        <div class="control-group">
-          <label>Inner Padding (px)</label>
-          <input type="range" min="0" max="40" value="${el.padding || 0}" class="control-input" id="propPadding">
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Border Width (px)</label>
-            <input type="number" min="0" max="20" class="control-input" id="propBorderWidth" value="${el.borderWidth !== undefined ? el.borderWidth : 1}">
-          </div>
-          <div class="control-group">
-            <label>Border Style</label>
-            <div id="propBorderStyleContainer"></div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Text Color</label>
-          <div class="color-picker-row">
-            <input type="color" id="propTextColorPicker" value="${rgbToHex(el.textColor)}">
-            <input type="text" class="control-input" id="propTextColor" value="${el.textColor}">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Background Color</label>
-          <div class="color-picker-row">
-            <input type="color" id="propBgColorPicker" value="${rgbToHex(el.bgColor)}">
-            <input type="text" class="control-input" id="propBgColor" value="${el.bgColor}">
-          </div>
-        </div>
-
-        <div class="control-group">
-          <label>Border Color</label>
-          <div class="color-picker-row">
-            <input type="color" id="propBorderColorPicker" value="${rgbToHex(el.borderColor)}">
-            <input type="text" class="control-input" id="propBorderColor" value="${el.borderColor}">
-          </div>
-        </div>
-
-        <button class="btn-top" style="color:#ff6b6b; margin-top:14px;" id="delElemBtn">Remove Element</button>
-      `;
-
-      createCustomSelect(
-        document.getElementById('propFontContainer'),
-        fontOptions,
-        el.fontFamily || fontOptions[0].value,
-        (val) => { el.fontFamily = val; markDirty(); renderCanvas(); }
-      );
-
-      const weightOpts = [
-        { label: 'Regular (400)', value: '400' },
-        { label: 'Medium (500)', value: '500' },
-        { label: 'Semi-Bold (600)', value: '600' },
-        { label: 'Bold (700)', value: '700' },
-        { label: 'Extra-Bold (800)', value: '800' }
-      ];
-      createCustomSelect(
-        document.getElementById('propWeightContainer'),
-        weightOpts,
-        el.fontWeight || '400',
-        (val) => { el.fontWeight = val; markDirty(); renderCanvas(); }
-      );
-
-      const transformOpts = [
-        { label: 'None', value: 'none' },
-        { label: 'UPPERCASE', value: 'uppercase' },
-        { label: 'lowercase', value: 'lowercase' },
-        { label: 'Capitalize', value: 'capitalize' }
-      ];
-      createCustomSelect(
-        document.getElementById('propTransformContainer'),
-        transformOpts,
-        el.textTransform || 'none',
-        (val) => { el.textTransform = val; markDirty(); renderCanvas(); }
-      );
-
-      const decorOpts = [
-        { label: 'None', value: 'none' },
-        { label: 'Underline', value: 'underline' },
-        { label: 'Line-Through', value: 'line-through' }
-      ];
-      createCustomSelect(
-        document.getElementById('propDecorContainer'),
-        decorOpts,
-        el.textDecoration || 'none',
-        (val) => { el.textDecoration = val; markDirty(); renderCanvas(); }
-      );
-
-      const alignOpts = [
-        { label: 'Left', value: 'left' },
-        { label: 'Center', value: 'center' },
-        { label: 'Right', value: 'right' }
-      ];
-      createCustomSelect(
-        document.getElementById('propAlignContainer'),
-        alignOpts,
-        el.textAlign || 'center',
-        (val) => { el.textAlign = val; markDirty(); renderCanvas(); }
-      );
-
-      const borderStyleOpts = [
-        { label: 'Solid', value: 'solid' },
-        { label: 'Dashed', value: 'dashed' },
-        { label: 'Dotted', value: 'dotted' },
-        { label: 'Double', value: 'double' }
-      ];
-      createCustomSelect(
-        document.getElementById('propBorderStyleContainer'),
-        borderStyleOpts,
-        el.borderStyle || 'solid',
-        (val) => { el.borderStyle = val; markDirty(); renderCanvas(); }
-      );
-
-      if (el.type === 'image') {
-        const fitOpts = [
-          { label: 'Cover (Crop)', value: 'cover' },
-          { label: 'Contain (Fit)', value: 'contain' },
-          { label: 'Fill (Stretch)', value: 'fill' }
-        ];
-        createCustomSelect(
-          document.getElementById('propImageFitContainer'),
-          fitOpts,
-          el.imageFit || 'cover',
-          (val) => { el.imageFit = val; markDirty(); renderCanvas(); }
-        );
-      } else if (el.type === 'toggle') {
-        const toggleOpts = [
-          { label: 'Inactive / Off', value: 'false' },
-          { label: 'Active / On', value: 'true' }
-        ];
-        createCustomSelect(
-          document.getElementById('propToggleStateContainer'),
-          toggleOpts,
-          el.isChecked ? 'true' : 'false',
-          (val) => { el.isChecked = (val === 'true'); markDirty(); renderCanvas(); }
-        );
-      } else if (el.type === 'slider' || el.type === 'progress') {
-        document.getElementById('propMinVal').oninput = (e) => { el.minVal = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
-        document.getElementById('propMaxVal').oninput = (e) => { el.maxVal = parseInt(e.target.value) || 100; markDirty(); renderCanvas(); };
-        document.getElementById('propCurVal').oninput = (e) => { el.currentVal = parseInt(e.target.value) || 50; markDirty(); renderCanvas(); };
-      }
-
-      document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
-      document.getElementById('propTooltip').oninput = (e) => { el.tooltip = e.target.value; markDirty(); };
-      document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
-      document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
-      document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
-      document.getElementById('propLineHeight').oninput = (e) => { el.lineHeight = parseFloat(e.target.value) || 1.2; markDirty(); renderCanvas(); };
-      document.getElementById('propPadding').oninput = (e) => { el.padding = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
-      document.getElementById('propBorderWidth').oninput = (e) => { el.borderWidth = parseInt(e.target.value) || 0; markDirty(); renderCanvas(); };
-
-      bindColorPair('propTextColorPicker', 'propTextColor', (v) => { el.textColor = v; markDirty(); renderCanvas(); });
-      bindColorPair('propBgColorPicker', 'propBgColor', (v) => { el.bgColor = v; markDirty(); renderCanvas(); });
-      bindColorPair('propBorderColorPicker', 'propBorderColor', (v) => { el.borderColor = v; markDirty(); renderCanvas(); });
-
-      document.getElementById('delElemBtn').onclick = () => {
-        getCurrentPage().elements = getCurrentPage().elements.filter(i => i.id !== el.id);
-        activeElementId = null;
-        markDirty();
-        renderCanvas(); renderLayersTree(); buildInspector();
-      };
-    }
-
-    // 2. Shapes Tab
-    if (shapesTab) {
-      shapesTab.innerHTML = `
-        <div class="control-group">
-          <label>Preset Geometry</label>
-          <div class="shape-preset-grid">
-            <button class="shape-btn ${el.shape === 'rect' ? 'active' : ''}" data-shape="rect">⏹️ Rectangle</button>
-            <button class="shape-btn ${el.shape === 'rounded' ? 'active' : ''}" data-shape="rounded">🔲 Rounded</button>
-            <button class="shape-btn ${el.shape === 'pill' ? 'active' : ''}" data-shape="pill">💊 Capsule</button>
-            <button class="shape-btn ${el.shape === 'circle' ? 'active' : ''}" data-shape="circle">⚪ Circle / Oval</button>
-            <button class="shape-btn ${el.shape === 'diamond' ? 'active' : ''}" data-shape="diamond">💠 Diamond</button>
-            <button class="shape-btn ${el.shape === 'hexagon' ? 'active' : ''}" data-shape="hexagon">⬡ Hexagon</button>
-          </div>
-        </div>
-        <div class="control-group">
-          <label>Corner Radius (px)</label>
-          <input type="range" min="0" max="80" value="${el.borderRadius || 8}" class="control-input" id="propRadiusRange">
-        </div>
-      `;
-
-      document.querySelectorAll('.shape-btn').forEach(btn => {
-        btn.onclick = () => {
-          el.shape = btn.dataset.shape;
-          markDirty();
-          buildInspector();
-          renderCanvas();
-        };
-      });
-
-      document.getElementById('propRadiusRange').oninput = (e) => {
-        el.borderRadius = parseInt(e.target.value);
-        el.shape = 'rounded';
-        markDirty();
-        renderCanvas();
-      };
-    }
-
-    // 3. Effects Tab
-    if (effectsTab) {
-      effectsTab.innerHTML = `
-        <div class="control-group">
-          <label>Glass Backdrop Blur (px)</label>
-          <input type="range" min="0" max="40" value="${el.backdropBlur || 0}" class="control-input" id="propBlur">
-        </div>
-        <div class="control-group">
-          <label>Neon Glow / Shadow Spread (px)</label>
-          <input type="range" min="0" max="50" value="${el.glowSize || 0}" class="control-input" id="propGlowSize">
-        </div>
-        <div class="control-group">
-          <label>Glow / Shadow Color</label>
-          <div class="color-picker-row">
-            <input type="color" id="propGlowColorPicker" value="${rgbToHex(el.glowColor || '#9d4edd')}">
-            <input type="text" class="control-input" id="propGlowColorText" value="${el.glowColor || '#9d4edd'}">
-          </div>
-        </div>
-        <div class="control-group">
-          <label>Opacity (0 to 1)</label>
-          <input type="range" min="0.1" max="1" step="0.05" value="${el.opacity !== undefined ? el.opacity : 1}" class="control-input" id="propOpacity">
-        </div>
-        <div class="control-group">
-          <label>Rotation Angle (degrees)</label>
-          <input type="range" min="0" max="360" value="${el.rotation || 0}" class="control-input" id="propRotation">
-        </div>
-      `;
-
-      document.getElementById('propBlur').oninput = (e) => { el.backdropBlur = parseInt(e.target.value); markDirty(); renderCanvas(); };
-      document.getElementById('propGlowSize').oninput = (e) => { el.glowSize = parseInt(e.target.value); markDirty(); renderCanvas(); };
-      bindColorPair('propGlowColorPicker', 'propGlowColorText', (v) => { el.glowColor = v; markDirty(); renderCanvas(); });
-      document.getElementById('propOpacity').oninput = (e) => { el.opacity = parseFloat(e.target.value); markDirty(); renderCanvas(); };
-      document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
-    }
-
-    // 4. Enhanced Animation Tab
-    if (animationsTab) {
-      animationsTab.innerHTML = `
-        <div class="control-group">
-          <label>Animation Preset</label>
-          <div id="animStyleContainer"></div>
-        </div>
-
-        <div class="control-group" style="margin-top: 6px;">
-          <label>Animation Trigger Condition</label>
-          <div id="animTriggerContainer"></div>
-        </div>
-
-        <div class="control-row" style="margin-top: 6px;">
-          <div class="control-group">
-            <label>Duration (Seconds)</label>
-            <input type="number" step="0.1" min="0.1" max="20" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
-          </div>
-          <div class="control-group">
-            <label>Start Delay (Seconds)</label>
-            <input type="number" step="0.1" min="0" max="10" class="control-input" id="propAnimDelay" value="${el.animDelay || 0}">
-          </div>
-        </div>
-
-        <div class="control-row">
-          <div class="control-group">
-            <label>Repeats / Loop Mode</label>
-            <div id="animIterContainer"></div>
-          </div>
-          <div class="control-group">
-            <label>Direction Mode</label>
-            <div id="animDirectionContainer"></div>
-          </div>
-        </div>
-
-        <div class="control-group" style="margin-top: 6px;">
-          <label>Timing / Easing Curve</label>
-          <div id="animEasingContainer"></div>
-        </div>
-
-        <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 14px;">▶️ Test Animation Trigger</button>
-      `;
-
-      const animOpts = [
-        { label: '🚫 None', value: 'none' },
-        { label: '✨ Fade In', value: 'fadeIn' },
-        { label: '⬆️ Slide Up', value: 'slideUp' },
-        { label: '💥 Scale Pop', value: 'scalePop' },
-        { label: '💓 Pulse', value: 'pulse' },
-        { label: '🏀 Bounce', value: 'bounce' },
-        { label: '🎈 Float', value: 'float' },
-        { label: '🔄 Spin', value: 'spin' },
-        { label: '🔮 Glow Pulse', value: 'glowPulse' },
-        { label: '📳 Shake', value: 'shake' }
-      ];
-      createCustomSelect(
-        document.getElementById('animStyleContainer'),
-        animOpts,
-        el.animation || 'none',
-        (val) => { el.animation = val; markDirty(); renderCanvas(); }
-      );
-
-      const triggerOpts = [
-        { label: '🔁 Ambient Constant Loop', value: 'ambient' },
-        { label: '🚀 On Screen Load / Mount', value: 'mount' },
-        { label: '🖱️ On Mouse Hover', value: 'hover' },
-        { label: '👆 On Click / Tap', value: 'click' }
-      ];
-      createCustomSelect(
-        document.getElementById('animTriggerContainer'),
-        triggerOpts,
-        el.animTrigger || 'ambient',
-        (val) => { el.animTrigger = val; markDirty(); renderCanvas(); }
-      );
-
-      const iterOpts = [
-        { label: '🔁 Infinite Loop', value: 'infinite' },
-        { label: '1 Time Only', value: '1' },
-        { label: '2 Times', value: '2' },
-        { label: '3 Times', value: '3' },
-        { label: '5 Times', value: '5' }
-      ];
-      createCustomSelect(
-        document.getElementById('animIterContainer'),
-        iterOpts,
-        el.animIteration || 'infinite',
-        (val) => { el.animIteration = val; markDirty(); renderCanvas(); }
-      );
-
-      const directionOpts = [
-        { label: 'Normal (Forward)', value: 'normal' },
-        { label: 'Reverse (Backward)', value: 'reverse' },
-        { label: 'Alternate (Ping-Pong)', value: 'alternate' },
-        { label: 'Alternate Reverse', value: 'alternate-reverse' }
-      ];
-      createCustomSelect(
-        document.getElementById('animDirectionContainer'),
-        directionOpts,
-        el.animDirection || 'normal',
-        (val) => { el.animDirection = val; markDirty(); renderCanvas(); }
-      );
-
-      const easingOpts = [
-        { label: 'Smooth (Ease-In-Out)', value: 'ease-in-out' },
-        { label: 'Linear (Constant Speed)', value: 'linear' },
-        { label: 'Snappy Entry (Ease-Out)', value: 'ease-out' },
-        { label: 'Dramatic Acceleration (Ease-In)', value: 'ease-in' },
-        { label: 'Bouncy Spring (Tactile)', value: 'cubic-bezier(0.16, 1, 0.3, 1)' }
-      ];
-      createCustomSelect(
-        document.getElementById('animEasingContainer'),
-        easingOpts,
-        el.animEasing || 'ease-in-out',
-        (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
-      );
-
-      document.getElementById('propAnimDur').oninput = (e) => {
-        el.animDuration = parseFloat(e.target.value) || 1.5;
-        markDirty();
-        renderCanvas();
-      };
-
-      document.getElementById('propAnimDelay').oninput = (e) => {
-        el.animDelay = parseFloat(e.target.value) || 0;
-        markDirty();
-        renderCanvas();
-      };
-
-      document.getElementById('replayAnimBtn').onclick = () => {
-        const node = document.getElementById(el.id);
-        if (node && el.animation !== 'none') {
-          node.classList.remove(`anim-${el.animation}`);
-          void node.offsetWidth;
-          node.classList.add(`anim-${el.animation}`);
-          node.style.animationDuration = `${el.animDuration || 1.5}s`;
-          node.style.animationDelay = `${el.animDelay || 0}s`;
-          node.style.animationIterationCount = el.animIteration || '1';
-          node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
-          node.style.animationDirection = el.animDirection || 'normal';
         }
-      };
-    }
-  }
-
-  // Code Lab Custom Dropdowns
-  function renderCodeLab() {
-    const page = getCurrentPage();
-
-    if (codeLabTargetContainer && page) {
-      const targetOpts = [
-        { label: '-- Choose Element to Script --', value: '' },
-        ...page.elements.map(el => ({ label: `[${el.type.toUpperCase()}] ${el.name}`, value: el.id }))
-      ];
-
-      createCustomSelect(codeLabTargetContainer, targetOpts, activeElementId || '', (val) => {
-        activeElementId = val;
-        renderCodeLab();
-      });
-    }
-
-    const activeEl = getActiveElementModel();
-    if (!activeEl) {
-      if (blocksContainer) blocksContainer.innerHTML = '<p class="empty-state">Select an element above to configure blocks.</p>';
-      if (realJsInput) realJsInput.value = '';
-      return;
-    }
-
-    if (activeEl.codeMode === 'realCode') {
-      if (codeModeBlocksBtn) codeModeBlocksBtn.classList.remove('active');
-      if (codeModeJsBtn) codeModeJsBtn.classList.add('active');
-      if (codeBlocksPanel) codeBlocksPanel.classList.add('hidden');
-      if (codeJsPanel) codeJsPanel.classList.remove('hidden');
-    } else {
-      if (codeModeBlocksBtn) codeModeBlocksBtn.classList.add('active');
-      if (codeModeJsBtn) codeModeJsBtn.classList.remove('active');
-      if (codeBlocksPanel) codeBlocksPanel.classList.remove('hidden');
-      if (codeJsPanel) codeJsPanel.classList.add('hidden');
-    }
-
-    const eventOpts = [
-      { label: 'When Clicked / Tapped', value: 'click' },
-      { label: 'When Hovered with Mouse', value: 'hover' }
-    ];
-    createCustomSelect(blockEventContainer, eventOpts, activeEl.logic?.event || 'click', (val) => {
-      if (!activeEl.logic) activeEl.logic = { event: 'click', actions: [] };
-      activeEl.logic.event = val;
-      markDirty();
-    });
-
-    renderBlockStack(activeEl);
-    if (realJsInput) realJsInput.value = activeEl.customJs || "// Example:\n// app.showAlert('Action fired!');\n// element.style.backgroundColor = '#ff0055';\n// app.navigateTo('screen_id');";
-  }
-
-  if (codeModeBlocksBtn) {
-    codeModeBlocksBtn.addEventListener('click', () => {
-      const el = getActiveElementModel();
-      if (el) { el.codeMode = 'blocks'; markDirty(); }
-      renderCodeLab();
-    });
-  }
-
-  if (codeModeJsBtn) {
-    codeModeJsBtn.addEventListener('click', () => {
-      const el = getActiveElementModel();
-      if (el) { el.codeMode = 'realCode'; markDirty(); }
-      renderCodeLab();
-    });
-  }
-
-  if (realJsInput) {
-    realJsInput.addEventListener('input', (e) => {
-      const el = getActiveElementModel();
-      if (el) { el.customJs = e.target.value; markDirty(); }
-    });
-  }
-
-  function renderBlockStack(el) {
-    if (!blocksContainer) return;
-    if (!el.logic || !el.logic.actions || el.logic.actions.length === 0) {
-      blocksContainer.innerHTML = '<p class="empty-state">No action blocks configured. Click "Add Action Step" below.</p>';
-      return;
-    }
-
-    const pageOptions = currentProject.pages.map(p => ({ label: `Screen: ${p.name}`, value: p.id }));
-    const elemOptions = getCurrentPage().elements.filter(i => i.id !== el.id).map(i => ({ label: `Layer: ${i.name}`, value: i.id }));
-
-    blocksContainer.innerHTML = '';
-    el.logic.actions.forEach((act, idx) => {
-      const step = document.createElement('div');
-      step.className = 'block-step';
-
-      step.innerHTML = `
-        <button class="btn-remove-step" data-index="${idx}">&times; Remove Step</button>
-        <div class="control-group">
-          <label>Action (${idx + 1})</label>
-          <div id="stepTypeContainer_${idx}"></div>
-        </div>
-        ${['navigate', 'setText', 'setBg'].includes(act.type) ? `
-          <div class="control-group">
-            <label>Target</label>
-            <div id="stepTargetContainer_${idx}"></div>
-          </div>
-        ` : ''}
-        <div class="control-group">
-          <label>Parameter Value</label>
-          <input type="text" class="control-input step-val" data-index="${idx}" value="${act.value || ''}" placeholder="Enter parameter...">
-        </div>
-      `;
-
-      blocksContainer.appendChild(step);
-
-      const actionTypeOpts = [
-        { label: 'Show Alert Pop-up', value: 'alert' },
-        { label: 'Navigate to Screen', value: 'navigate' },
-        { label: 'Set Layer Text', value: 'setText' },
-        { label: 'Set Layer Background Color', value: 'setBg' }
-      ];
-      createCustomSelect(
-        document.getElementById(`stepTypeContainer_${idx}`),
-        actionTypeOpts,
-        act.type,
-        (val) => {
-          el.logic.actions[idx].type = val;
-          markDirty();
-          renderBlockStack(el);
-        }
-      );
-
-      const targetContainer = document.getElementById(`stepTargetContainer_${idx}`);
-      if (targetContainer) {
-        const availableTargets = [
-          { label: '-- Choose Target --', value: '' },
-          ...(act.type === 'navigate' ? pageOptions : elemOptions)
-        ];
-        createCustomSelect(
-          targetContainer,
-          availableTargets,
-          act.target || '',
-          (val) => {
-            el.logic.actions[idx].target = val;
-            markDirty();
+      ]
+    },
+    {
+      id: 'track_shapes',
+      title: '2. Shapes & Contours',
+      desc: 'Polygons, clip-paths & neon glows',
+      pages: [
+        {
+          title: 'Clip-Path Geometry',
+          howItWorks: [
+            'Custom geometry (Diamonds, Hexagons) is created using CSS clip-path.',
+            'clip-path uses polygon percentages to cut element corners into shape.',
+            'Standard box-shadow gets clipped off by polygon masks.'
+          ],
+          type: 'theory',
+          codeSnippet: `/* Diamond Polygon */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);`,
+          quiz: null
+        },
+        {
+          title: 'Drop-Shadow Contour Wrapping',
+          howItWorks: [
+            'CSS filter: drop-shadow detects the alpha edges of clipped polygons.',
+            'This allows neon glows to wrap cleanly around diamond and hexagon vertices.',
+            'Toggle shapes below to test drop-shadow tracing in real time.'
+          ],
+          type: 'practice_shapes',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Quiz: Polygon Shadows',
+          howItWorks: [
+            'Check your knowledge of polygon shadow rendering.'
+          ],
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Why does AppLab use filter: drop-shadow instead of box-shadow for Diamonds?',
+            options: [
+              'box-shadow is cut off by the polygon clip-path',
+              'box-shadow is deprecated in browsers',
+              'filter: drop-shadow changes the element color'
+            ],
+            correctIndex: 0,
+            explanation: 'clip-path masks out standard rectangular box-shadows. Filter drop-shadow computes glow around the actual shape outline.'
           }
-        );
-      }
-    });
-
-    document.querySelectorAll('.step-val').forEach(inp => {
-      inp.oninput = (e) => {
-        const idx = inp.dataset.index;
-        el.logic.actions[idx].value = e.target.value;
-        markDirty();
-      };
-    });
-
-    document.querySelectorAll('.btn-remove-step').forEach(btn => {
-      btn.onclick = () => {
-        el.logic.actions.splice(btn.dataset.index, 1);
-        markDirty();
-        renderBlockStack(el);
-      };
-    });
-  }
-
-  if (addBlockStepBtn) {
-    addBlockStepBtn.addEventListener('click', () => {
-      const el = getActiveElementModel();
-      if (!el) {
-        AppLab.alert('Please select an element first.', 'Selection Required', '⚠️');
-        return;
-      }
-      if (!el.logic) el.logic = { event: 'click', actions: [] };
-      el.logic.actions.push({ type: 'alert', target: '', value: 'Action Step' });
-      markDirty();
-      renderBlockStack(el);
-    });
-  }
-
-  // Component Drag & Drop Palette
-  document.querySelectorAll('.draggable-card').forEach(card => {
-    card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
-  });
-
-  if (canvas) {
-    canvas.ondragover = (e) => e.preventDefault();
-    canvas.ondrop = (e) => {
-      e.preventDefault();
-      const type = e.dataTransfer.getData('type');
-      if (!type) return;
-      const rect = canvas.getBoundingClientRect();
-
-      let defaultWidth = 140;
-      let defaultHeight = 44;
-      let defaultText = 'Click Me';
-      let defaultBg = '#7b2cbf';
-      let defaultBorder = '#9d4edd';
-      let defaultBorderWidth = 1;
-      let defaultPadding = 8;
-      let defaultShape = 'rounded';
-      let defaultRadius = 10;
-      let defaultIsChecked = false;
-      let defaultCurrentVal = 50;
-
-      if (type === 'label') {
-        defaultWidth = 160;
-        defaultHeight = 32;
-        defaultText = 'Header Title';
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'input') {
-        defaultWidth = 180;
-        defaultHeight = 40;
-        defaultText = 'Type something...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'textarea') {
-        defaultWidth = 200;
-        defaultHeight = 80;
-        defaultText = 'Enter long paragraph comments...';
-        defaultBg = 'rgba(255, 255, 255, 0.08)';
-        defaultBorder = 'rgba(255, 255, 255, 0.2)';
-      } else if (type === 'toggle') {
-        defaultWidth = 56;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-        defaultIsChecked = true;
-      } else if (type === 'slider') {
-        defaultWidth = 180;
-        defaultHeight = 30;
-        defaultBg = 'transparent';
-        defaultBorder = 'transparent';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'progress') {
-        defaultWidth = 200;
-        defaultHeight = 16;
-        defaultBg = 'rgba(255, 255, 255, 0.1)';
-        defaultBorder = 'rgba(157, 78, 221, 0.3)';
-        defaultBorderWidth = 1;
-        defaultRadius = 8;
-        defaultCurrentVal = 65;
-      } else if (type === 'divider') {
-        defaultWidth = 220;
-        defaultHeight = 10;
-        defaultBg = 'transparent';
-        defaultBorder = '#9d4edd';
-        defaultBorderWidth = 0;
-        defaultPadding = 0;
-      } else if (type === 'icon') {
-        defaultWidth = 48;
-        defaultHeight = 48;
-        defaultText = '⭐';
-        defaultBg = 'rgba(157, 78, 221, 0.2)';
-        defaultBorder = '#9d4edd';
-        defaultShape = 'circle';
-        defaultRadius = 50;
-      } else if (type === 'card') {
-        defaultWidth = 220;
-        defaultHeight = 120;
-        defaultText = 'Card Container Box';
-        defaultBg = 'rgba(255, 255, 255, 0.05)';
-        defaultBorder = 'rgba(255, 255, 255, 0.12)';
-        defaultPadding = 14;
-      }
-
-      const newEl = {
-        id: 'el_' + Date.now().toString().slice(-4),
-        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-        type: type,
-        x: Math.max(10, e.clientX - rect.left - 40),
-        y: Math.max(10, e.clientY - rect.top - 20),
-        width: defaultWidth,
-        height: defaultHeight,
-        text: defaultText,
-        textColor: '#ffffff',
-        bgColor: defaultBg,
-        borderColor: defaultBorder,
-        borderWidth: defaultBorderWidth,
-        borderStyle: 'solid',
-        shape: defaultShape,
-        borderRadius: defaultRadius,
-        fontSize: 14,
-        fontFamily: fontOptions[0].value,
-        fontWeight: '500',
-        letterSpacing: 0,
-        lineHeight: 1.2,
-        textTransform: 'none',
-        textDecoration: 'none',
-        textAlign: 'center',
-        padding: defaultPadding,
-        backdropBlur: 0,
-        glowSize: 0,
-        glowColor: '#9d4edd',
-        opacity: 1,
-        rotation: 0,
-        animation: 'none',
-        animDuration: 1.5,
-        animDelay: 0,
-        animIteration: 'infinite',
-        animEasing: 'ease-in-out',
-        animDirection: 'normal',
-        animTrigger: 'ambient',
-        minVal: 0,
-        maxVal: 100,
-        currentVal: defaultCurrentVal,
-        isChecked: defaultIsChecked,
-        imageFit: 'cover',
-        tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
-        codeMode: 'blocks',
-        customJs: '',
-        logic: { event: 'click', actions: [] }
-      };
-
-      getCurrentPage().elements.push(newEl);
-      markDirty();
-      selectElement(newEl.id);
-    };
-  }
-
-  // Pages List & Layers Tree
-  function renderPagesList() {
-    if (!pagesList) return;
-    pagesList.innerHTML = '';
-    currentProject.pages.forEach(p => {
-      const it = document.createElement('div');
-      it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
-      it.innerText = `📄 ${p.name}`;
-      it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
-      pagesList.appendChild(it);
-    });
-  }
-
-  function renderLayersTree() {
-    if (!layersTree) return;
-    layersTree.innerHTML = '';
-    getCurrentPage().elements.forEach(el => {
-      const l = document.createElement('div');
-      l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
-      l.innerText = el.name;
-      l.onclick = () => selectElement(el.id);
-      layersTree.appendChild(l);
-    });
-  }
-
-  if (addPageBtn) {
-    addPageBtn.onclick = () => {
-      const pId = 'scr_' + Date.now().toString().slice(-4);
-      currentProject.pages.push({ id: pId, name: 'Screen ' + (currentProject.pages.length + 1), elements: [] });
-      activeScreenId = pId;
-      markDirty();
-      renderPagesList(); renderCanvas();
-    };
-  }
-
-  if (modeToggleBtn) {
-    modeToggleBtn.onclick = () => {
-      isPreviewMode = !isPreviewMode;
-      modeToggleBtn.innerText = isPreviewMode ? '⏹️ Stop' : '▶️ Preview';
-      document.body.classList.toggle('preview-mode', isPreviewMode);
-      renderCanvas();
-    };
-  }
-
-  if (exportBtn) {
-    exportBtn.addEventListener('click', () => {
-      const jsonStr = JSON.stringify(currentProject, null, 2);
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${currentProject.projectName.toLowerCase().replace(/\s+/g, '_')}.applab`;
-      a.click();
-    });
-  }
-
-  if (startMenuToggleBtn) {
-    startMenuToggleBtn.onclick = () => {
-      if (startMenuPopup) startMenuPopup.classList.toggle('hidden');
-    };
-  }
-
-  document.addEventListener('click', (e) => {
-    if (startMenuToggleBtn && startMenuPopup && !startMenuToggleBtn.contains(e.target) && !startMenuPopup.contains(e.target)) {
-      startMenuPopup.classList.add('hidden');
+        }
+      ]
+    },
+    {
+      id: 'track_blocks',
+      title: '3. Visual Block Logic',
+      desc: 'Action stacks & event automation',
+      pages: [
+        {
+          title: 'The Event & Action Stack',
+          howItWorks: [
+            'Events (Click, Hover) trigger an action pipeline.',
+            'Actions run sequentially from top to bottom.',
+            'Actions can trigger popups, navigate screens, or alter layer styles.'
+          ],
+          type: 'theory',
+          codeSnippet: `[WHEN: Click Event]\n  Step 1: Set Background Color\n  Step 2: Start Animation Pulse\n  Step 3: Route to Page 2`,
+          quiz: null
+        },
+        {
+          title: 'Practice: Action Stack Execution',
+          howItWorks: [
+            'Click "Trigger Action Stack" below to watch actions fire in order.',
+            'Notice how step 1 recolors the chip and step 2 applies an animation.'
+          ],
+          type: 'practice_blocks',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Quiz: Block Execution',
+          howItWorks: [
+            'Verify your understanding of block pipeline ordering.'
+          ],
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'In what order do actions run inside the Action Stack?',
+            options: [
+              'Sequentially from top to bottom',
+              'Random order',
+              'Simultaneously all at once'
+            ],
+            correctIndex: 0,
+            explanation: 'AppLab runs action blocks in order from top to bottom so prerequisite states apply before transitions fire.'
+          }
+        }
+      ]
+    },
+    {
+      id: 'track_javascript',
+      title: '4. JavaScript Sandbox',
+      desc: 'Custom scripting, Web Audio & modals',
+      pages: [
+        {
+          title: 'The Sandbox Scope',
+          howItWorks: [
+            'Real JavaScript runs in an isolated runtime scope.',
+            'You get direct access to element (DOM node), app (helper methods), and canvas.',
+            'Use app.showAlert() to trigger custom purple glass popups.'
+          ],
+          type: 'theory',
+          codeSnippet: `element.style.backgroundColor = '#ff0077';\napp.playBeep();\napp.showAlert('Action fired!');`,
+          quiz: null
+        },
+        {
+          title: 'Practice: Live Script Runner',
+          howItWorks: [
+            'Execute real sandbox JavaScript live in the browser.',
+            'Click below to synthesize an audio tone and trigger an alert.'
+          ],
+          type: 'practice_js',
+          codeSnippet: null,
+          quiz: null
+        },
+        {
+          title: 'Quiz: Runtime APIs',
+          howItWorks: [
+            'Confirm your knowledge of AppLab script APIs.'
+          ],
+          type: 'quiz',
+          codeSnippet: null,
+          quiz: {
+            question: 'Which method routes to a new screen inside JavaScript?',
+            options: [
+              'app.navigateTo(screenId)',
+              'window.location.reload()',
+              'element.changePage()'
+            ],
+            correctIndex: 0,
+            explanation: 'app.navigateTo(id) tells the AppLab studio engine to switch the visible canvas page.'
+          }
+        }
+      ]
     }
-  });
+  ];
 
-  const smHomeBtn = document.getElementById('smHomeBtn');
-  if (smHomeBtn) smHomeBtn.onclick = () => { switchMainView('homeView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smStudioBtn = document.getElementById('smStudioBtn');
-  if (smStudioBtn) smStudioBtn.onclick = () => { switchMainView('builderView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smNewProjectBtn = document.getElementById('smNewProjectBtn');
-  if (smNewProjectBtn) smNewProjectBtn.onclick = () => { openNewProjectModal(); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-  const smTutorialBtn = document.getElementById('smTutorialBtn');
-  if (smTutorialBtn) smTutorialBtn.onclick = () => { switchMainView('tutorialView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
-
-  const smSettingsBtn = document.getElementById('smSettingsBtn');
-  if (smSettingsBtn) {
-    smSettingsBtn.onclick = () => {
-      if (startMenuPopup) startMenuPopup.classList.add('hidden');
-
-      const themeOpts = [
-        { label: '🌙 Dark Glassmorphism', value: 'dark' },
-        { label: '☀️ Clean Daylight (Light)', value: 'light' }
-      ];
-      createCustomSelect(settingThemeContainer, themeOpts, userSettings.theme, (val) => {
-        userSettings.theme = val;
-      });
-
-      const modeOpts = [
-        { label: '✨ Quality Mode (Full Blurs & Glows)', value: 'quality' },
-        { label: '⚡ Performance Mode (Fast FPS)', value: 'performance' }
-      ];
-      createCustomSelect(settingModeContainer, modeOpts, userSettings.mode, (val) => {
-        userSettings.mode = val;
-      });
-
-      if (settingsModal) settingsModal.classList.remove('hidden');
-    };
-  }
-
-  if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add('hidden');
-  if (applySettingsBtn) {
-    applySettingsBtn.onclick = () => {
-      try {
-        localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
-      } catch (e) {}
-      applyGlobalSettings();
-      settingsModal.classList.add('hidden');
-    };
-  }
-
-  function bindColorPair(pickerId, textId, callback) {
-    const picker = document.getElementById(pickerId);
-    const text = document.getElementById(textId);
-    if (!picker || !text) return;
-    picker.oninput = (e) => { text.value = e.target.value; callback(e.target.value); };
-    text.oninput = (e) => { callback(e.target.value); if (/^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value; };
-  }
-
-  function rgbToHex(val) {
-    if (!val || val === 'transparent') return '#000000';
-    if (val.startsWith('#')) return val;
-    const nums = val.match(/\d+/g);
-    if (!nums || nums.length < 3) return '#000000';
-    return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
-  }
-
-  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS =================
   function renderCourseWorkspace() {
     const trackMenuEl = document.getElementById('trackMenu');
     const courseStageEl = document.getElementById('courseStage');
@@ -2446,6 +1644,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let dotsHtml = track.pages.map((p, idx) => `
       <div class="page-dot ${idx === currentCoursePageIndex ? 'active' : ''}" data-page-idx="${idx}"></div>
     `).join('');
+
+    let howItWorksHtml = '';
+    if (page.howItWorks && page.howItWorks.length > 0) {
+      const items = page.howItWorks.map(step => `<li>${step}</li>`).join('');
+      howItWorksHtml = `
+        <div class="how-it-works-box" style="background: rgba(157, 78, 221, 0.12); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px 18px; margin-bottom: 6px;">
+          <h4 style="font-size: 0.82rem; text-transform: uppercase; color: #c77dff; margin-bottom: 8px; letter-spacing: 0.05em;">💡 How it works</h4>
+          <ul style="padding-left: 18px; font-size: 0.88rem; line-height: 1.6; color: var(--text-main);">
+            ${items}
+          </ul>
+        </div>
+      `;
+    }
 
     let interactiveHtml = '';
 
@@ -2500,61 +1711,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-top btn-primary" id="runCourseJsBtn" style="align-self: center;">▶️ Execute Sandbox Code</button>
         </div>
       `;
-    } else if (page.type === 'practice_binding') {
-      interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Live Data Binding</span></div>
-          <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
-            <input type="text" class="control-input" id="bindingInput" value="Hello AppLab" style="max-width: 200px;">
-            <button class="btn-top btn-primary" id="applyBindingBtn">Bind Value</button>
-          </div>
-          <div class="lab-stage">
-            <div id="bindingTargetChip" class="lab-target-chip">Hello AppLab</div>
-          </div>
-        </div>
-      `;
-    } else if (page.type === 'practice_perf') {
-      interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: GPU Filter Profiler</span></div>
-          <div class="lab-stage">
-            <div id="perfTargetChip" class="lab-target-chip" style="backdrop-filter: blur(20px); box-shadow: 0 0 25px var(--accent-glow);">✨ Quality Glass (Blur Active)</div>
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <button class="btn-top" id="perfToggleQuality">✨ Quality Mode</button>
-            <button class="btn-top" id="perfToggleFast">⚡ Performance Mode</button>
-          </div>
-        </div>
-      `;
-    } else if (page.type === 'practice_anim') {
-      interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Motion Keyframe Tester</span></div>
-          <div class="lab-stage">
-            <div id="courseAnimChip" class="lab-target-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
-          </div>
-          <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-top" id="animPulseBtn">💓 Pulse</button>
-            <button class="btn-top" id="animBounceBtn">🏀 Bounce</button>
-            <button class="btn-top" id="animFloatBtn">🎈 Float</button>
-            <button class="btn-top" id="animSpinBtn">🔄 Spin</button>
-            <button class="btn-top" id="animShakeBtn">📳 Shake</button>
-          </div>
-        </div>
-      `;
-    } else if (page.type === 'practice_audio') {
-      interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Web Audio Synthesizer</span></div>
-          <div class="lab-stage">
-            <div id="audioVisualizerChip" class="lab-target-chip">🎵 Audio Wave Ready</div>
-          </div>
-          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-top btn-primary" id="playBeepToneBtn">🔊 440Hz Beep</button>
-            <button class="btn-top btn-primary" id="playChimeToneBtn">🔔 Success Chime</button>
-          </div>
-        </div>
-      `;
     } else if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const optsHtml = q.options.map((opt, i) => `
@@ -2581,8 +1737,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="lesson-headline">
           <h2>${page.title}</h2>
-          <p>${page.desc}</p>
         </div>
+
+        ${howItWorksHtml}
 
         ${page.codeSnippet ? `
           <div class="code-snippet-box">
@@ -2714,84 +1871,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    const applyBindingBtn = document.getElementById('applyBindingBtn');
-    if (applyBindingBtn) {
-      applyBindingBtn.onclick = () => {
-        const inputVal = document.getElementById('bindingInput').value;
-        const target = document.getElementById('bindingTargetChip');
-        target.innerText = inputVal || '(Empty)';
-        target.classList.add('anim-scalePop');
-        setTimeout(() => target.classList.remove('anim-scalePop'), 600);
-      };
-    }
-
-    const perfChip = document.getElementById('perfTargetChip');
-    if (perfChip) {
-      document.getElementById('perfToggleQuality').onclick = () => {
-        perfChip.style.backdropFilter = 'blur(20px)';
-        perfChip.style.boxShadow = '0 0 25px var(--accent-glow)';
-        perfChip.innerText = '✨ Quality Glass (Blur Active)';
-      };
-      document.getElementById('perfToggleFast').onclick = () => {
-        perfChip.style.backdropFilter = 'none';
-        perfChip.style.boxShadow = 'none';
-        perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
-      };
-    }
-
-    const animChip = document.getElementById('courseAnimChip');
-    if (animChip) {
-      const setChipAnim = (animClass, label) => {
-        animChip.className = `lab-target-chip anim-${animClass}`;
-        animChip.innerText = label;
-      };
-      document.getElementById('animPulseBtn').onclick = () => setChipAnim('pulse', '💓 Pulsing');
-      document.getElementById('animBounceBtn').onclick = () => setChipAnim('bounce', '🏀 Bouncing');
-      document.getElementById('animFloatBtn').onclick = () => setChipAnim('float', '🎈 Floating');
-      document.getElementById('animSpinBtn').onclick = () => setChipAnim('spin', '🔄 Spinning');
-      document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
-    }
-
-    const audioChip = document.getElementById('audioVisualizerChip');
-    if (audioChip) {
-      const playTone = (freq, duration, type = 'sine') => {
-        try {
-          const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, ctx.currentTime);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-          osc.start();
-          osc.stop(ctx.currentTime + duration);
-        } catch (e) {}
-      };
-
-      document.getElementById('playBeepToneBtn').onclick = () => {
-        audioChip.innerText = '🔊 Playing 440Hz Sine Wave...';
-        audioChip.style.boxShadow = '0 0 25px #00f2fe';
-        playTone(440, 0.25);
-        setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
-        }, 300);
-      };
-
-      document.getElementById('playChimeToneBtn').onclick = () => {
-        audioChip.innerText = '🔔 Playing Success Chime (C5 -> G5)...';
-        audioChip.style.boxShadow = '0 0 25px #2ed573';
-        playTone(523, 0.15);
-        setTimeout(() => playTone(784, 0.25), 150);
-        setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
-        }, 400);
-      };
-    }
-
     if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
@@ -2819,6 +1898,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial Load
+  // Initial Boot
   switchMainView('homeView');
 });
