@@ -112,8 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {}
 
   let currentProject = JSON.parse(JSON.stringify(getStoredProjects()[0]));
-  let activeScreenId = currentProject.pages[0].id;
-  let activeElementId = currentProject.pages[0].elements[0]?.id || null;
+  // Always guarantee valid activeScreenId
+  let activeScreenId = (currentProject.pages && currentProject.pages[0]) ? currentProject.pages[0].id : 'screen_1';
+  let activeElementId = (currentProject.pages && currentProject.pages[0] && currentProject.pages[0].elements[0]) ? currentProject.pages[0].elements[0].id : null;
+
   let isPreviewMode = false;
   let activeFolderFilter = 'all';
   let contextTargetElementId = null;
@@ -207,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const trackMenu = document.getElementById('trackMenu');
   const courseStage = document.getElementById('courseStage');
 
-  // ================= 2-SECOND HOVER TOOLTIP SYSTEM (FOLLOWS MOUSE) =================
+  // ================= 2-SECOND HOVER TOOLTIP SYSTEM =================
   let tooltipElem = document.querySelector('.app-tooltip');
   if (!tooltipElem) {
     tooltipElem = document.createElement('div');
@@ -249,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setupTooltips(node, model) {
     node.addEventListener('mouseenter', (e) => {
-      const desc = model.tooltip || `Layer: ${model.name} (${model.type})`;
+      const desc = model.tooltip || `Layer: ${model.name || 'Component'} (${model.type || 'element'})`;
       currentMouseX = e.clientX;
       currentMouseY = e.clientY;
 
@@ -282,8 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyGlobalSettings() {
-    document.documentElement.setAttribute('data-theme', userSettings.theme);
-    document.documentElement.setAttribute('data-mode', userSettings.mode);
+    document.documentElement.setAttribute('data-theme', userSettings.theme || 'dark');
+    document.documentElement.setAttribute('data-mode', userSettings.mode || 'quality');
   }
   applyGlobalSettings();
 
@@ -605,12 +607,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchMainView('builderView');
       });
 
-      card.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openProjectCardContextMenu(e, proj.id);
-      });
-
       projectsGrid.appendChild(card);
     });
   }
@@ -734,8 +730,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // GUARANTEED ACTIVE PAGE RESOLVER
   function getCurrentPage() {
-    return currentProject.pages.find(p => p.id === activeScreenId) || currentProject.pages[0];
+    if (!currentProject || !currentProject.pages || currentProject.pages.length === 0) {
+      currentProject = {
+        id: 'proj_' + Date.now(),
+        projectName: 'Untitled App',
+        folder: 'General',
+        viewport: 'phone',
+        canvasBg: '#0e0a1a',
+        pages: [{ id: 'screen_1', name: 'Home Screen', elements: [] }]
+      };
+      activeScreenId = 'screen_1';
+    }
+    let page = currentProject.pages.find(p => p.id === activeScreenId);
+    if (!page) {
+      page = currentProject.pages[0];
+      activeScreenId = page.id;
+    }
+    if (!page.elements) page.elements = [];
+    return page;
   }
 
   function getActiveElementModel() {
@@ -753,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (shape === 'rect') {
       node.style.borderRadius = '0px';
     } else if (shape === 'rounded') {
-      node.style.borderRadius = `${el.borderRadius || 8}px`;
+      node.style.borderRadius = `${el.borderRadius !== undefined ? el.borderRadius : 8}px`;
     } else if (shape === 'pill') {
       node.style.borderRadius = '9999px';
     } else if (shape === 'circle') {
@@ -764,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
       node.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
     }
 
-    if (el.glowSize > 0) {
+    if (el.glowSize && el.glowSize > 0) {
       const glow = `${el.glowColor || 'rgba(157,78,221,0.5)'}`;
       if (isPolygon) {
         node.style.boxShadow = 'none';
@@ -778,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
       node.style.filter = 'none';
     }
 
-    if (el.backdropBlur > 0) {
+    if (el.backdropBlur && el.backdropBlur > 0) {
       node.style.backdropFilter = `blur(${el.backdropBlur}px)`;
       node.style.webkitBackdropFilter = `blur(${el.backdropBlur}px)`;
     } else {
@@ -787,34 +801,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // BULLETPROOF CANVAS RENDERER
   function renderCanvas() {
     if (!canvas) return;
     canvas.innerHTML = '';
     const page = getCurrentPage();
-    if (!page) return;
+    if (!page || !page.elements) return;
 
     if (deviceFrame) deviceFrame.style.background = currentProject.canvasBg || '#0e0a1a';
 
     page.elements.forEach(el => {
       let node;
-      if (el.type === 'button') {
+      const type = el.type || 'button';
+
+      if (type === 'button') {
         node = document.createElement('button');
         node.innerText = el.text || 'Button';
-      } else if (el.type === 'input') {
+      } else if (type === 'input') {
         node = document.createElement('input');
         node.placeholder = el.text || 'Enter text...';
-      } else if (el.type === 'textarea') {
+      } else if (type === 'textarea') {
         node = document.createElement('textarea');
         node.placeholder = el.text || 'Multi-line comments...';
         node.style.resize = 'none';
-      } else if (el.type === 'image') {
+      } else if (type === 'image') {
         node = document.createElement('div');
         const img = document.createElement('img');
-        img.src = el.text;
+        img.src = el.text || '';
         img.style.objectFit = el.imageFit || 'cover';
         img.onerror = () => { img.src = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%232b1b4d%22/><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23c77dff%22 font-family=%22sans-serif%22 font-size=%2214%22>No Image</text></svg>'; };
         node.appendChild(img);
-      } else if (el.type === 'toggle') {
+      } else if (type === 'toggle') {
         node = document.createElement('div');
         const active = el.isChecked ? 'translate(26px, -50%)' : 'translate(0, -50%)';
         const bg = el.isChecked ? '#9d4edd' : 'rgba(255, 255, 255, 0.2)';
@@ -823,12 +840,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="width: 22px; height: 22px; border-radius: 50%; background: #fff; position: absolute; top: 50%; left: 2px; transform: ${active}; transition: transform 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>
           </div>
         `;
-      } else if (el.type === 'slider') {
+      } else if (type === 'slider') {
         node = document.createElement('div');
         node.innerHTML = `
           <input type="range" min="${el.minVal || 0}" max="${el.maxVal || 100}" value="${el.currentVal || 50}" style="width: 100%; accent-color: #9d4edd; pointer-events: ${isPreviewMode ? 'auto' : 'none'};">
         `;
-      } else if (el.type === 'progress') {
+      } else if (type === 'progress') {
         node = document.createElement('div');
         const pct = Math.min(100, Math.max(0, el.currentVal || 65));
         node.innerHTML = `
@@ -836,32 +853,34 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #9d4edd, #c77dff); border-radius: inherit; transition: width 0.3s;"></div>
           </div>
         `;
-      } else if (el.type === 'divider') {
+      } else if (type === 'divider') {
         node = document.createElement('div');
         node.innerHTML = `<div style="width: 100%; height: 1px; background: ${el.borderColor || 'rgba(157, 78, 221, 0.4)'};"></div>`;
-      } else if (el.type === 'icon') {
+      } else if (type === 'icon') {
         node = document.createElement('div');
         node.innerText = el.text || '⭐';
       } else {
         node = document.createElement('div');
-        node.innerText = el.text;
+        node.innerText = el.text || '';
       }
 
       node.id = el.id;
       node.className = `placed-item ${el.id === activeElementId ? 'selected' : ''}`;
 
-      node.style.left = `${el.x}px`;
-      node.style.top = `${el.y}px`;
-      node.style.width = `${el.width}px`;
-      node.style.height = `${el.height}px`;
+      // Guaranteed numeric coordinates
+      node.style.left = `${el.x || 20}px`;
+      node.style.top = `${el.y || 20}px`;
+      node.style.width = `${el.width || 120}px`;
+      node.style.height = `${el.height || 40}px`;
 
-      node.style.backgroundColor = el.bgColor;
-      node.style.color = el.textColor;
-      node.style.borderColor = el.borderColor;
+      // Safe styles fallback
+      node.style.backgroundColor = el.bgColor || (type === 'button' ? '#7b2cbf' : 'transparent');
+      node.style.color = el.textColor || '#ffffff';
+      node.style.borderColor = el.borderColor || 'transparent';
       node.style.borderWidth = `${el.borderWidth !== undefined ? el.borderWidth : 1}px`;
       node.style.borderStyle = el.borderStyle || 'solid';
       node.style.fontFamily = el.fontFamily || 'inherit';
-      node.style.fontSize = `${el.fontSize}px`;
+      node.style.fontSize = `${el.fontSize || 14}px`;
       node.style.fontWeight = el.fontWeight || 'normal';
       node.style.textAlign = el.textAlign || 'center';
       node.style.letterSpacing = `${el.letterSpacing || 0}px`;
@@ -901,8 +920,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isPreviewMode) {
         attachMovement(node, el);
         attachResizer(node, el);
-        node.dataset.elementId = el.id;
       }
+
+      // Explicitly label dataset for context menu identification
+      node.dataset.elementId = el.id;
 
       setupTooltips(node, el);
       attachRuntimeExecution(node, el);
@@ -937,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.button !== 0 || e.target.classList.contains('resize-handle')) return;
       isMoving = true;
       startX = e.clientX; startY = e.clientY;
-      initX = model.x; initY = model.y;
+      initX = model.x || 0; initY = model.y || 0;
 
       function onMove(ev) {
         if (!isMoving) return;
@@ -966,7 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     handle.addEventListener('mousedown', (e) => {
       e.stopPropagation();
-      const sx = e.clientX, sy = e.clientY, sw = model.width, sh = model.height;
+      const sx = e.clientX, sy = e.clientY, sw = model.width || 100, sh = model.height || 40;
 
       function onDrag(ev) {
         model.width = Math.max(20, sw + (ev.clientX - sx));
@@ -986,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================= UNIVERSAL DESKTOP-STYLE CONTEXT MENU =================
+  // ================= UNIVERSAL CONTEXT MENU ENGINE =================
   function showUniversalContextMenu(e, htmlContent, onReadyCallback) {
     if (!elementContextMenu) {
       elementContextMenu = document.createElement('div');
@@ -998,7 +1019,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elementContextMenu.innerHTML = htmlContent;
 
     const menuWidth = 220;
-    const menuHeight = 380;
+    const menuHeight = 360;
     const posX = (e.clientX + menuWidth > window.innerWidth) ? (e.clientX - menuWidth) : e.clientX;
     const posY = (e.clientY + menuHeight > window.innerHeight) ? (e.clientY - menuHeight) : e.clientY;
 
@@ -1201,8 +1222,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const clone = JSON.parse(JSON.stringify(target));
           clone.id = 'el_' + Date.now().toString().slice(-4);
           clone.name = clone.name + ' (Copy)';
-          clone.x += 20;
-          clone.y += 20;
+          clone.x = (clone.x || 0) + 20;
+          clone.y = (clone.y || 0) + 20;
           page.elements.push(clone);
           markDirty();
           selectElement(clone.id);
@@ -1293,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ctxCenterH')?.addEventListener('click', () => {
         const target = getActiveElementModel();
         if (target && canvas) {
-          target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+          target.x = Math.max(0, Math.round((canvas.offsetWidth - (target.width || 140)) / 2));
           markDirty();
           renderCanvas();
         }
@@ -1303,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ctxCenterV')?.addEventListener('click', () => {
         const target = getActiveElementModel();
         if (target && canvas) {
-          target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+          target.y = Math.max(0, Math.round((canvas.offsetHeight - (target.height || 44)) / 2));
           markDirty();
           renderCanvas();
         }
@@ -1313,8 +1334,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
         const target = getActiveElementModel();
         if (target && canvas) {
-          target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
-          target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+          target.x = Math.max(0, Math.round((canvas.offsetWidth - (target.width || 140)) / 2));
+          target.y = Math.max(0, Math.round((canvas.offsetHeight - (target.height || 44)) / 2));
           markDirty();
           renderCanvas();
         }
@@ -1656,7 +1677,8 @@ document.addEventListener('DOMContentLoaded', () => {
       logic: { event: 'click', actions: [] }
     };
 
-    getCurrentPage().elements.push(newEl);
+    const targetPage = getCurrentPage();
+    targetPage.elements.push(newEl);
     markDirty();
     renderCanvas();
     renderLayersTree();
@@ -1719,7 +1741,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderLayersTree() {
     if (!layersTree) return;
     layersTree.innerHTML = '';
-    getCurrentPage().elements.forEach(el => {
+    const page = getCurrentPage();
+    if (!page || !page.elements) return;
+
+    page.elements.forEach(el => {
       const l = document.createElement('div');
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
       l.dataset.layerId = el.id;
