@@ -208,31 +208,68 @@ document.addEventListener('DOMContentLoaded', () => {
   const trackMenu = document.getElementById('trackMenu');
   const courseStage = document.getElementById('courseStage');
 
-  // ================= 2-SECOND HOVER TOOLTIP SYSTEM =================
-  const tooltipElem = document.createElement('div');
-  tooltipElem.className = 'app-tooltip hidden';
-  document.body.appendChild(tooltipElem);
+  // ================= 2-SECOND HOVER TOOLTIP SYSTEM (FOLLOWS MOUSE) =================
+  let tooltipElem = document.querySelector('.app-tooltip');
+  if (!tooltipElem) {
+    tooltipElem = document.createElement('div');
+    tooltipElem.className = 'app-tooltip hidden';
+    document.body.appendChild(tooltipElem);
+  }
+
+  // Ensure CSS properties support dynamic positioning
+  tooltipElem.style.position = 'fixed';
+  tooltipElem.style.zIndex = '999999';
+  tooltipElem.style.pointerEvents = 'none';
 
   let hoverTimer = null;
+  let currentMouseX = 0;
+  let currentMouseY = 0;
+
+  window.addEventListener('mousemove', (e) => {
+    currentMouseX = e.clientX;
+    currentMouseY = e.clientY;
+  });
+
+  function updateTooltipPosition(clientX, clientY) {
+    const offset = 14;
+    let targetX = clientX + offset;
+    let targetY = clientY + offset;
+
+    const tooltipWidth = tooltipElem.offsetWidth || 180;
+    const tooltipHeight = tooltipElem.offsetHeight || 40;
+
+    // Viewport collision bounds check
+    if (targetX + tooltipWidth > window.innerWidth) {
+      targetX = clientX - tooltipWidth - offset;
+    }
+    if (targetY + tooltipHeight > window.innerHeight) {
+      targetY = clientY - tooltipHeight - offset;
+    }
+
+    tooltipElem.style.left = `${Math.max(10, targetX)}px`;
+    tooltipElem.style.top = `${Math.max(10, targetY)}px`;
+  }
 
   function setupTooltips(node, model) {
     node.addEventListener('mouseenter', (e) => {
       const desc = model.tooltip || `Layer: ${model.name} (${model.type})`;
-      const clientX = e.clientX;
-      const clientY = e.clientY;
+      currentMouseX = e.clientX;
+      currentMouseY = e.clientY;
+
+      if (hoverTimer) clearTimeout(hoverTimer);
 
       hoverTimer = setTimeout(() => {
         tooltipElem.innerText = desc;
-        tooltipElem.style.left = `${clientX + 14}px`;
-        tooltipElem.style.top = `${clientY + 14}px`;
         tooltipElem.classList.remove('hidden');
+        updateTooltipPosition(currentMouseX, currentMouseY);
       }, 2000);
     });
 
     node.addEventListener('mousemove', (e) => {
+      currentMouseX = e.clientX;
+      currentMouseY = e.clientY;
       if (!tooltipElem.classList.contains('hidden')) {
-        tooltipElem.style.left = `${e.clientX + 14}px`;
-        tooltipElem.style.top = `${e.clientY + 14}px`;
+        updateTooltipPosition(currentMouseX, currentMouseY);
       }
     });
 
@@ -571,13 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchMainView('builderView');
       });
 
-      // Right-click support on project dashboard cards
-      card.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openProjectCardContextMenu(e, proj.id);
-      });
-
       projectsGrid.appendChild(card);
     });
   }
@@ -868,7 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isPreviewMode) {
         attachMovement(node, el);
         attachResizer(node, el);
-        attachElementContextMenu(node, el);
+        node.dataset.elementId = el.id;
       }
 
       setupTooltips(node, el);
@@ -953,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================= UNIVERSAL CONTEXT MENU ENGINE =================
+  // ================= UNIVERSAL DESKTOP-STYLE CONTEXT MENU =================
   function showUniversalContextMenu(e, htmlContent, onReadyCallback) {
     if (!elementContextMenu) {
       elementContextMenu = document.createElement('div');
@@ -986,299 +1016,314 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 1. Right-Clicking Elements inside Canvas
-  function attachElementContextMenu(node, model) {
-    node.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      selectElement(model.id);
-      contextTargetElementId = model.id;
+  // Global Context Menu Interceptor: Prevents default browser menu everywhere in the app
+  window.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
 
-      const menuHtml = `
-        <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
-        <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
-        <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
-        <div class="context-separator"></div>
-        <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
-        <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
-        <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
-        <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
-        <div class="context-separator"></div>
-        <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
-        <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
-        <div class="context-item" id="ctxCenterBoth">🎯 Center on Canvas</div>
-        <div class="context-separator"></div>
-        <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
-        <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
-        <div class="context-separator"></div>
-        <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
-      `;
+    // Check if right-clicking an element placed on canvas
+    const placedItem = e.target.closest('.placed-item');
+    if (placedItem && placedItem.dataset.elementId) {
+      const elId = placedItem.dataset.elementId;
+      selectElement(elId);
+      contextTargetElementId = elId;
+      openElementContextMenu(e, elId);
+      return;
+    }
 
-      showUniversalContextMenu(e, menuHtml, () => {
-        document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          const target = page.elements.find(i => i.id === contextTargetElementId);
-          if (target) {
-            const clone = JSON.parse(JSON.stringify(target));
-            clone.id = 'el_' + Date.now().toString().slice(-4);
-            clone.name = clone.name + ' (Copy)';
-            clone.x += 20;
-            clone.y += 20;
-            page.elements.push(clone);
-            markDirty();
-            selectElement(clone.id);
-          }
-          hideContextMenu();
-        });
+    // Check if right-clicking a project card in home view
+    const projCard = e.target.closest('.project-card');
+    if (projCard && projCard.dataset.projectId) {
+      openProjectCardContextMenu(e, projCard.dataset.projectId);
+      return;
+    }
 
-        document.getElementById('ctxCopyStyle')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target) {
-            clipboardStyles = JSON.parse(JSON.stringify(target));
-            clipboardElement = JSON.parse(JSON.stringify(target));
-            AppLab.alert('Element & styles copied to clipboard buffer!', 'Copied', '🎨');
-          }
-          hideContextMenu();
-        });
+    // Check if right-clicking inside screen canvas / device frame
+    const canvasArea = e.target.closest('#canvas') || e.target.closest('#deviceFrame');
+    if (canvasArea) {
+      const rect = canvas.getBoundingClientRect();
+      contextClickPos = {
+        x: Math.max(10, Math.round(e.clientX - rect.left)),
+        y: Math.max(10, Math.round(e.clientY - rect.top))
+      };
+      openCanvasContextMenu(e);
+      return;
+    }
 
-        document.getElementById('ctxPasteStyle')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target && clipboardStyles) {
-            const forbidden = ['id', 'x', 'y', 'name'];
-            Object.keys(clipboardStyles).forEach(k => {
-              if (!forbidden.includes(k)) target[k] = clipboardStyles[k];
-            });
-            markDirty();
-            renderCanvas();
-            buildInspector();
-          } else if (!clipboardStyles) {
-            AppLab.alert('No element style copied yet!', 'Clipboard Empty', '⚠️');
-          }
-          hideContextMenu();
-        });
+    // Default global workspace right-click
+    openGlobalWorkspaceContextMenu(e);
+  });
 
-        document.getElementById('ctxBringFront')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-          if (idx >= 0) {
-            const [item] = page.elements.splice(idx, 1);
-            page.elements.push(item);
-            markDirty();
-            renderCanvas();
-            renderLayersTree();
-          }
-          hideContextMenu();
-        });
+  function openElementContextMenu(e, elId) {
+    const menuHtml = `
+      <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
+      <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
+      <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
+      <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
+      <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
+      <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
+      <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
+      <div class="context-item" id="ctxCenterBoth">🎯 Center on Canvas</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
+      <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
+      <div class="context-separator"></div>
+      <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
+    `;
 
-        document.getElementById('ctxSendBack')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-          if (idx >= 0) {
-            const [item] = page.elements.splice(idx, 1);
-            page.elements.unshift(item);
-            markDirty();
-            renderCanvas();
-            renderLayersTree();
-          }
-          hideContextMenu();
-        });
+    showUniversalContextMenu(e, menuHtml, () => {
+      document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const target = page.elements.find(i => i.id === elId);
+        if (target) {
+          const clone = JSON.parse(JSON.stringify(target));
+          clone.id = 'el_' + Date.now().toString().slice(-4);
+          clone.name = clone.name + ' (Copy)';
+          clone.x += 20;
+          clone.y += 20;
+          page.elements.push(clone);
+          markDirty();
+          selectElement(clone.id);
+        }
+        hideContextMenu();
+      });
 
-        document.getElementById('ctxLayerUp')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-          if (idx >= 0 && idx < page.elements.length - 1) {
-            const temp = page.elements[idx];
-            page.elements[idx] = page.elements[idx + 1];
-            page.elements[idx + 1] = temp;
-            markDirty();
-            renderCanvas();
-            renderLayersTree();
-          }
-          hideContextMenu();
-        });
+      document.getElementById('ctxCopyStyle')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target) {
+          clipboardStyles = JSON.parse(JSON.stringify(target));
+          clipboardElement = JSON.parse(JSON.stringify(target));
+          AppLab.alert('Element & styles copied to clipboard buffer!', 'Copied', '🎨');
+        }
+        hideContextMenu();
+      });
 
-        document.getElementById('ctxLayerDown')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
-          if (idx > 0) {
-            const temp = page.elements[idx];
-            page.elements[idx] = page.elements[idx - 1];
-            page.elements[idx - 1] = temp;
-            markDirty();
-            renderCanvas();
-            renderLayersTree();
-          }
-          hideContextMenu();
-        });
+      document.getElementById('ctxPasteStyle')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target && clipboardStyles) {
+          const forbidden = ['id', 'x', 'y', 'name'];
+          Object.keys(clipboardStyles).forEach(k => {
+            if (!forbidden.includes(k)) target[k] = clipboardStyles[k];
+          });
+          markDirty();
+          renderCanvas();
+          buildInspector();
+        } else if (!clipboardStyles) {
+          AppLab.alert('No element style copied yet!', 'Clipboard Empty', '⚠️');
+        }
+        hideContextMenu();
+      });
 
-        document.getElementById('ctxCenterH')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target && canvas) {
-            target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
-            markDirty();
-            renderCanvas();
-          }
-          hideContextMenu();
-        });
-
-        document.getElementById('ctxCenterV')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target && canvas) {
-            target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
-            markDirty();
-            renderCanvas();
-          }
-          hideContextMenu();
-        });
-
-        document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target && canvas) {
-            target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
-            target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
-            markDirty();
-            renderCanvas();
-          }
-          hideContextMenu();
-        });
-
-        document.getElementById('ctxPlayAnim')?.addEventListener('click', () => {
-          const target = getActiveElementModel();
-          if (target && target.animation && target.animation !== 'none') {
-            const n = document.getElementById(target.id);
-            if (n) {
-              n.classList.remove(`anim-${target.animation}`);
-              void n.offsetWidth;
-              n.classList.add(`anim-${target.animation}`);
-            }
-          }
-          hideContextMenu();
-        });
-
-        document.getElementById('ctxOpenCode')?.addEventListener('click', () => {
-          activeElementId = contextTargetElementId;
-          hideContextMenu();
-          switchStudioSubpage('code');
-        });
-
-        document.getElementById('ctxDelete')?.addEventListener('click', () => {
-          const page = getCurrentPage();
-          page.elements = page.elements.filter(i => i.id !== contextTargetElementId);
-          if (activeElementId === contextTargetElementId) activeElementId = null;
+      document.getElementById('ctxBringFront')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx >= 0) {
+          const [item] = page.elements.splice(idx, 1);
+          page.elements.push(item);
           markDirty();
           renderCanvas();
           renderLayersTree();
-          buildInspector();
-          hideContextMenu();
-        });
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxSendBack')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx >= 0) {
+          const [item] = page.elements.splice(idx, 1);
+          page.elements.unshift(item);
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerUp')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx >= 0 && idx < page.elements.length - 1) {
+          const temp = page.elements[idx];
+          page.elements[idx] = page.elements[idx + 1];
+          page.elements[idx + 1] = temp;
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxLayerDown')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        const idx = page.elements.findIndex(i => i.id === elId);
+        if (idx > 0) {
+          const temp = page.elements[idx];
+          page.elements[idx] = page.elements[idx - 1];
+          page.elements[idx - 1] = temp;
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxCenterH')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target && canvas) {
+          target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+          markDirty();
+          renderCanvas();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxCenterV')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target && canvas) {
+          target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+          markDirty();
+          renderCanvas();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target && canvas) {
+          target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+          target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+          markDirty();
+          renderCanvas();
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxPlayAnim')?.addEventListener('click', () => {
+        const target = getActiveElementModel();
+        if (target && target.animation && target.animation !== 'none') {
+          const n = document.getElementById(target.id);
+          if (n) {
+            n.classList.remove(`anim-${target.animation}`);
+            void n.offsetWidth;
+            n.classList.add(`anim-${target.animation}`);
+          }
+        }
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxOpenCode')?.addEventListener('click', () => {
+        activeElementId = elId;
+        hideContextMenu();
+        switchStudioSubpage('code');
+      });
+
+      document.getElementById('ctxDelete')?.addEventListener('click', () => {
+        const page = getCurrentPage();
+        page.elements = page.elements.filter(i => i.id !== elId);
+        if (activeElementId === elId) activeElementId = null;
+        markDirty();
+        renderCanvas();
+        renderLayersTree();
+        buildInspector();
+        hideContextMenu();
       });
     });
   }
 
-  // 2. Right-Clicking Empty Canvas or Device Mockup
-  if (canvas) {
-    canvas.addEventListener('contextmenu', (e) => {
-      // If user directly right-clicked the canvas background rather than an element
-      if (e.target === canvas || e.target.id === 'canvas' || e.target.id === 'deviceFrame') {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        contextClickPos = {
-          x: Math.max(10, Math.round(e.clientX - rect.left)),
-          y: Math.max(10, Math.round(e.clientY - rect.top))
+  function openCanvasContextMenu(e) {
+    const canvasMenuHtml = `
+      <div class="context-item" id="ctxPasteElement">📋 Paste Copied Element</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxAddButton">🔘 Add Button Here</div>
+      <div class="context-item" id="ctxAddLabel">📝 Add Label Here</div>
+      <div class="context-item" id="ctxAddInput">⌨️ Add Text Field Here</div>
+      <div class="context-item" id="ctxAddCard">🪟 Add Container Card Here</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxTogglePreview">▶️ Toggle Live Preview</div>
+      <div class="context-item ctx-danger" id="ctxClearScreen">🗑️ Clear Screen Elements</div>
+    `;
+
+    showUniversalContextMenu(e, canvasMenuHtml, () => {
+      document.getElementById('ctxPasteElement')?.addEventListener('click', () => {
+        if (clipboardElement) {
+          const clone = JSON.parse(JSON.stringify(clipboardElement));
+          clone.id = 'el_' + Date.now().toString().slice(-4);
+          clone.x = contextClickPos.x;
+          clone.y = contextClickPos.y;
+          getCurrentPage().elements.push(clone);
+          markDirty();
+          selectElement(clone.id);
+        } else {
+          AppLab.alert('No element copied yet!', 'Clipboard Empty', '⚠️');
+        }
+        hideContextMenu();
+      });
+
+      const addQuickElement = (type, text, w, h) => {
+        const newEl = {
+          id: 'el_' + Date.now().toString().slice(-4),
+          name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+          type: type,
+          x: contextClickPos.x,
+          y: contextClickPos.y,
+          width: w,
+          height: h,
+          text: text,
+          textColor: '#ffffff',
+          bgColor: type === 'label' ? 'transparent' : '#7b2cbf',
+          borderColor: type === 'label' ? 'transparent' : '#9d4edd',
+          borderWidth: type === 'label' ? 0 : 1,
+          borderStyle: 'solid',
+          shape: type === 'button' ? 'pill' : 'rounded',
+          borderRadius: type === 'button' ? 9999 : 10,
+          fontSize: 14,
+          fontFamily: fontOptions[0].value,
+          fontWeight: '500',
+          textAlign: 'center',
+          padding: 8,
+          opacity: 1,
+          rotation: 0,
+          animation: 'none',
+          animDuration: 1.5,
+          codeMode: 'blocks',
+          customJs: '',
+          logic: { event: 'click', actions: [] }
         };
+        getCurrentPage().elements.push(newEl);
+        markDirty();
+        selectElement(newEl.id);
+        hideContextMenu();
+      };
 
-        const canvasMenuHtml = `
-          <div class="context-item" id="ctxPasteElement">📋 Paste Copied Element</div>
-          <div class="context-separator"></div>
-          <div class="context-item" id="ctxAddButton">🔘 Add Button Here</div>
-          <div class="context-item" id="ctxAddLabel">📝 Add Label Here</div>
-          <div class="context-item" id="ctxAddInput">⌨️ Add Text Field Here</div>
-          <div class="context-item" id="ctxAddCard">🪟 Add Container Card Here</div>
-          <div class="context-separator"></div>
-          <div class="context-item" id="ctxTogglePreview">▶️ Toggle Live Preview</div>
-          <div class="context-item ctx-danger" id="ctxClearScreen">🗑️ Clear Screen Elements</div>
-        `;
+      document.getElementById('ctxAddButton')?.addEventListener('click', () => addQuickElement('button', 'Click Me', 140, 44));
+      document.getElementById('ctxAddLabel')?.addEventListener('click', () => addQuickElement('label', 'Header Title', 160, 32));
+      document.getElementById('ctxAddInput')?.addEventListener('click', () => addQuickElement('input', 'Enter text...', 180, 40));
+      document.getElementById('ctxAddCard')?.addEventListener('click', () => addQuickElement('card', 'Container Card', 220, 120));
 
-        showUniversalContextMenu(e, canvasMenuHtml, () => {
-          document.getElementById('ctxPasteElement')?.addEventListener('click', () => {
-            if (clipboardElement) {
-              const clone = JSON.parse(JSON.stringify(clipboardElement));
-              clone.id = 'el_' + Date.now().toString().slice(-4);
-              clone.x = contextClickPos.x;
-              clone.y = contextClickPos.y;
-              getCurrentPage().elements.push(clone);
-              markDirty();
-              selectElement(clone.id);
-            } else {
-              AppLab.alert('No element copied yet!', 'Clipboard Empty', '⚠️');
-            }
-            hideContextMenu();
-          });
+      document.getElementById('ctxTogglePreview')?.addEventListener('click', () => {
+        modeToggleBtn.click();
+        hideContextMenu();
+      });
 
-          const addQuickElement = (type, text, w, h) => {
-            const newEl = {
-              id: 'el_' + Date.now().toString().slice(-4),
-              name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
-              type: type,
-              x: contextClickPos.x,
-              y: contextClickPos.y,
-              width: w,
-              height: h,
-              text: text,
-              textColor: '#ffffff',
-              bgColor: type === 'label' ? 'transparent' : '#7b2cbf',
-              borderColor: type === 'label' ? 'transparent' : '#9d4edd',
-              borderWidth: type === 'label' ? 0 : 1,
-              borderStyle: 'solid',
-              shape: type === 'button' ? 'pill' : 'rounded',
-              borderRadius: type === 'button' ? 9999 : 10,
-              fontSize: 14,
-              fontFamily: fontOptions[0].value,
-              fontWeight: '500',
-              textAlign: 'center',
-              padding: 8,
-              opacity: 1,
-              rotation: 0,
-              animation: 'none',
-              animDuration: 1.5,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [] }
-            };
-            getCurrentPage().elements.push(newEl);
-            markDirty();
-            selectElement(newEl.id);
-            hideContextMenu();
-          };
-
-          document.getElementById('ctxAddButton')?.addEventListener('click', () => addQuickElement('button', 'Click Me', 140, 44));
-          document.getElementById('ctxAddLabel')?.addEventListener('click', () => addQuickElement('label', 'Header Title', 160, 32));
-          document.getElementById('ctxAddInput')?.addEventListener('click', () => addQuickElement('input', 'Enter text...', 180, 40));
-          document.getElementById('ctxAddCard')?.addEventListener('click', () => addQuickElement('card', 'Container Card', 220, 120));
-
-          document.getElementById('ctxTogglePreview')?.addEventListener('click', () => {
-            modeToggleBtn.click();
-            hideContextMenu();
-          });
-
-          document.getElementById('ctxClearScreen')?.addEventListener('click', async () => {
-            hideContextMenu();
-            const confirmed = await AppLab.confirm('Clear all elements on this screen?', 'Clear Screen', '🗑️');
-            if (confirmed) {
-              getCurrentPage().elements = [];
-              activeElementId = null;
-              markDirty();
-              renderCanvas();
-              renderLayersTree();
-              buildInspector();
-            }
-          });
-        });
-      }
+      document.getElementById('ctxClearScreen')?.addEventListener('click', async () => {
+        hideContextMenu();
+        const confirmed = await AppLab.confirm('Clear all elements on this screen?', 'Clear Screen', '🗑️');
+        if (confirmed) {
+          getCurrentPage().elements = [];
+          activeElementId = null;
+          markDirty();
+          renderCanvas();
+          renderLayersTree();
+          buildInspector();
+        }
+      });
     });
   }
 
-  // 3. Right-Clicking Project Cards on Dashboard
   function openProjectCardContextMenu(e, projId) {
     contextTargetProjectId = projId;
     const proj = getStoredProjects().find(p => p.id === projId);
@@ -1331,6 +1376,41 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('ctxDeleteProj')?.addEventListener('click', () => {
         hideContextMenu();
         deleteStoredProject(projId);
+      });
+    });
+  }
+
+  function openGlobalWorkspaceContextMenu(e) {
+    const globalMenuHtml = `
+      <div class="context-item" id="ctxGlobalHome">🏠 Home Dashboard</div>
+      <div class="context-item" id="ctxGlobalStudio">🚀 Studio Builder</div>
+      <div class="context-item" id="ctxGlobalTutorials">📚 Tutorials & Academy</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxGlobalNewProj">📄 Create New Project</div>
+      <div class="context-item" id="ctxGlobalSettings">⚙️ Open Settings</div>
+    `;
+
+    showUniversalContextMenu(e, globalMenuHtml, () => {
+      document.getElementById('ctxGlobalHome')?.addEventListener('click', () => {
+        hideContextMenu();
+        switchMainView('homeView');
+      });
+      document.getElementById('ctxGlobalStudio')?.addEventListener('click', () => {
+        hideContextMenu();
+        switchMainView('builderView');
+      });
+      document.getElementById('ctxGlobalTutorials')?.addEventListener('click', () => {
+        hideContextMenu();
+        switchMainView('tutorialView');
+      });
+      document.getElementById('ctxGlobalNewProj')?.addEventListener('click', () => {
+        hideContextMenu();
+        openNewProjectModal();
+      });
+      document.getElementById('ctxGlobalSettings')?.addEventListener('click', () => {
+        hideContextMenu();
+        const smSettingsBtn = document.getElementById('smSettingsBtn');
+        if (smSettingsBtn) smSettingsBtn.click();
       });
     });
   }
@@ -2055,6 +2135,147 @@ document.addEventListener('DOMContentLoaded', () => {
     card.ondragstart = (e) => e.dataTransfer.setData('type', card.dataset.type);
   });
 
+  if (canvas) {
+    canvas.ondragover = (e) => e.preventDefault();
+    canvas.ondrop = (e) => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('type');
+      if (!type) return;
+      const rect = canvas.getBoundingClientRect();
+
+      let defaultWidth = 140;
+      let defaultHeight = 44;
+      let defaultText = 'Click Me';
+      let defaultBg = '#7b2cbf';
+      let defaultBorder = '#9d4edd';
+      let defaultBorderWidth = 1;
+      let defaultPadding = 8;
+      let defaultShape = 'rounded';
+      let defaultRadius = 10;
+      let defaultIsChecked = false;
+      let defaultCurrentVal = 50;
+
+      if (type === 'label') {
+        defaultWidth = 160;
+        defaultHeight = 32;
+        defaultText = 'Header Title';
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'input') {
+        defaultWidth = 180;
+        defaultHeight = 40;
+        defaultText = 'Type something...';
+        defaultBg = 'rgba(255, 255, 255, 0.08)';
+        defaultBorder = 'rgba(255, 255, 255, 0.2)';
+      } else if (type === 'textarea') {
+        defaultWidth = 200;
+        defaultHeight = 80;
+        defaultText = 'Enter long paragraph comments...';
+        defaultBg = 'rgba(255, 255, 255, 0.08)';
+        defaultBorder = 'rgba(255, 255, 255, 0.2)';
+      } else if (type === 'toggle') {
+        defaultWidth = 56;
+        defaultHeight = 30;
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+        defaultIsChecked = true;
+      } else if (type === 'slider') {
+        defaultWidth = 180;
+        defaultHeight = 30;
+        defaultBg = 'transparent';
+        defaultBorder = 'transparent';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'progress') {
+        defaultWidth = 200;
+        defaultHeight = 16;
+        defaultBg = 'rgba(255, 255, 255, 0.1)';
+        defaultBorder = 'rgba(157, 78, 221, 0.3)';
+        defaultBorderWidth = 1;
+        defaultRadius = 8;
+        defaultCurrentVal = 65;
+      } else if (type === 'divider') {
+        defaultWidth = 220;
+        defaultHeight = 10;
+        defaultBg = 'transparent';
+        defaultBorder = '#9d4edd';
+        defaultBorderWidth = 0;
+        defaultPadding = 0;
+      } else if (type === 'icon') {
+        defaultWidth = 48;
+        defaultHeight = 48;
+        defaultText = '⭐';
+        defaultBg = 'rgba(157, 78, 221, 0.2)';
+        defaultBorder = '#9d4edd';
+        defaultShape = 'circle';
+        defaultRadius = 50;
+      } else if (type === 'card') {
+        defaultWidth = 220;
+        defaultHeight = 120;
+        defaultText = 'Card Container Box';
+        defaultBg = 'rgba(255, 255, 255, 0.05)';
+        defaultBorder = 'rgba(255, 255, 255, 0.12)';
+        defaultPadding = 14;
+      }
+
+      const newEl = {
+        id: 'el_' + Date.now().toString().slice(-4),
+        name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+        type: type,
+        x: Math.max(10, e.clientX - rect.left - 40),
+        y: Math.max(10, e.clientY - rect.top - 20),
+        width: defaultWidth,
+        height: defaultHeight,
+        text: defaultText,
+        textColor: '#ffffff',
+        bgColor: defaultBg,
+        borderColor: defaultBorder,
+        borderWidth: defaultBorderWidth,
+        borderStyle: 'solid',
+        shape: defaultShape,
+        borderRadius: defaultRadius,
+        fontSize: 14,
+        fontFamily: fontOptions[0].value,
+        fontWeight: '500',
+        letterSpacing: 0,
+        lineHeight: 1.2,
+        textTransform: 'none',
+        textDecoration: 'none',
+        textAlign: 'center',
+        padding: defaultPadding,
+        backdropBlur: 0,
+        glowSize: 0,
+        glowColor: '#9d4edd',
+        opacity: 1,
+        rotation: 0,
+        animation: 'none',
+        animDuration: 1.5,
+        animDelay: 0,
+        animIteration: 'infinite',
+        animEasing: 'ease-in-out',
+        animDirection: 'normal',
+        animTrigger: 'ambient',
+        minVal: 0,
+        maxVal: 100,
+        currentVal: defaultCurrentVal,
+        isChecked: defaultIsChecked,
+        imageFit: 'cover',
+        tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
+        codeMode: 'blocks',
+        customJs: '',
+        logic: { event: 'click', actions: [] }
+      };
+
+      getCurrentPage().elements.push(newEl);
+      markDirty();
+      selectElement(newEl.id);
+    };
+  }
+
   // Pages List & Layers Tree
   function renderPagesList() {
     if (!pagesList) return;
@@ -2076,24 +2297,6 @@ document.addEventListener('DOMContentLoaded', () => {
       l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
       l.innerText = el.name;
       l.onclick = () => selectElement(el.id);
-
-      // Right-click support on layers tree items
-      l.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        selectElement(el.id);
-        const node = document.getElementById(el.id);
-        if (node) {
-          const fakeEvent = {
-            clientX: e.clientX,
-            clientY: e.clientY,
-            preventDefault: () => {},
-            stopPropagation: () => {}
-          };
-          node.dispatchEvent(new MouseEvent('contextmenu', fakeEvent));
-        }
-      });
-
       layersTree.appendChild(l);
     });
   }
@@ -2203,420 +2406,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS =================
-  let activeTrackId = 'track_canvas';
-  let currentCoursePageIndex = 0;
-
-  const courseTracks = [
-    {
-      id: 'track_canvas',
-      title: '1. Canvas & Responsive Layouts',
-      desc: 'Hardware frames, coordinate matrices, collision physics & viewport bezels',
-      pages: [
-        {
-          title: 'Chapter 1: Hardware Boundaries & Pixel Spaces',
-          desc: 'AppLab operates on an absolute coordinate matrix constrained within hardware device frames. Selecting Phone (340×680), Tablet (680×500), or Desktop (840×520) alters the viewport bezel while locking element coordinates to prevent layout drift.',
-          type: 'theory',
-          codeSnippet: `// Hardware Bounds Matrix:\n// Phone:   340px W × 680px H\n// Tablet:  680px W × 500px H\n// Desktop: 840px W × 520px H`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Interactive Practice: Coordinate Clamping',
-          desc: 'Test real-time boundary clamping. Click the control buttons to move the sample component chip. Observe how coordinate calculations prevent elements from drifting off-canvas.',
-          type: 'practice_canvas',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Dynamic Alignment & Centering Math',
-          desc: 'When positioning cards and dialogue popups across variable device factors, calculate relative offsets dynamically using the container bounding rectangle.',
-          type: 'theory',
-          codeSnippet: `// Horizontal centering equation:\nconst centeredLeft = (canvas.offsetWidth - element.offsetWidth) / 2;\nelement.style.left = centeredLeft + 'px';`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Multi-Screen Page Tree Architecture',
-          desc: 'Each screen maintains its own isolated DOM layer stack. Navigating across screens unmounts inactive layers without dumping their configuration models from memory.',
-          type: 'theory',
-          codeSnippet: `// Programmatically navigate to target screen ID:\napp.navigateTo('screen_2');`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Canvas Architecture',
-          desc: 'Verify your mastery over coordinate geometry and hardware frames.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'What happens to element dimensions when toggling between Phone and Tablet viewports?',
-            options: [
-              'Elements automatically stretch to fill 100% width',
-              'Elements maintain their absolute pixel dimensions and coordinates',
-              'All placed elements are cleared from memory'
-            ],
-            correctIndex: 1,
-            explanation: 'AppLab preserves your exact element coordinates and pixel dimensions so layout structures remain intact across device frame previews.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_shapes',
-      title: '2. Shapes, Contours & Glassmorphism',
-      desc: 'Geometric clip paths, glow contours, glass blurs & specular highlights',
-      pages: [
-        {
-          title: 'Chapter 1: The Geometry Engine: Beyond Rectangles',
-          desc: 'Interfaces in AppLab break free from standard rectangles. Using SVG polygon vector arrays in CSS clip-path, components morph into smooth Capsules, Circles, Diamonds, and Hexagons.',
-          type: 'theory',
-          codeSnippet: `/* Diamond Polygon Contour */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Drop-Shadow Alpha Contour Wrapping',
-          desc: 'Standard CSS box-shadow fails on clipped geometry because clip-path clips away pixels outside the polygon. AppLab dynamically applies CSS `filter: drop-shadow(...)` to follow polygonal vertices.',
-          type: 'theory',
-          codeSnippet: `/* Correct Polygon Shadow Wrapping */\nfilter: drop-shadow(0 0 16px #9d4edd);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Interactive Practice: Contour & Shape Shifter',
-          desc: 'Click each shape preset below to observe how polygon vector points and neon drop-shadow contours react live on the sample component.',
-          type: 'practice_shapes',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Multi-Layer Glassmorphism & Blurs',
-          desc: 'Achieve true frosted-glass realism by layering translucent tints with high-radius backdrop blur filters and luminous specular borders.',
-          type: 'theory',
-          codeSnippet: `/* Obsidian Glass Stack */\nbackground: rgba(255, 255, 255, 0.05);\nbackdrop-filter: blur(20px);\nborder: 1px solid rgba(157, 78, 221, 0.25);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Contours & Glass',
-          desc: 'Confirm your understanding of CSS polygon rendering.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'Why does AppLab use filter: drop-shadow instead of box-shadow for Hexagons and Diamonds?',
-            options: [
-              'box-shadow is deprecated in modern browsers',
-              'clip-path cuts off any pixels outside the polygon, including standard box-shadow',
-              'filter: drop-shadow runs faster on low-end processors'
-            ],
-            correctIndex: 1,
-            explanation: 'CSS clip-path establishes a new geometric mask that clips rectangular box-shadows. Filter drop-shadow computes shadow around alpha channels.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_blocks',
-      title: '3. Visual Block Automation',
-      desc: 'Event triggers, sequential execution stacks & parameter payloads',
-      pages: [
-        {
-          title: 'Chapter 1: The Event-Action Mental Model',
-          desc: 'Every interactive application operates on triggers and reactions. The Code Lab organizes interactions into an event listener (Click, Hover) followed by an ordered execution stack.',
-          type: 'theory',
-          codeSnippet: `[WHEN: User Clicks Element]\n  Step 1: Emit Sound\n  Step 2: Mutate Visual State\n  Step 3: Transition Page`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Multi-Action Block Chaining',
-          desc: 'Multiple actions can be stacked on a single component. When fired, the runtime loops down the action stack sequentially, applying mutations to target layers.',
-          type: 'theory',
-          codeSnippet: `// Sequential block chain execution:\nfor (const action of blockStack) {\n  executeAction(action);\n}`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Interactive Practice: Block Stack Simulator',
-          desc: 'Stack and test visual actions live in the simulation lab. Watch the target chip re-color and announce the execution sequence.',
-          type: 'practice_blocks',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Parameter Payloads & Layer Cross-Talk',
-          desc: 'Actions can send payloads to modify other components on the canvas—such as updating text in a title label or changing the background of a container card.',
-          type: 'theory',
-          codeSnippet: `// Cross-layer payload targeting:\nconst targetLayer = document.getElementById(action.targetId);\ntargetLayer.innerText = action.payload;`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Block Logic',
-          desc: 'Test your grasp of block execution sequencing.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'In what order do actions execute within an AppLab Action Stack?',
-            options: [
-              'Random asynchronous order',
-              'Sequentially from top to bottom',
-              'Reverse order from bottom to top'
-            ],
-            correctIndex: 1,
-            explanation: 'AppLab processes action blocks in a top-to-bottom pipeline so prerequisite states apply before transitions fire.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_javascript',
-      title: '4. JavaScript Runtime & Sandbox APIs',
-      desc: 'Scoped execution, DOM manipulation, Web Audio synthesis & modals',
-      pages: [
-        {
-          title: 'Chapter 1: The Sandbox Execution Environment',
-          desc: 'When using Real JavaScript in Code Lab, code executes inside an isolated sandbox with direct access to three primary objects: `element`, `app`, and `canvas`.',
-          type: 'theory',
-          codeSnippet: `// Scoped sandbox constructor:\nconst runner = new Function('element', 'app', 'canvas', userCode);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Audio Synthesis & Web Audio API',
-          desc: 'Trigger custom UI sound effects without external MP3 dependencies using the built-in oscillator synthesis hook.',
-          type: 'theory',
-          codeSnippet: `// Synthesize audio bleep:\napp.playBeep();`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Interactive Practice: Live Script Runner',
-          desc: 'Test the live script runner below to trigger Web Audio synthesis and element state mutation.',
-          type: 'practice_js',
-          codeSnippet: `element.style.backgroundColor = '#9d4edd';\napp.playBeep();\napp.showAlert('Sandbox executed successfully!');`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Custom Modal Dialog Hooks',
-          desc: 'Replace disruptive browser-native popups by triggering AppLab\'s async purple glass dialog system from script.',
-          type: 'theory',
-          codeSnippet: `// Open non-blocking custom modal:\napp.showAlert('Payment confirmed!');`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: JavaScript Sandbox',
-          desc: 'Verify your knowledge of the scoped runtime APIs.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'Which argument passed into the script function references the target element DOM node?',
-            options: [
-              '`element`',
-              '`this.dom`',
-              '`window.node`'
-            ],
-            correctIndex: 0,
-            explanation: 'The `element` parameter directly references the active DOM node, allowing instant style and attribute updates.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_dynamics',
-      title: '5. Component Dynamics & Inputs',
-      desc: 'Live value binding, placeholder logic, input gathering & states',
-      pages: [
-        {
-          title: 'Chapter 1: Input Fields & Keystroke Harvesting',
-          desc: 'User text inputs gather runtime data. Form fields store user text in their `placeholder` or `value` properties, allowing other elements to read from them.',
-          type: 'theory',
-          codeSnippet: `// Extract input field value:\nconst userInput = document.querySelector('input.placed-item').value;`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Interactive Practice: Live Data Binding',
-          desc: 'Type into the sample input below and click "Bind Value" to watch the target display update live in the sandbox.',
-          type: 'practice_binding',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Component State & Disabled Flags',
-          desc: 'Buttons and inputs can toggle interactive states during runtime execution to prevent duplicate button submissions.',
-          type: 'theory',
-          codeSnippet: `// Toggle button interactive state:\nelement.disabled = true;\nelement.style.opacity = '0.5';`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Z-Index Layer Ordering Dynamics',
-          desc: 'Elements stack in order of placement. Using the desktop-style context menu, layers can be brought to front or sent to back to manage overlays and modals.',
-          type: 'theory',
-          codeSnippet: `// Re-order active layer:\ncanvas.appendChild(targetElement); // Brings to front`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Inputs & State',
-          desc: 'Confirm your understanding of dynamic component data handling.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'How do you prevent rapid double-clicks on an action button in script?',
-            options: [
-              'Delete the button immediately from DOM',
-              'Set element.disabled = true on the initial click event',
-              'Change the screen resolution to Desktop'
-            ],
-            correctIndex: 1,
-            explanation: 'Disabling the button on the first event prevents multiple trigger executions while actions run.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_performance',
-      title: '6. Production Architecture & Performance',
-      desc: 'GPU backdrop blurs, rendering modes & production bundling',
-      pages: [
-        {
-          title: 'Chapter 1: GPU Backdrop Filter Profiling',
-          desc: 'Backdrop blur filters are GPU-intensive. In large projects with dozens of overlapping cards, heavy blurs can cause frame stutter.',
-          type: 'theory',
-          codeSnippet: `/* High Performance Mode */\n[data-mode="performance"] * {\n  backdrop-filter: none !important;\n}`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Interactive Practice: Quality vs Performance Toggle',
-          desc: 'Toggle the rendering mode on the live chip below to see how GPU filters are cleanly bypassed for high-framerate rendering.',
-          type: 'practice_perf',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Dirty State & Unsaved Edits Detection',
-          desc: 'AppLab tracks unsaved mutations via an `isDirty` flag, safeguarding against accidental browser tab closures or view shifts.',
-          type: 'theory',
-          codeSnippet: `// Window unload protection:\nwindow.addEventListener('beforeunload', (e) => {\n  if (isDirty) e.returnValue = 'Unsaved changes';\n});`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Schema Serialization & .applab Bundles',
-          desc: 'Projects serialize into portable JSON schemas. Exporting a `.applab` file packages all screens, coordinate vectors, and code stacks into a single bundle.',
-          type: 'theory',
-          codeSnippet: `// Project JSON payload structure:\n{\n  "projectName": "My App",\n  "pages": [{ "id": "screen_1", "elements": [...] }]\n}`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Performance & Bundles',
-          desc: 'Test your understanding of optimization and project portability.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'What optimization does Performance Mode apply across the UI?',
-            options: [
-              'Converts all colors to black and white',
-              'Disables heavy GPU backdrop blur filters and box-shadow calculations',
-              'Deletes the Code Lab runtime'
-            ],
-            correctIndex: 1,
-            explanation: 'Performance Mode bypasses expensive GPU blur filters and drop-shadow calculations to maintain a smooth 60 FPS on all hardware.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_animations',
-      title: '7. Keyframes & Motion Dynamics',
-      desc: 'Entrance triggers, continuous motion loops, and custom easing curves',
-      pages: [
-        {
-          title: 'Chapter 1: The CSS Animation Pipeline',
-          desc: 'AppLab animates elements via dynamic CSS keyframe classes. Entrance animations run once upon mounting (`forwards`), while ambient animations loop infinitely (`infinite`).',
-          type: 'theory',
-          codeSnippet: `/* Continuous Pulse Loop */\n@keyframes animPulse {\n  0%, 100% { transform: scale(1); }\n  50% { transform: scale(1.1); }\n}`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Interactive Practice: Live Motion Tester',
-          desc: 'Test ambient motion loops live. Click each button below to switch animation keyframes on the sample component in real time.',
-          type: 'practice_anim',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Duration & Staggering Delays',
-          desc: 'Staggering animation delays across multiple child components creates professional waterfall entrances when screens mount.',
-          type: 'theory',
-          codeSnippet: `// Waterfall delay stagger:\ncard1.style.animationDelay = '0.1s';\ncard2.style.animationDelay = '0.2s';\ncard3.style.animationDelay = '0.3s';`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Easing Curves & Bouncy Springs',
-          desc: 'Replace mechanical linear timing curves with custom cubic-bezier curves for bouncy, tactile feedback on button presses.',
-          type: 'theory',
-          codeSnippet: `/* Bouncy Spring Easing */\nanimation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Motion Dynamics',
-          desc: 'Verify your knowledge of keyframe animations and easing.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'Which animation property ensures an entrance animation stays in its final state rather than snapping back?',
-            options: [
-              '`animation-fill-mode: forwards`',
-              '`animation-direction: reverse`',
-              '`animation-iteration-count: infinite`'
-            ],
-            correctIndex: 0,
-            explanation: '`forwards` instructs the CSS engine to retain the computed values established by the final keyframe upon animation completion.'
-          }
-        }
-      ]
-    },
-    {
-      id: 'track_audio',
-      title: '8. Audio Synthesis & Sound Effects',
-      desc: 'Oscillator frequencies, gain envelopes, chimes, and tactile haptics',
-      pages: [
-        {
-          title: 'Chapter 1: Zero-Dependency Audio Synthesis',
-          desc: 'Rather than loading bulky external MP3 files that fail to load offline, AppLab synthesizes pure audio waves directly through your device speakers using browser oscillators.',
-          type: 'theory',
-          codeSnippet: `const ctx = new AudioContext();\nconst osc = ctx.createOscillator();\nosc.connect(ctx.destination);\nosc.start();\nosc.stop(ctx.currentTime + 0.15);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 2: Pitch & Frequency Modulation',
-          desc: 'Frequencies correspond to standard musical notes. Ramping an oscillator from 523Hz (C5) to 784Hz (G5) creates a crisp success chime.',
-          type: 'theory',
-          codeSnippet: `// Positive feedback chime:\nosc.frequency.setValueAtTime(523, ctx.currentTime);\nosc.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.2);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 3: Interactive Practice: Synthesizer Lab',
-          desc: 'Play with sound waves in real time. Click the synthesizer buttons below to test live generated tones.',
-          type: 'practice_audio',
-          codeSnippet: null,
-          quiz: null
-        },
-        {
-          title: 'Chapter 4: Gain Nodes & Decay Envelopes',
-          desc: 'Abruptly stopping sound waves creates a popping artifact. Using a GainNode decay curve fades the volume to zero smoothly.',
-          type: 'theory',
-          codeSnippet: `gainNode.gain.setValueAtTime(0.2, ctx.currentTime);\ngainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);`,
-          quiz: null
-        },
-        {
-          title: 'Chapter 5: Quiz: Audio Synthesis',
-          desc: 'Test your understanding of browser audio generation.',
-          type: 'quiz',
-          codeSnippet: null,
-          quiz: {
-            question: 'Why does browser audio require an initial user click before it can play sound?',
-            options: [
-              'Audio requires microphone permissions',
-              'Browser autoplay security policies prevent unwanted background noise',
-              'Oscillators must pre-download audio drivers'
-            ],
-            correctIndex: 1,
-            explanation: 'Modern browsers block AudioContext audio playback until the user clicks or taps anywhere on the page to prevent jarring background sounds.'
-          }
-        }
-      ]
-    }
-  ];
-
   function renderCourseWorkspace() {
     const trackMenuEl = document.getElementById('trackMenu');
     const courseStageEl = document.getElementById('courseStage');
