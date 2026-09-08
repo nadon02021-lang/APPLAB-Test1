@@ -605,12 +605,6 @@ document.addEventListener('DOMContentLoaded', () => {
         switchMainView('builderView');
       });
 
-      card.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openProjectCardContextMenu(e, proj.id);
-      });
-
       projectsGrid.appendChild(card);
     });
   }
@@ -1052,28 +1046,130 @@ document.addEventListener('DOMContentLoaded', () => {
     openGlobalWorkspaceContextMenu(e);
   });
 
+  // Context-Aware Element Menu: Adapts according to what element is clicked
   function openElementContextMenu(e, elId) {
+    const el = getActiveElementModel();
+    if (!el) return;
+
+    let typeSpecificActions = '';
+
+    if (el.type === 'button') {
+      typeSpecificActions = `
+        <div class="context-item" id="ctxToggleBtnStyle">✨ Toggle Ghost/Solid Style</div>
+        <div class="context-item" id="ctxTriggerClickSim">👆 Simulate Button Click</div>
+      `;
+    } else if (el.type === 'input' || el.type === 'textarea') {
+      typeSpecificActions = `
+        <div class="context-item" id="ctxClearField">🧹 Clear Placeholder Text</div>
+        <div class="context-item" id="ctxToggleReadonly">🔒 Toggle Readonly State</div>
+      `;
+    } else if (el.type === 'image') {
+      typeSpecificActions = `
+        <div class="context-item" id="ctxToggleImageFit">🖼️ Toggle Fit (Cover / Contain)</div>
+      `;
+    } else if (el.type === 'toggle') {
+      typeSpecificActions = `
+        <div class="context-item" id="ctxToggleState">🎚️ Toggle On / Off</div>
+      `;
+    } else if (el.type === 'slider' || el.type === 'progress') {
+      typeSpecificActions = `
+        <div class="context-item" id="ctxSetHalfVal">⚖️ Set Value to 50%</div>
+        <div class="context-item" id="ctxSetFullVal">💯 Set Value to 100%</div>
+      `;
+    }
+
     const menuHtml = `
-      <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
-      <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
-      <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
+      <div class="context-item" id="ctxDuplicate">📋 Duplicate ${el.name}</div>
+      <div class="context-item" id="ctxCopyStyle">🎨 Copy Style</div>
+      <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style</div>
+      ${typeSpecificActions ? `<div class="context-separator"></div>${typeSpecificActions}` : ''}
       <div class="context-separator"></div>
       <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
       <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
-      <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
-      <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
+      <div class="context-item" id="ctxLayerUp">⬆️ Step Up (+1)</div>
+      <div class="context-item" id="ctxLayerDown">⬇️ Step Down (-1)</div>
       <div class="context-separator"></div>
       <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
       <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
       <div class="context-item" id="ctxCenterBoth">🎯 Center on Canvas</div>
       <div class="context-separator"></div>
-      <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
+      <div class="context-item" id="ctxPlayAnim">▶️ Trigger Animation</div>
       <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
       <div class="context-separator"></div>
       <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
     `;
 
     showUniversalContextMenu(e, menuHtml, () => {
+      // Element-specific action hooks
+      document.getElementById('ctxToggleBtnStyle')?.addEventListener('click', () => {
+        if (el.bgColor === 'transparent') {
+          el.bgColor = '#7b2cbf';
+          el.borderWidth = 1;
+        } else {
+          el.bgColor = 'transparent';
+          el.borderWidth = 2;
+        }
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxTriggerClickSim')?.addEventListener('click', () => {
+        hideContextMenu();
+        const node = document.getElementById(el.id);
+        if (node) node.click();
+      });
+
+      document.getElementById('ctxClearField')?.addEventListener('click', () => {
+        el.text = '';
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxToggleReadonly')?.addEventListener('click', () => {
+        el.opacity = el.opacity === 0.5 ? 1 : 0.5;
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxToggleImageFit')?.addEventListener('click', () => {
+        el.imageFit = el.imageFit === 'contain' ? 'cover' : 'contain';
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxToggleState')?.addEventListener('click', () => {
+        el.isChecked = !el.isChecked;
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxSetHalfVal')?.addEventListener('click', () => {
+        el.currentVal = 50;
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      document.getElementById('ctxSetFullVal')?.addEventListener('click', () => {
+        el.currentVal = 100;
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        hideContextMenu();
+      });
+
+      // Universal element actions
       document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
         const page = getCurrentPage();
         const target = page.elements.find(i => i.id === elId);
@@ -1414,7 +1510,310 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS (SHORT "HOW IT WORKS" FORMAT) =================
+  // ================= DRAG AND DROP PALETTE ENGINE =================
+  function initDragAndDrop() {
+    document.querySelectorAll('.draggable-card').forEach(card => {
+      card.setAttribute('draggable', 'true');
+      card.ondragstart = (e) => {
+        e.dataTransfer.setData('text/plain', card.dataset.type);
+      };
+    });
+
+    if (canvas) {
+      canvas.ondragover = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      };
+
+      canvas.ondrop = (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('text/plain');
+        if (!type) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const dropX = Math.max(10, e.clientX - rect.left - 40);
+        const dropY = Math.max(10, e.clientY - rect.top - 20);
+
+        let defaultWidth = 140;
+        let defaultHeight = 44;
+        let defaultText = 'Click Me';
+        let defaultBg = '#7b2cbf';
+        let defaultBorder = '#9d4edd';
+        let defaultBorderWidth = 1;
+        let defaultPadding = 8;
+        let defaultShape = 'rounded';
+        let defaultRadius = 10;
+        let defaultIsChecked = false;
+        let defaultCurrentVal = 50;
+
+        if (type === 'label') {
+          defaultWidth = 160;
+          defaultHeight = 32;
+          defaultText = 'Header Title';
+          defaultBg = 'transparent';
+          defaultBorder = 'transparent';
+          defaultBorderWidth = 0;
+          defaultPadding = 0;
+        } else if (type === 'input') {
+          defaultWidth = 180;
+          defaultHeight = 40;
+          defaultText = 'Type something...';
+          defaultBg = 'rgba(255, 255, 255, 0.08)';
+          defaultBorder = 'rgba(255, 255, 255, 0.2)';
+        } else if (type === 'textarea') {
+          defaultWidth = 200;
+          defaultHeight = 80;
+          defaultText = 'Enter long paragraph comments...';
+          defaultBg = 'rgba(255, 255, 255, 0.08)';
+          defaultBorder = 'rgba(255, 255, 255, 0.2)';
+        } else if (type === 'toggle') {
+          defaultWidth = 56;
+          defaultHeight = 30;
+          defaultBg = 'transparent';
+          defaultBorder = 'transparent';
+          defaultBorderWidth = 0;
+          defaultPadding = 0;
+          defaultIsChecked = true;
+        } else if (type === 'slider') {
+          defaultWidth = 180;
+          defaultHeight = 30;
+          defaultBg = 'transparent';
+          defaultBorder = 'transparent';
+          defaultBorderWidth = 0;
+          defaultPadding = 0;
+        } else if (type === 'progress') {
+          defaultWidth = 200;
+          defaultHeight = 16;
+          defaultBg = 'rgba(255, 255, 255, 0.1)';
+          defaultBorder = 'rgba(157, 78, 221, 0.3)';
+          defaultBorderWidth = 1;
+          defaultRadius = 8;
+          defaultCurrentVal = 65;
+        } else if (type === 'divider') {
+          defaultWidth = 220;
+          defaultHeight = 10;
+          defaultBg = 'transparent';
+          defaultBorder = '#9d4edd';
+          defaultBorderWidth = 0;
+          defaultPadding = 0;
+        } else if (type === 'icon') {
+          defaultWidth = 48;
+          defaultHeight = 48;
+          defaultText = '⭐';
+          defaultBg = 'rgba(157, 78, 221, 0.2)';
+          defaultBorder = '#9d4edd';
+          defaultShape = 'circle';
+          defaultRadius = 50;
+        } else if (type === 'card') {
+          defaultWidth = 220;
+          defaultHeight = 120;
+          defaultText = 'Card Container Box';
+          defaultBg = 'rgba(255, 255, 255, 0.05)';
+          defaultBorder = 'rgba(255, 255, 255, 0.12)';
+          defaultPadding = 14;
+        }
+
+        const newEl = {
+          id: 'el_' + Date.now().toString().slice(-4),
+          name: `${type.charAt(0).toUpperCase() + type.slice(1)} Item`,
+          type: type,
+          x: dropX,
+          y: dropY,
+          width: defaultWidth,
+          height: defaultHeight,
+          text: defaultText,
+          textColor: '#ffffff',
+          bgColor: defaultBg,
+          borderColor: defaultBorder,
+          borderWidth: defaultBorderWidth,
+          borderStyle: 'solid',
+          shape: defaultShape,
+          borderRadius: defaultRadius,
+          fontSize: 14,
+          fontFamily: fontOptions[0].value,
+          fontWeight: '500',
+          letterSpacing: 0,
+          lineHeight: 1.2,
+          textTransform: 'none',
+          textDecoration: 'none',
+          textAlign: 'center',
+          padding: defaultPadding,
+          backdropBlur: 0,
+          glowSize: 0,
+          glowColor: '#9d4edd',
+          opacity: 1,
+          rotation: 0,
+          animation: 'none',
+          animDuration: 1.5,
+          animDelay: 0,
+          animIteration: 'infinite',
+          animEasing: 'ease-in-out',
+          animDirection: 'normal',
+          animTrigger: 'ambient',
+          minVal: 0,
+          maxVal: 100,
+          currentVal: defaultCurrentVal,
+          isChecked: defaultIsChecked,
+          imageFit: 'cover',
+          tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
+          codeMode: 'blocks',
+          customJs: '',
+          logic: { event: 'click', actions: [] }
+        };
+
+        getCurrentPage().elements.push(newEl);
+        markDirty();
+        renderCanvas();
+        renderLayersTree();
+        selectElement(newEl.id);
+      };
+    }
+  }
+
+  initDragAndDrop();
+
+  // Pages List & Layers Tree
+  function renderPagesList() {
+    if (!pagesList) return;
+    pagesList.innerHTML = '';
+    currentProject.pages.forEach(p => {
+      const it = document.createElement('div');
+      it.className = `page-item ${p.id === activeScreenId ? 'active' : ''}`;
+      it.innerText = `📄 ${p.name}`;
+      it.onclick = () => { activeScreenId = p.id; renderPagesList(); renderCanvas(); };
+      pagesList.appendChild(it);
+    });
+  }
+
+  function renderLayersTree() {
+    if (!layersTree) return;
+    layersTree.innerHTML = '';
+    getCurrentPage().elements.forEach(el => {
+      const l = document.createElement('div');
+      l.className = `layer-item ${el.id === activeElementId ? 'selected' : ''}`;
+      l.innerText = el.name;
+      l.onclick = () => selectElement(el.id);
+
+      l.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectElement(el.id);
+        contextTargetElementId = el.id;
+        openElementContextMenu(e, el.id);
+      });
+
+      layersTree.appendChild(l);
+    });
+  }
+
+  if (addPageBtn) {
+    addPageBtn.onclick = () => {
+      const pId = 'scr_' + Date.now().toString().slice(-4);
+      currentProject.pages.push({ id: pId, name: 'Screen ' + (currentProject.pages.length + 1), elements: [] });
+      activeScreenId = pId;
+      markDirty();
+      renderPagesList(); renderCanvas();
+    };
+  }
+
+  if (modeToggleBtn) {
+    modeToggleBtn.onclick = () => {
+      isPreviewMode = !isPreviewMode;
+      modeToggleBtn.innerText = isPreviewMode ? '⏹️ Stop' : '▶️ Preview';
+      document.body.classList.toggle('preview-mode', isPreviewMode);
+      renderCanvas();
+    };
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      const jsonStr = JSON.stringify(currentProject, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentProject.projectName.toLowerCase().replace(/\s+/g, '_')}.applab`;
+      a.click();
+    });
+  }
+
+  if (startMenuToggleBtn) {
+    startMenuToggleBtn.onclick = () => {
+      if (startMenuPopup) startMenuPopup.classList.toggle('hidden');
+    };
+  }
+
+  document.addEventListener('click', (e) => {
+    if (startMenuToggleBtn && startMenuPopup && !startMenuToggleBtn.contains(e.target) && !startMenuPopup.contains(e.target)) {
+      startMenuPopup.classList.add('hidden');
+    }
+  });
+
+  const smHomeBtn = document.getElementById('smHomeBtn');
+  if (smHomeBtn) smHomeBtn.onclick = () => { switchMainView('homeView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smStudioBtn = document.getElementById('smStudioBtn');
+  if (smStudioBtn) smStudioBtn.onclick = () => { switchMainView('builderView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smNewProjectBtn = document.getElementById('smNewProjectBtn');
+  if (smNewProjectBtn) smNewProjectBtn.onclick = () => { openNewProjectModal(); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+  const smTutorialBtn = document.getElementById('smTutorialBtn');
+  if (smTutorialBtn) smTutorialBtn.onclick = () => { switchMainView('tutorialView'); if (startMenuPopup) startMenuPopup.classList.add('hidden'); };
+
+  const smSettingsBtn = document.getElementById('smSettingsBtn');
+  if (smSettingsBtn) {
+    smSettingsBtn.onclick = () => {
+      if (startMenuPopup) startMenuPopup.classList.add('hidden');
+
+      const themeOpts = [
+        { label: '🌙 Dark Glassmorphism', value: 'dark' },
+        { label: '☀️ Clean Daylight (Light)', value: 'light' }
+      ];
+      createCustomSelect(settingThemeContainer, themeOpts, userSettings.theme, (val) => {
+        userSettings.theme = val;
+      });
+
+      const modeOpts = [
+        { label: '✨ Quality Mode (Full Blurs & Glows)', value: 'quality' },
+        { label: '⚡ Performance Mode (Fast FPS)', value: 'performance' }
+      ];
+      createCustomSelect(settingModeContainer, modeOpts, userSettings.mode, (val) => {
+        userSettings.mode = val;
+      });
+
+      if (settingsModal) settingsModal.classList.remove('hidden');
+    };
+  }
+
+  if (closeSettingsBtn) closeSettingsBtn.onclick = () => settingsModal.classList.add('hidden');
+  if (applySettingsBtn) {
+    applySettingsBtn.onclick = () => {
+      try {
+        localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(userSettings));
+      } catch (e) {}
+      applyGlobalSettings();
+      settingsModal.classList.add('hidden');
+    };
+  }
+
+  function bindColorPair(pickerId, textId, callback) {
+    const picker = document.getElementById(pickerId);
+    const text = document.getElementById(textId);
+    if (!picker || !text) return;
+    picker.oninput = (e) => { text.value = e.target.value; callback(e.target.value); };
+    text.oninput = (e) => { callback(e.target.value); if (/^#[0-9A-F]{6}$/i.test(e.target.value)) picker.value = e.target.value; };
+  }
+
+  function rgbToHex(val) {
+    if (!val || val === 'transparent') return '#000000';
+    if (val.startsWith('#')) return val;
+    const nums = val.match(/\d+/g);
+    if (!nums || nums.length < 3) return '#000000';
+    return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+  }
+
+  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS =================
+  let activeTrackId = 'track_canvas';
+  let currentCoursePageIndex = 0;
+
   const courseTracks = [
     {
       id: 'track_canvas',
