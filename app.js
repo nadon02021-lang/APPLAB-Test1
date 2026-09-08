@@ -139,126 +139,179 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  let activeTrackId = 'track_basics';
+  // ================= EXPANDED 8-TRACK RICH TUTORIAL CURRICULUM =================
+  let activeTrackId = 'track_layout';
   let currentCoursePageIndex = 0;
+
   const courseTracks = [
     {
-      id: 'track_basics',
+      id: 'track_layout',
       title: 'Canvas Layout & Clamping',
-      desc: 'Master layer boundaries and positioning mechanics',
+      desc: 'Master boundary constraints, drag mechanics & responsive viewport clamping',
+      icon: '📐',
       pages: [
         {
-          title: 'Understanding Coordinates',
-          desc: 'Absolute coordinates in AppLab measure absolute offsets from the canvas origin (top-left 0,0). Test the boundary clamping behavior in the interactive stage below.',
+          title: 'Understanding Absolute Canvas Bounds',
+          tag: 'Core Concept',
+          desc: 'AppLab utilizes responsive absolute positioning relative to the device chassis origin (0, 0). Clamping coordinates guarantees elements cannot be dragged or pushed outside the viewport.',
           type: 'practice_canvas',
-          codeSnippet: 'element.style.left = `${Math.max(0, currentX)}px`;\nelement.style.top = `${Math.max(0, currentY)}px`;'
+          codeSnippet: '// Boundary Clamping Formula:\nconst clampX = Math.max(0, Math.min(canvasWidth - elemWidth, targetX));\nconst clampY = Math.max(0, Math.min(canvasHeight - elemHeight, targetY));'
         },
         {
-          title: 'Precision Positioning Quiz',
-          desc: 'Verify your knowledge on coordinate mapping.',
+          title: 'Viewport Boundary Mechanics',
+          tag: 'Knowledge Check',
+          desc: 'Verify your understanding of spatial constraints on custom mobile viewports.',
           type: 'quiz',
           quiz: {
-            question: 'What happens when coordinate bounds are clamped with Math.max(0, val)?',
+            question: 'Why must we constrain both Math.max(0, x) and Math.min(maxBound, x)?',
             options: [
-              'The element can freely drag into negative space',
-              'The element stops at the canvas boundary and cannot leave the screen',
-              'The element automatically resets to canvas center',
-              'The element is deleted from project memory'
+              'To speed up CSS rendering in Chrome',
+              'To keep the layer from escaping both the top-left and bottom-right edges',
+              'To force the component to convert to a flex container',
+              'To automatically resize text when the browser scales'
             ],
             correctIndex: 1,
-            explanation: 'Clamping with Math.max(0, val) prevents negative viewport offsets, securing elements inside visible borders.'
+            explanation: 'Math.max(0, x) safeguards against negative-overflow past the left/top edges, while Math.min stops the layer from disappearing off the right/bottom borders.'
           }
         }
       ]
     },
     {
       id: 'track_shapes',
-      title: 'Shapes & Vector Geometry',
-      desc: 'Explore CSS clip-path masks, border contours, and dropshadows',
+      title: 'Geometric Masks & Vector Contours',
+      desc: 'Explore CSS polygon clip-paths, geometric contours and drop-shadow fallbacks',
+      icon: '💎',
       pages: [
         {
-          title: 'Polygon Clip Paths',
-          desc: 'Complex shapes like diamonds and hexagons require CSS clip-path polygons. Standard box-shadows fail on clipped elements, requiring filter: drop-shadow instead.',
+          title: 'Polygon Clip-Path Masks',
+          tag: 'CSS Shaders & Masks',
+          desc: 'Non-rectangular geometries like diamonds and hexagons are rendered with CSS polygon clip-paths. Standard CSS box-shadow does not curve along polygon cuts; filter: drop-shadow must be used instead.',
           type: 'practice_shapes',
-          codeSnippet: '/* Diamond Mask */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);\nfilter: drop-shadow(0 0 14px #9d4edd);'
+          codeSnippet: '/* Hexagonal Mask Contour */\nclip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);\nfilter: drop-shadow(0 0 16px rgba(157, 78, 221, 0.65));'
+        },
+        {
+          title: 'Polygon Drop Shadows',
+          tag: 'Quiz Challenge',
+          desc: 'Test your grasp on how clipping masks impact browser compositor shadows.',
+          type: 'quiz',
+          quiz: {
+            question: 'Why does standard box-shadow fail on elements shaped with clip-path?',
+            options: [
+              'Browsers disable shadows on high DPI screens',
+              'box-shadow is drawn on the original square bounding box before clip-path truncates it',
+              'clip-path changes the color mode of the layer to grayscale',
+              'box-shadow requires an external image asset to function'
+            ],
+            correctIndex: 1,
+            explanation: 'The clip-path cuts off standard box-shadows outside the polygon bounds. The CSS filter: drop-shadow() function generates shadows along the actual alpha contour.'
+          }
         }
       ]
     },
     {
       id: 'track_blocks',
-      title: 'Visual Block Scripting',
-      desc: 'Build conditional triggers and screen navigators without syntax errors',
+      title: 'Visual Logic Pipelines',
+      desc: 'Chain visual event triggers, screen transitions & reactive style blocks',
+      icon: '🧱',
       pages: [
         {
-          title: 'Block Stack Pipelines',
-          desc: 'AppLab executes block steps sequentially down the stack upon receiving user events.',
+          title: 'Event-Driven Block Stacks',
+          tag: 'No-Code Architecture',
+          desc: 'Block programs execute sequentially downward when the specified event fires. Test the live simulator below to preview state morphing and delayed execution chains.',
           type: 'practice_blocks',
-          codeSnippet: 'logic: {\n  event: "click",\n  actions: [\n    { type: "setBg", target: "blockSimChip", value: "#00f2fe" },\n    { type: "alert", value: "State updated!" }\n  ]\n}'
+          codeSnippet: 'logic: {\n  event: "click",\n  actions: [\n    { type: "setText", target: "label_1", value: "Active" },\n    { type: "setBg", target: "label_1", value: "#00f2fe" },\n    { type: "alert", value: "Workflow executed!" }\n  ]\n}'
+        },
+        {
+          title: 'Asynchronous Action Order',
+          tag: 'Architecture Check',
+          desc: 'Confirm how AppLab handles sequenced event blocks.',
+          type: 'quiz',
+          quiz: {
+            question: 'What occurs if an action block targets an element that has been deleted?',
+            options: [
+              'The entire application crashes to a blank screen',
+              'The engine safely checks if the target exists before updating style or content',
+              'The browser freezes in an infinite loop',
+              'The action deletes the next element in the array'
+            ],
+            correctIndex: 1,
+            explanation: 'AppLab guards every target update with existence checks (e.g. if (target) target.innerText = val), preventing null pointer exceptions.'
+          }
         }
       ]
     },
     {
       id: 'track_js',
-      title: 'Full JavaScript Engine',
-      desc: 'Direct programmatic control via sandboxed execution scopes',
+      title: 'Sandbox JavaScript Engine',
+      desc: 'Direct runtime execution with full sandbox API hooks & sound synthesis',
+      icon: '⚡',
       pages: [
         {
-          title: 'The AppLab Runtime API',
-          desc: 'Real code allows access to the runtime parameters: element, app, and canvas.',
+          title: 'The AppLab Runtime Context',
+          tag: 'Programmatic Power',
+          desc: 'Custom JavaScript runs in a scoped sandbox providing element, app, and canvas arguments. This enables procedural graphics, sound synthesis, and external network interactions.',
           type: 'practice_js',
-          codeSnippet: 'app.showAlert("Welcome: " + element.innerText);\napp.playBeep();\nelement.style.backgroundColor = "#ff0077";'
+          codeSnippet: '// Interactive Sandbox Script:\napp.showAlert("Welcome: " + element.innerText);\napp.playBeep();\nelement.style.transform = "scale(1.1) rotate(-5deg)";'
         }
       ]
     },
     {
       id: 'track_binding',
-      title: 'State & Data Binding',
-      desc: 'Synchronize dynamic input parameters with target interface layers',
+      title: 'Dynamic State & Two-Way Binding',
+      desc: 'Synchronize user keystrokes into live screen layers with reactive listeners',
+      icon: '🔄',
       pages: [
         {
-          title: 'Input Propagation',
-          desc: 'Connect user text input components to live display layers with change detection.',
+          title: 'Two-Way Input Reflection',
+          tag: 'State Reactivity',
+          desc: 'Connecting user text inputs directly to display headers gives users immediate visual validation. Try updating the input in the lab below.',
           type: 'practice_binding',
-          codeSnippet: 'input.addEventListener("input", (e) => {\n  targetLayer.innerText = e.target.value;\n});'
+          codeSnippet: 'input.addEventListener("input", (e) => {\n  const val = e.target.value;\n  targetChip.innerText = val || "Placeholder";\n  targetChip.classList.add("anim-pulse");\n});'
         }
       ]
     },
     {
       id: 'track_perf',
-      title: 'GPU Optimization & Shaders',
-      desc: 'Manage glassmorphism fill rates and backdrop-filter costs',
+      title: 'GPU Glassmorphism & Shaders',
+      desc: 'Balance expensive backdrop-filter fill rates with clean 60FPS mobile speeds',
+      icon: '🚀',
       pages: [
         {
-          title: 'Glass Filter Overhead',
-          desc: 'Large backdrop-filter blurs require significant GPU compute. Switch to performance mode to bypass expensive compositor passes on low-power devices.',
+          title: 'Compositor Fill-Rate Optimization',
+          tag: 'GPU Engine Profiling',
+          desc: 'Backdrop blur involves multiple convolution blur passes over pixels rendered behind the element. Toggle between Quality and Performance mode to observe the computational trade-off.',
           type: 'practice_perf',
-          codeSnippet: '/* Quality Mode */\nbackdrop-filter: blur(20px);\n/* Performance Mode */\nbackdrop-filter: none;'
+          codeSnippet: '/* Quality: GPU Convolution Blur */\nbackdrop-filter: blur(24px);\n/* Performance: Zero Shader Overhead */\nbackdrop-filter: none;\nbackground: rgba(18, 12, 34, 0.95);'
         }
       ]
     },
     {
       id: 'track_anim',
-      title: 'Keyframe Motion Design',
-      desc: 'Design ambient pulses, spring bounces, and tactile gestures',
+      title: 'Choreographed Keyframe Motion',
+      desc: 'Spring physics, cubic-bezier timing curves and ambient tactile feedback',
+      icon: '✨',
       pages: [
         {
-          title: 'Timing Curves & Triggers',
-          desc: 'Test keyframe animations and custom cubic-bezier spring curves across interactive elements.',
+          title: 'Tactile Physics & Bezier Curves',
+          tag: 'Motion Design',
+          desc: 'Linear easing feels rigid and robotic. Easing curves like cubic-bezier(0.16, 1, 0.3, 1) mimic natural spring physics with rapid snap entry and soft deceleration.',
           type: 'practice_anim',
-          codeSnippet: 'animation: pulse 1.5s cubic-bezier(0.16, 1, 0.3, 1) infinite alternate;'
+          codeSnippet: 'transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);\nanimation: scalePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);'
         }
       ]
     },
     {
       id: 'track_audio',
-      title: 'Web Audio Synthesis',
-      desc: 'Generate procedural sine wave chimes without external audio assets',
+      title: 'Web Audio Procedural Synthesis',
+      desc: 'Synthesize custom frequency waves, chords and alerts without audio files',
+      icon: '🔊',
       pages: [
         {
-          title: 'Oscillator Synthesizers',
-          desc: 'Leverage the native AudioContext API to synthesize procedural interface clicks, warnings, and chord sequences.',
+          title: 'Oscillator Nodes & Envelopes',
+          tag: 'Audio DSP',
+          desc: 'The native Web Audio API allows synthesizing rich interface audio procedurally using sine and triangle oscillator nodes, eliminating heavy external MP3 download overhead.',
           type: 'practice_audio',
-          codeSnippet: 'const ctx = new AudioContext();\nconst osc = ctx.createOscillator();\nosc.frequency.setValueAtTime(440, ctx.currentTime);\nosc.connect(ctx.destination);\nosc.start();\nosc.stop(ctx.currentTime + 0.2);'
+          codeSnippet: 'const ctx = new AudioContext();\nconst osc = ctx.createOscillator();\nconst gain = ctx.createGain();\nosc.connect(gain); gain.connect(ctx.destination);\ngain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);'
         }
       ]
     }
@@ -1286,11 +1339,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Target-aware context menu routing
   window.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 
-    // 1. Placed item on canvas
     const placedItem = e.target.closest('.placed-item');
     if (placedItem && placedItem.dataset.elementId) {
       const elId = placedItem.dataset.elementId;
@@ -1300,35 +1351,30 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 2. Component palette item in left sidebar
     const paletteItem = e.target.closest('.draggable-card');
     if (paletteItem && paletteItem.dataset.type) {
       openPaletteItemContextMenu(e, paletteItem.dataset.type);
       return;
     }
 
-    // 3. Layer item in Layers Tree sidebar
     const layerItem = e.target.closest('.layer-item');
     if (layerItem && layerItem.dataset.elementId) {
       openLayerTreeContextMenu(e, layerItem.dataset.elementId);
       return;
     }
 
-    // 4. Page/Screen item in Screens tab
     const pageItem = e.target.closest('.page-item');
     if (pageItem && pageItem.dataset.pageId) {
       openPageItemContextMenu(e, pageItem.dataset.pageId);
       return;
     }
 
-    // 5. Project card in Home Dashboard
     const projCard = e.target.closest('.project-card');
     if (projCard && projCard.dataset.projectId) {
       openProjectCardContextMenu(e, projCard.dataset.projectId);
       return;
     }
 
-    // 6. Device canvas area (empty space)
     const canvasArea = e.target.closest('#canvas') || e.target.closest('#deviceFrame');
     if (canvasArea) {
       const rect = canvas.getBoundingClientRect();
@@ -1340,11 +1386,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 7. General workspace fallback
     openGlobalWorkspaceContextMenu(e);
   });
 
-  // Helper: Create element with full default parameters
   function instantiateElement(type, text, x = 40, y = 80, w = 140, h = 44) {
     let defaultBg = '#7b2cbf';
     let defaultBorder = '#9d4edd';
@@ -1425,7 +1469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // --- Context Menu: Palette Drag Item ---
   function openPaletteItemContextMenu(e, type) {
     const doc = paletteComponentDocs[type] || { title: type.toUpperCase(), desc: '' };
     const menuHtml = `
@@ -1476,7 +1519,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Layers Tree Item ---
   function openLayerTreeContextMenu(e, elId) {
     const page = getCurrentPage();
     const target = page.elements.find(i => i.id === elId);
@@ -1563,7 +1605,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Page Item in Screens list ---
   function openPageItemContextMenu(e, pageId) {
     const page = currentProject.pages.find(p => p.id === pageId);
     if (!page) return;
@@ -1623,7 +1664,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Canvas Placed Element ---
   function openElementContextMenu(e, elId) {
     const menuHtml = `
       <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
@@ -1805,7 +1845,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Empty Canvas Area ---
   function openCanvasContextMenu(e) {
     const canvasMenuHtml = `
       <div class="context-item" id="ctxPasteElement">📋 Paste Copied Element</div>
@@ -1868,7 +1907,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Project Card on Home Dashboard ---
   function openProjectCardContextMenu(e, projId) {
     contextTargetProjectId = projId;
     const proj = getStoredProjects().find(p => p.id === projId);
@@ -1925,7 +1963,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Context Menu: Global Background / App Workspace ---
   function openGlobalWorkspaceContextMenu(e) {
     const globalMenuHtml = `
       <div class="context-item" id="ctxGlobalHome">🏠 Home Dashboard</div>
@@ -2849,19 +2886,30 @@ document.addEventListener('DOMContentLoaded', () => {
     return '#' + nums.slice(0, 3).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
   }
 
-  // ================= EXPANDED 8-TRACK MULTI-PAGE TUTORIALS =================
+  // ================= UPGRADED INTERACTIVE ACADEMY WORKSPACE =================
   function renderCourseWorkspace() {
     const trackMenuEl = document.getElementById('trackMenu');
     const courseStageEl = document.getElementById('courseStage');
     if (!trackMenuEl || !courseStageEl) return;
 
-    trackMenuEl.innerHTML = '';
+    trackMenuEl.innerHTML = `
+      <div style="padding: 10px 14px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.8px; color: #a29bfe;">Course Tracks</div>
+      </div>
+    `;
+
     courseTracks.forEach(track => {
       const item = document.createElement('div');
       item.className = `track-item ${track.id === activeTrackId ? 'active' : ''}`;
+      item.style.cursor = 'pointer';
       item.innerHTML = `
-        <h4>${track.title}</h4>
-        <span class="track-meta">${track.pages.length} Chapters • ${track.desc}</span>
+        <div style="display:flex; align-items:flex-start; gap: 10px;">
+          <span style="font-size: 1.25rem; line-height: 1.2;">${track.icon || '📘'}</span>
+          <div style="flex:1; min-width:0;">
+            <h4 style="margin:0 0 2px 0; font-size:0.86rem; font-weight:600; color:#fff;">${track.title}</h4>
+            <span class="track-meta" style="font-size:0.7rem; color:rgba(255,255,255,0.6); display:block; line-height:1.3;">${track.pages.length} Chapters • ${track.desc}</span>
+          </div>
+        </div>
       `;
       item.onclick = () => {
         activeTrackId = track.id;
@@ -2887,95 +2935,136 @@ document.addEventListener('DOMContentLoaded', () => {
     const page = track.pages[currentCoursePageIndex] || track.pages[0];
     if (!page) return;
 
-    let dotsHtml = track.pages.map((p, idx) => `
-      <div class="page-dot ${idx === currentCoursePageIndex ? 'active' : ''}" data-page-idx="${idx}"></div>
+    const dotsHtml = track.pages.map((p, idx) => `
+      <div class="page-dot ${idx === currentCoursePageIndex ? 'active' : ''}" data-page-idx="${idx}" style="cursor:pointer;" title="${p.title}"></div>
     `).join('');
 
     let interactiveHtml = '';
 
+    // Track 1: Precision Clamping Lab
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Coordinate Clamping</span></div>
-          <div class="lab-stage" id="canvasLabStage" style="position: relative; height: 120px; overflow: hidden;">
-            <div id="canvasLabChip" class="lab-target-chip" style="position: absolute; left: 80px; top: 35px;">📦 Coordinate Chip</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Spatial Clamping Matrix</span>
+            <span id="clampingReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">X: 90px | Bounds: [10, 260]</span>
+          </div>
+          <div id="canvasLabStage" style="position: relative; height: 110px; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.15); border-radius: 8px; overflow: hidden; margin-bottom: 12px;">
+            <div id="canvasLabChip" style="position: absolute; left: 90px; top: 32px; padding: 8px 14px; background: linear-gradient(135deg, #7b2cbf, #9d4edd); border-radius: 8px; color: #fff; font-size: 0.78rem; font-weight: 600; box-shadow: 0 4px 14px rgba(157,78,221,0.4); transition: left 0.15s cubic-bezier(0.16, 1, 0.3, 1);">📦 Clamped Layer</div>
           </div>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-top" id="moveChipLeft">⬅️ Left (-30px)</button>
-            <button class="btn-top" id="moveChipRight">Right (+30px) ➡️</button>
-            <button class="btn-top" id="resetChipPos">Reset Position</button>
+            <button class="btn-top" id="moveChipFarLeft">⏮️ Min (0px)</button>
+            <button class="btn-top" id="moveChipLeft">⬅️ Step Left (-30px)</button>
+            <button class="btn-top" id="moveChipRight">Step Right (+30px) ➡️</button>
+            <button class="btn-top" id="moveChipFarRight">Max (260px) ⏭️</button>
+            <button class="btn-top" id="resetChipPos">Reset</button>
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_shapes') {
+    } 
+    // Track 2: Vector Polygon Contour Generator
+    else if (page.type === 'practice_shapes') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Geometric Contours</span></div>
-          <div class="lab-stage">
-            <div id="courseShapeChip" class="lab-target-chip" style="clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 14px #9d4edd); border-radius:0;">💠 Diamond</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Shader Vector Contour Lab</span>
+            <span id="shapeReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #d4a5ff;">filter: drop-shadow Active</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 140px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="courseShapeChip" style="width: 110px; height: 110px; background: linear-gradient(135deg, #7b2cbf, #ff007f); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); filter: drop-shadow(0 0 16px rgba(157,78,221,0.7)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.8rem; font-weight:700; text-align:center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);">💠 Diamond</div>
           </div>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="shapePillBtn">💊 Capsule</button>
             <button class="btn-top" id="shapeDiamondBtn">💠 Diamond</button>
             <button class="btn-top" id="shapeHexagonBtn">⬡ Hexagon</button>
+            <button class="btn-top" id="shapeCircleBtn">⚪ Circle</button>
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_blocks') {
+    } 
+    // Track 3: Event Dispatch & Sequential Pipeline
+    else if (page.type === 'practice_blocks') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Block Stack Simulator</span></div>
-          <div class="lab-stage">
-            <div id="blockSimChip" class="lab-target-chip">⏹️ Idle Layer</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Asynchronous Action Stack Dispatcher</span>
+            <span id="blockLogReadout" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Status: Standby</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 110px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="blockSimChip" style="padding: 12px 24px; background: #7b2cbf; border-radius: 10px; color: #fff; font-size: 0.85rem; font-weight: 600; transition: all 0.3s ease;">⏹️ Target Component Layer</div>
           </div>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-top btn-primary" id="runBlockSimBtn">▶️ Trigger Action Stack</button>
-            <button class="btn-top" id="resetBlockSimBtn">Reset</button>
+            <button class="btn-top btn-primary" id="runBlockSimBtn">▶️ Trigger 3-Stage Pipeline</button>
+            <button class="btn-top" id="resetBlockSimBtn">Reset Layer</button>
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_js') {
+    } 
+    // Track 4: Sandbox Script Engine Runner
+    else if (page.type === 'practice_js') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Live Script Runner</span></div>
-          <div class="lab-stage">
-            <div id="jsLabTarget" class="lab-target-chip">⚡ Script Target</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Sandbox Code Virtual Machine</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #ff007f;">Interactive Scope</span>
           </div>
-          <button class="btn-top btn-primary" id="runCourseJsBtn" style="align-self: center;">▶️ Execute Sandbox Code</button>
-        </div>
-      `;
-    } else if (page.type === 'practice_binding') {
-      interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Live Data Binding</span></div>
-          <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
-            <input type="text" class="control-input" id="bindingInput" value="Hello AppLab" style="max-width: 200px;">
-            <button class="btn-top btn-primary" id="applyBindingBtn">Bind Value</button>
+          <div style="display:flex; justify-content:center; align-items:center; height: 100px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="jsLabTarget" style="padding: 10px 22px; background: #7b2cbf; border-radius: 10px; color: #fff; font-size: 0.82rem; font-weight: 600; box-shadow: 0 0 16px rgba(157,78,221,0.3); transition: all 0.25s ease;">⚡ JavaScript Target Layer</div>
           </div>
-          <div class="lab-stage">
-            <div id="bindingTargetChip" class="lab-target-chip">Hello AppLab</div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top btn-primary" id="runCourseJsBtn">▶️ Execute Sandbox Code</button>
+            <button class="btn-top" id="resetCourseJsBtn">Reset Target</button>
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_perf') {
+    } 
+    // Track 5: Two-Way Data Binding Mirror
+    else if (page.type === 'practice_binding') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: GPU Filter Profiler</span></div>
-          <div class="lab-stage">
-            <div id="perfTargetChip" class="lab-target-chip" style="backdrop-filter: blur(20px); box-shadow: 0 0 25px var(--accent-glow);">✨ Quality Glass (Blur Active)</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Bidirectional State Mirror</span>
+            <span style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">Live Signal</span>
           </div>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <button class="btn-top" id="perfToggleQuality">✨ Quality Mode</button>
-            <button class="btn-top" id="perfToggleFast">⚡ Performance Mode</button>
+          <div style="display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <input type="text" class="control-input" id="bindingInput" value="Interactive AppLab" style="max-width: 240px; padding: 8px 12px; font-size: 0.82rem;">
+            <button class="btn-top" id="clearBindingInputBtn">Clear</button>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 90px; background: rgba(0,0,0,0.25); border-radius: 8px;">
+            <div id="bindingTargetChip" style="padding: 10px 22px; background: rgba(255,255,255,0.08); border: 1px solid rgba(157,78,221,0.4); border-radius: 8px; color: #fff; font-size: 0.85rem; font-weight: 600;">Interactive AppLab</div>
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_anim') {
+    } 
+    // Track 6: GPU Shader Profiler
+    else if (page.type === 'practice_perf') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Motion Keyframe Tester</span></div>
-          <div class="lab-stage">
-            <div id="courseAnimChip" class="lab-target-chip anim-pulse" style="animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Component</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Shader Convolution Blur Profiler</span>
+            <span id="perfMetricTag" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #ff007f;">Shader Cost: High (~24px blur)</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 120px; background: radial-gradient(circle, #7b2cbf 0%, #0e0a1a 80%); border-radius: 8px; margin-bottom: 12px; position:relative; overflow:hidden;">
+            <div style="position:absolute; color:rgba(255,255,255,0.15); font-size:2.5rem; font-weight:900;">GPU BACKGROUND</div>
+            <div id="perfTargetChip" style="position:relative; z-index:2; padding: 14px 28px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 8px 30px rgba(0,0,0,0.5); color: #fff; font-size: 0.85rem; font-weight: 700; transition: all 0.3s ease;">✨ Glass Shader (Convolution Active)</div>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn-top" id="perfToggleQuality">✨ Quality Mode (Full Blur)</button>
+            <button class="btn-top" id="perfToggleFast">⚡ Performance Mode (0ms Shader Overhead)</button>
+          </div>
+        </div>
+      `;
+    } 
+    // Track 7: Keyframe Motion Choreographer
+    else if (page.type === 'practice_anim') {
+      interactiveHtml = `
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Keyframe Keyer & Curve Tester</span>
+            <span id="animCurveTag" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #00f2fe;">Curve: ease-in-out</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 120px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="courseAnimChip" class="anim-pulse" style="padding: 12px 24px; background: linear-gradient(135deg, #7b2cbf, #c77dff); border-radius: 10px; color: #fff; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 18px rgba(157,78,221,0.4); animation-duration: 1.5s; animation-iteration-count: infinite;">💓 Pulsing Keyframe</div>
           </div>
           <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="animPulseBtn">💓 Pulse</button>
@@ -2986,68 +3075,70 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } else if (page.type === 'practice_audio') {
+    } 
+    // Track 8: Web Audio Procedural Synthesizer
+    else if (page.type === 'practice_audio') {
       interactiveHtml = `
-        <div class="lab-card">
-          <div class="lab-title-bar"><span>🧪 Interactive Lab: Web Audio Synthesizer</span></div>
-          <div class="lab-stage">
-            <div id="audioVisualizerChip" class="lab-target-chip">🎵 Audio Wave Ready</div>
+        <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 0.82rem; font-weight: 700; color: #a29bfe;">🧪 Dual-Oscillator Interface Synth</span>
+            <span id="audioStatusTag" style="font-family: monospace; font-size: 0.75rem; background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 6px; color: #2ed573;">AudioContext: Ready</span>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; height: 100px; background: rgba(0,0,0,0.25); border-radius: 8px; margin-bottom: 12px;">
+            <div id="audioVisualizerChip" style="padding: 12px 24px; background: #7b2cbf; border-radius: 10px; color: #fff; font-size: 0.85rem; font-weight: 600; box-shadow: 0 0 14px rgba(157,78,221,0.3); transition: all 0.2s ease;">🎵 Oscillator Standby</div>
           </div>
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-            <button class="btn-top btn-primary" id="playBeepToneBtn">🔊 440Hz Beep</button>
-            <button class="btn-top btn-primary" id="playChimeToneBtn">🔔 Success Chime</button>
+            <button class="btn-top btn-primary" id="playBeepToneBtn">🔊 440Hz Sine Beep</button>
+            <button class="btn-top btn-primary" id="playChimeToneBtn">🔔 Two-Tone Chime (C5 &rarr; G5)</button>
+            <button class="btn-top" id="playAlertToneBtn">⚠️ Descending Warning</button>
           </div>
         </div>
       `;
-    } else if (page.type === 'quiz' && page.quiz) {
+    } 
+    // Interactive Quizzes
+    else if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
-      const feedbackBox = document.getElementById('quizFeedbackBox');
-      document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
-        optBtn.onclick = () => {
-          const chosenIdx = parseInt(optBtn.dataset.optIdx);
-          document.querySelectorAll('.quiz-option-btn').forEach(b => {
-            b.classList.remove('correct', 'incorrect');
-            b.disabled = true;
-          });
+      const optsHtml = q.options.map((opt, i) => `
+        <button class="quiz-option-btn" data-opt-idx="${i}" style="width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">
+          <span style="opacity: 0.6; font-weight: 700; margin-right: 6px;">[${String.fromCharCode(65 + i)}]</span> ${opt}
+        </button>
+      `).join('');
 
-          if (chosenIdx === q.correctIndex) {
-            optBtn.classList.add('correct');
-            feedbackBox.className = 'quiz-feedback show success';
-            feedbackBox.innerText = '✅ Correct! ' + q.explanation;
-          } else {
-            optBtn.classList.add('incorrect');
-            const correctBtn = document.querySelector(`[data-opt-idx="${q.correctIndex}"]`);
-            if (correctBtn) correctBtn.classList.add('correct');
-            feedbackBox.className = 'quiz-feedback show fail';
-            feedbackBox.innerText = '❌ Incorrect. ' + q.explanation;
-          }
-        };
-      });
+      interactiveHtml = `
+        <div class="quiz-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 18px; margin: 16px 0;">
+          <div style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 14px; line-height: 1.4;">${q.question}</div>
+          <div id="quizOptionsContainer">${optsHtml}</div>
+          <div id="quizFeedbackBox" class="quiz-feedback" style="display:none; padding: 12px; border-radius: 8px; font-size: 0.8rem; line-height: 1.4; margin-top: 10px;">${q.explanation}</div>
+        </div>
+      `;
     }
 
     courseStageEl.innerHTML = `
-      <div class="course-paper">
-        <div class="course-paper-header">
-          <span class="page-indicator-pill">${track.title.toUpperCase()} • CHAPTER ${currentCoursePageIndex + 1} OF ${track.pages.length}</span>
-          <div class="page-dots">${dotsHtml}</div>
+      <div class="course-paper" style="max-width: 740px; margin: 0 auto;">
+        <div class="course-paper-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.65rem; text-transform:uppercase; font-weight:700; padding:2px 8px; border-radius:4px; background:rgba(157,78,221,0.25); color:#d4a5ff; border:1px solid rgba(157,78,221,0.4);">${track.title}</span>
+            <span style="font-size:0.75rem; color:rgba(255,255,255,0.5);">Chapter ${currentCoursePageIndex + 1} of ${track.pages.length}</span>
+          </div>
+          <div class="page-dots" style="display:flex; gap:6px;">${dotsHtml}</div>
         </div>
 
-        <div class="lesson-headline">
-          <h2>${page.title}</h2>
-          <p>${page.desc}</p>
+        <div class="lesson-headline" style="margin-bottom: 16px;">
+          <h2 style="margin: 0 0 6px 0; font-size: 1.3rem; font-weight: 700; color: #fff;">${page.title}</h2>
+          <p style="margin: 0; font-size: 0.84rem; color: rgba(255,255,255,0.75); line-height: 1.5;">${page.desc}</p>
         </div>
 
         ${page.codeSnippet ? `
-          <div class="code-snippet-box">
-            <button class="btn-copy-code" data-code="${encodeURIComponent(page.codeSnippet)}">Copy Snippet</button>
-            <pre>${page.codeSnippet}</pre>
+          <div class="code-snippet-box" style="position:relative; background: #080511; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+            <button class="btn-copy-code" data-code="${encodeURIComponent(page.codeSnippet)}" style="position:absolute; right:10px; top:10px; padding:3px 8px; font-size:0.68rem; background:rgba(255,255,255,0.1); border:none; border-radius:4px; color:#aaa; cursor:pointer;">Copy</button>
+            <pre style="margin:0; font-family:'Fira Code', monospace; font-size:0.76rem; color:#a29bfe; overflow-x:auto; line-height:1.45;">${page.codeSnippet}</pre>
           </div>
         ` : ''}
 
         ${interactiveHtml}
 
-        <div class="course-pagination-footer">
-          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.4; cursor: not-allowed;"' : ''}>&larr; Previous Chapter</button>
+        <div class="course-pagination-footer" style="display:flex; justify-content:space-between; align-items:center; margin-top: 24px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button class="btn-top" id="prevCoursePageBtn" ${currentCoursePageIndex === 0 ? 'disabled style="opacity: 0.35; cursor: not-allowed;"' : ''}>&larr; Previous</button>
           <button class="btn-top btn-primary" id="nextCoursePageBtn">
             ${currentCoursePageIndex === track.pages.length - 1 ? 'Open Studio Builder 🚀' : 'Next Chapter &rarr;'}
           </button>
@@ -3055,6 +3146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
+    // Bind Pagination
     document.querySelectorAll('.page-dot').forEach(dot => {
       dot.onclick = () => {
         currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
@@ -3089,125 +3181,191 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = decodeURIComponent(btn.dataset.code);
         navigator.clipboard.writeText(text);
         btn.innerText = 'Copied!';
-        setTimeout(() => btn.innerText = 'Copy Snippet', 1500);
+        setTimeout(() => btn.innerText = 'Copy', 1500);
       };
     });
 
+    // Track 1 Lab Event Handlers
     const chip = document.getElementById('canvasLabChip');
+    const readout = document.getElementById('clampingReadout');
     if (chip) {
-      document.getElementById('moveChipLeft').onclick = () => {
-        let left = parseInt(chip.style.left) || 80;
-        chip.style.left = `${Math.max(10, left - 30)}px`;
+      const updateClampedPos = (val) => {
+        const clamped = Math.max(10, Math.min(260, val));
+        chip.style.left = `${clamped}px`;
+        if (readout) readout.innerText = `X: ${clamped}px | Bounds: [10, 260]`;
       };
-      document.getElementById('moveChipRight').onclick = () => {
-        let left = parseInt(chip.style.left) || 80;
-        chip.style.left = `${Math.min(260, left + 30)}px`;
-      };
-      document.getElementById('resetChipPos').onclick = () => {
-        chip.style.left = '80px';
-      };
+      document.getElementById('moveChipLeft')?.addEventListener('click', () => {
+        updateClampedPos((parseInt(chip.style.left) || 90) - 30);
+      });
+      document.getElementById('moveChipRight')?.addEventListener('click', () => {
+        updateClampedPos((parseInt(chip.style.left) || 90) + 30);
+      });
+      document.getElementById('moveChipFarLeft')?.addEventListener('click', () => updateClampedPos(0));
+      document.getElementById('moveChipFarRight')?.addEventListener('click', () => updateClampedPos(300));
+      document.getElementById('resetChipPos')?.addEventListener('click', () => updateClampedPos(90));
     }
 
+    // Track 2 Lab Event Handlers
     const shapeChip = document.getElementById('courseShapeChip');
     if (shapeChip) {
-      document.getElementById('shapePillBtn').onclick = () => {
+      document.getElementById('shapePillBtn')?.addEventListener('click', () => {
         shapeChip.style.clipPath = 'none';
         shapeChip.style.borderRadius = '9999px';
-        shapeChip.style.boxShadow = '0 0 20px var(--accent-glow)';
+        shapeChip.style.boxShadow = '0 0 20px rgba(157,78,221,0.5)';
         shapeChip.style.filter = 'none';
         shapeChip.innerText = '💊 Capsule';
-      };
-      document.getElementById('shapeDiamondBtn').onclick = () => {
+      });
+      document.getElementById('shapeDiamondBtn')?.addEventListener('click', () => {
         shapeChip.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
         shapeChip.style.borderRadius = '0';
         shapeChip.style.boxShadow = 'none';
-        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.style.filter = 'drop-shadow(0 0 16px rgba(157,78,221,0.7))';
         shapeChip.innerText = '💠 Diamond';
-      };
-      document.getElementById('shapeHexagonBtn').onclick = () => {
+      });
+      document.getElementById('shapeHexagonBtn')?.addEventListener('click', () => {
         shapeChip.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
         shapeChip.style.borderRadius = '0';
         shapeChip.style.boxShadow = 'none';
-        shapeChip.style.filter = 'drop-shadow(0 0 14px #9d4edd)';
+        shapeChip.style.filter = 'drop-shadow(0 0 16px rgba(157,78,221,0.7))';
         shapeChip.innerText = '⬡ Hexagon';
-      };
+      });
+      document.getElementById('shapeCircleBtn')?.addEventListener('click', () => {
+        shapeChip.style.clipPath = 'none';
+        shapeChip.style.borderRadius = '50%';
+        shapeChip.style.boxShadow = '0 0 25px rgba(255,0,127,0.5)';
+        shapeChip.style.filter = 'none';
+        shapeChip.innerText = '⚪ Circle';
+      });
     }
 
+    // Track 3 Lab Event Handlers
     const blockSimChip = document.getElementById('blockSimChip');
+    const blockLog = document.getElementById('blockLogReadout');
     if (blockSimChip) {
-      document.getElementById('runBlockSimBtn').onclick = () => {
-        blockSimChip.innerText = '⚡ Step 1: Recoloring...';
+      document.getElementById('runBlockSimBtn')?.addEventListener('click', () => {
+        if (blockLog) blockLog.innerText = 'Stage 1: Dispatching Color Mutation...';
+        blockSimChip.innerText = '⚡ Step 1: Color Mutated (#00f2fe)';
         blockSimChip.style.backgroundColor = '#00f2fe';
-        blockSimChip.style.boxShadow = '0 0 25px #00f2fe';
+        blockSimChip.style.color = '#000';
+        blockSimChip.style.boxShadow = '0 0 25px rgba(0,242,254,0.6)';
+
         setTimeout(() => {
-          blockSimChip.innerText = '✨ Step 2: Pulsing...';
-          blockSimChip.className = 'lab-target-chip anim-pulse';
+          if (blockLog) blockLog.innerText = 'Stage 2: Keyframe Trigger Fired...';
+          blockSimChip.innerText = '✨ Step 2: Pulse Ambient Trigger';
+          blockSimChip.className = 'anim-pulse';
         }, 600);
-      };
-      document.getElementById('resetBlockSimBtn').onclick = () => {
-        blockSimChip.className = 'lab-target-chip';
-        blockSimChip.style.backgroundColor = '';
-        blockSimChip.style.boxShadow = '';
-        blockSimChip.innerText = '⏹️ Idle Layer';
-      };
+
+        setTimeout(() => {
+          if (blockLog) blockLog.innerText = 'Stage 3: Pipeline Complete';
+          blockSimChip.innerText = '✅ Step 3: Workflow Succeeded!';
+        }, 1200);
+      });
+
+      document.getElementById('resetBlockSimBtn')?.addEventListener('click', () => {
+        blockSimChip.className = '';
+        blockSimChip.style.backgroundColor = '#7b2cbf';
+        blockSimChip.style.color = '#fff';
+        blockSimChip.style.boxShadow = 'none';
+        blockSimChip.innerText = '⏹️ Target Component Layer';
+        if (blockLog) blockLog.innerText = 'Status: Standby';
+      });
     }
 
-    const runJsBtn = document.getElementById('runCourseJsBtn');
-    if (runJsBtn) {
-      runJsBtn.onclick = () => {
-        const jsTarget = document.getElementById('jsLabTarget');
+    // Track 4 Lab Event Handlers
+    const jsTarget = document.getElementById('jsLabTarget');
+    if (jsTarget) {
+      document.getElementById('runCourseJsBtn')?.addEventListener('click', () => {
         jsTarget.style.backgroundColor = '#ff0077';
-        jsTarget.style.boxShadow = '0 0 25px #ff0077';
+        jsTarget.style.color = '#fff';
+        jsTarget.style.boxShadow = '0 0 25px rgba(255,0,119,0.7)';
+        jsTarget.style.transform = 'scale(1.08) rotate(-3deg)';
+        jsTarget.innerText = '⚡ Code Execution Success!';
+
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
-          const osc = ctx.createOscillator(); osc.connect(ctx.destination);
-          osc.start(); osc.stop(ctx.currentTime + 0.15);
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.2);
         } catch (e) {}
-        AppLab.alert('Sandbox code executed: Element recolored & audio tone synthesized!', 'Code Lab Live Runner', '⚡');
-      };
+      });
+
+      document.getElementById('resetCourseJsBtn')?.addEventListener('click', () => {
+        jsTarget.style.backgroundColor = '#7b2cbf';
+        jsTarget.style.boxShadow = '0 0 16px rgba(157,78,221,0.3)';
+        jsTarget.style.transform = 'scale(1) rotate(0deg)';
+        jsTarget.innerText = '⚡ JavaScript Target Layer';
+      });
     }
 
-    const applyBindingBtn = document.getElementById('applyBindingBtn');
-    if (applyBindingBtn) {
-      applyBindingBtn.onclick = () => {
-        const inputVal = document.getElementById('bindingInput').value;
-        const target = document.getElementById('bindingTargetChip');
-        target.innerText = inputVal || '(Empty)';
-        target.classList.add('anim-scalePop');
-        setTimeout(() => target.classList.remove('anim-scalePop'), 600);
+    // Track 5 Lab Event Handlers
+    const bindInput = document.getElementById('bindingInput');
+    const bindTarget = document.getElementById('bindingTargetChip');
+    if (bindInput && bindTarget) {
+      bindInput.oninput = (e) => {
+        bindTarget.innerText = e.target.value || '(Empty State)';
+        bindTarget.classList.add('anim-scalePop');
+        setTimeout(() => bindTarget.classList.remove('anim-scalePop'), 300);
       };
+      document.getElementById('clearBindingInputBtn')?.addEventListener('click', () => {
+        bindInput.value = '';
+        bindTarget.innerText = '(Empty State)';
+      });
     }
 
+    // Track 6 Lab Event Handlers
     const perfChip = document.getElementById('perfTargetChip');
+    const perfTag = document.getElementById('perfMetricTag');
     if (perfChip) {
-      document.getElementById('perfToggleQuality').onclick = () => {
-        perfChip.style.backdropFilter = 'blur(20px)';
-        perfChip.style.boxShadow = '0 0 25px var(--accent-glow)';
-        perfChip.innerText = '✨ Quality Glass (Blur Active)';
-      };
-      document.getElementById('perfToggleFast').onclick = () => {
+      document.getElementById('perfToggleQuality')?.addEventListener('click', () => {
+        perfChip.style.backdropFilter = 'blur(24px)';
+        perfChip.style.webkitBackdropFilter = 'blur(24px)';
+        perfChip.style.background = 'rgba(255,255,255,0.12)';
+        perfChip.innerText = '✨ Glass Shader (Convolution Active)';
+        if (perfTag) {
+          perfTag.innerText = 'Shader Cost: High (~24px blur)';
+          perfTag.style.color = '#ff007f';
+        }
+      });
+      document.getElementById('perfToggleFast')?.addEventListener('click', () => {
         perfChip.style.backdropFilter = 'none';
-        perfChip.style.boxShadow = 'none';
-        perfChip.innerText = '⚡ Performance Mode (Zero Blur GPU Load)';
-      };
+        perfChip.style.webkitBackdropFilter = 'none';
+        perfChip.style.background = 'rgba(18, 12, 34, 0.95)';
+        perfChip.innerText = '⚡ Performance Layer (Opaque)';
+        if (perfTag) {
+          perfTag.innerText = 'Shader Cost: Zero (Fastest FPS)';
+          perfTag.style.color = '#2ed573';
+        }
+      });
     }
 
+    // Track 7 Lab Event Handlers
     const animChip = document.getElementById('courseAnimChip');
+    const animCurveTag = document.getElementById('animCurveTag');
     if (animChip) {
-      const setChipAnim = (animClass, label) => {
-        animChip.className = `lab-target-chip anim-${animClass}`;
+      const setChipAnim = (cls, label, curve) => {
+        animChip.className = `anim-${cls}`;
         animChip.innerText = label;
+        if (animCurveTag) animCurveTag.innerText = `Curve: ${curve}`;
       };
-      document.getElementById('animPulseBtn').onclick = () => setChipAnim('pulse', '💓 Pulsing');
-      document.getElementById('animBounceBtn').onclick = () => setChipAnim('bounce', '🏀 Bouncing');
-      document.getElementById('animFloatBtn').onclick = () => setChipAnim('float', '🎈 Floating');
-      document.getElementById('animSpinBtn').onclick = () => setChipAnim('spin', '🔄 Spinning');
-      document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
+      document.getElementById('animPulseBtn')?.addEventListener('click', () => setChipAnim('pulse', '💓 Pulsing Keyframe', 'ease-in-out'));
+      document.getElementById('animBounceBtn')?.addEventListener('click', () => setChipAnim('bounce', '🏀 Spring Easing', 'cubic-bezier(0.16, 1, 0.3, 1)'));
+      document.getElementById('animFloatBtn')?.addEventListener('click', () => setChipAnim('float', '🎈 Floating Ambient', 'ease-in-out'));
+      document.getElementById('animSpinBtn')?.addEventListener('click', () => setChipAnim('spin', '🔄 Constant Velocity', 'linear'));
+      document.getElementById('animShakeBtn')?.addEventListener('click', () => setChipAnim('shake', '📳 High-Frequency Keyer', 'ease-in-out'));
     }
 
+    // Track 8 Lab Event Handlers
     const audioChip = document.getElementById('audioVisualizerChip');
+    const audioTag = document.getElementById('audioStatusTag');
     if (audioChip) {
-      const playTone = (freq, duration, type = 'sine') => {
+      const synthesizeTone = (freq, duration, type = 'sine') => {
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
           const osc = ctx.createOscillator();
@@ -3220,52 +3378,83 @@ document.addEventListener('DOMContentLoaded', () => {
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
           osc.start();
           osc.stop(ctx.currentTime + duration);
+          if (audioTag) audioTag.innerText = `Playing ${freq}Hz (${type})`;
         } catch (e) {}
       };
 
-      document.getElementById('playBeepToneBtn').onclick = () => {
-        audioChip.innerText = '🔊 Playing 440Hz Sine Wave...';
-        audioChip.style.boxShadow = '0 0 25px #00f2fe';
-        playTone(440, 0.25);
+      document.getElementById('playBeepToneBtn')?.addEventListener('click', () => {
+        audioChip.innerText = '🔊 Playing 440Hz Sine Tone...';
+        audioChip.style.boxShadow = '0 0 25px rgba(0,242,254,0.7)';
+        synthesizeTone(440, 0.25, 'sine');
         setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
+          audioChip.innerText = '🎵 Oscillator Standby';
+          audioChip.style.boxShadow = '0 0 14px rgba(157,78,221,0.3)';
+          if (audioTag) audioTag.innerText = 'AudioContext: Ready';
         }, 300);
-      };
+      });
 
-      document.getElementById('playChimeToneBtn').onclick = () => {
-        audioChip.innerText = '🔔 Playing Success Chime (C5 -> G5)...';
-        audioChip.style.boxShadow = '0 0 25px #2ed573';
-        playTone(523, 0.15);
-        setTimeout(() => playTone(784, 0.25), 150);
+      document.getElementById('playChimeToneBtn')?.addEventListener('click', () => {
+        audioChip.innerText = '🔔 Playing Chime (C5 -> G5)...';
+        audioChip.style.boxShadow = '0 0 25px rgba(46,213,115,0.7)';
+        synthesizeTone(523, 0.15, 'triangle');
+        setTimeout(() => synthesizeTone(784, 0.25, 'triangle'), 120);
         setTimeout(() => {
-          audioChip.innerText = '🎵 Audio Wave Ready';
-          audioChip.style.boxShadow = '';
+          audioChip.innerText = '🎵 Oscillator Standby';
+          audioChip.style.boxShadow = '0 0 14px rgba(157,78,221,0.3)';
+          if (audioTag) audioTag.innerText = 'AudioContext: Ready';
+        }, 450);
+      });
+
+      document.getElementById('playAlertToneBtn')?.addEventListener('click', () => {
+        audioChip.innerText = '⚠️ Warning Sequence...';
+        audioChip.style.boxShadow = '0 0 25px rgba(255,71,87,0.7)';
+        synthesizeTone(600, 0.1, 'sawtooth');
+        setTimeout(() => synthesizeTone(300, 0.2, 'sawtooth'), 110);
+        setTimeout(() => {
+          audioChip.innerText = '🎵 Oscillator Standby';
+          audioChip.style.boxShadow = '0 0 14px rgba(157,78,221,0.3)';
+          if (audioTag) audioTag.innerText = 'AudioContext: Ready';
         }, 400);
-      };
+      });
     }
 
+    // Quiz Submission Handlers
     if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
-      document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
-        optBtn.onclick = () => {
-          const chosenIdx = parseInt(optBtn.dataset.optIdx);
+      document.querySelectorAll('.quiz-option-btn').forEach(btn => {
+        btn.onclick = () => {
+          const chosenIdx = parseInt(btn.dataset.optIdx);
           document.querySelectorAll('.quiz-option-btn').forEach(b => {
-            b.classList.remove('correct', 'incorrect');
             b.disabled = true;
+            b.style.cursor = 'default';
           });
 
+          if (feedbackBox) feedbackBox.style.display = 'block';
+
           if (chosenIdx === q.correctIndex) {
-            optBtn.classList.add('correct');
-            feedbackBox.className = 'quiz-feedback show success';
-            feedbackBox.innerText = '✅ Correct! ' + q.explanation;
+            btn.style.background = 'rgba(46, 213, 115, 0.2)';
+            btn.style.borderColor = '#2ed573';
+            if (feedbackBox) {
+              feedbackBox.style.background = 'rgba(46, 213, 115, 0.15)';
+              feedbackBox.style.border = '1px solid rgba(46, 213, 115, 0.3)';
+              feedbackBox.style.color = '#2ed573';
+              feedbackBox.innerHTML = `<strong>✅ Correct!</strong> ${q.explanation}`;
+            }
           } else {
-            optBtn.classList.add('incorrect');
+            btn.style.background = 'rgba(255, 71, 87, 0.2)';
+            btn.style.borderColor = '#ff4757';
             const correctBtn = document.querySelector(`[data-opt-idx="${q.correctIndex}"]`);
-            if (correctBtn) correctBtn.classList.add('correct');
-            feedbackBox.className = 'quiz-feedback show fail';
-            feedbackBox.innerText = '❌ Incorrect. ' + q.explanation;
+            if (correctBtn) {
+              correctBtn.style.background = 'rgba(46, 213, 115, 0.2)';
+              correctBtn.style.borderColor = '#2ed573';
+            }
+            if (feedbackBox) {
+              feedbackBox.style.background = 'rgba(255, 71, 87, 0.15)';
+              feedbackBox.style.border = '1px solid rgba(255, 71, 87, 0.3)';
+              feedbackBox.style.color = '#ff6b6b';
+              feedbackBox.innerHTML = `<strong>❌ Incorrect.</strong> ${q.explanation}`;
+            }
           }
         };
       });
