@@ -697,19 +697,23 @@ header {
 
 .control-group { display: flex; flex-direction: column; gap: 5px; }
 .control-group label { font-size: 0.76rem; color: var(--text-sub); }
+
+/* FIXED TEXT INPUT STYLING */
 .control-input {
   background: var(--input-bg);
   border: 1px solid var(--glass-border);
-  padding: 8px 10px;
+  padding: 9px 12px;
   border-radius: 8px;
   color: var(--text-main);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   outline: none;
+  width: 100%;
+  transition: all 0.2s ease;
 }
 
 .control-input:focus {
   border-color: var(--accent-purple);
-  box-shadow: 0 0 10px var(--accent-glow);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .control-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -889,6 +893,34 @@ header {
   color: var(--text-sub);
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+/* FIXED DIALOG INPUT STYLING */
+#dialogInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+#dialogInputGroup.hidden {
+  display: none !important;
+}
+
+#dialogInput {
+  background: var(--input-bg);
+  border: 1px solid var(--glass-border-bright);
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  outline: none;
+  width: 100%;
+}
+
+#dialogInput:focus {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 14px var(--accent-glow);
 }
 
 .dialog-footer {
@@ -1206,7 +1238,7 @@ header {
 .quiz-feedback.fail {
   background: rgba(255, 71, 87, 0.15);
   border: 1px solid #ff4757;
-  color: #ff4757;
+  color: #ff6b6b;
 }
 
 /* Pagination Footer */
