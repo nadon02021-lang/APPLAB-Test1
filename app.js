@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  // ================= EXPANDED 8-TRACK CURRICULUM (5+ PAGES PER TOPIC) =================
+  // ================= EXPANDED 8-TRACK CURRICULUM WITH UNIQUE LAB INTERACTIONS =================
   let activeTrackId = 'track_layout';
   let currentCoursePageIndex = 0;
 
@@ -177,21 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           title: 'Multi-Device Viewport Scaling',
           tag: 'Responsive Architecture',
-          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Elements use pixel coordinates bounded by the current viewport frame width and height.',
+          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Test viewport frame scaling below.',
           type: 'practice_viewport_scaler',
           codeSnippet: '// Viewport scaling toggle logic:\ndeviceFrame.style.width = isTablet ? "768px" : "380px";'
         },
         {
           title: 'Safe Margins & Collision Detection',
           tag: 'Precision Geometry',
-          desc: 'Bounding box collision testing prevents layered components from overlapping unintentionally. The algorithm evaluates overlapping axes via AABB (Axis-Aligned Bounding Box) logic.',
+          desc: 'Test bounding box intersection testing to prevent layered components from overlapping unintentionally.',
           type: 'practice_aabb_collision',
           codeSnippet: 'function checkCollision(r1, r2) {\n  return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);\n}'
         },
         {
           title: 'Z-Index Stack Hierarchy',
           tag: 'Layer Ordering',
-          desc: 'Canvas layers are painted in array sequence. The first element in the pages array is rendered on the bottom floor, while the final element sits at the very top of the stack.',
+          desc: 'Canvas layers are painted in array sequence. Test re-stacking items in the visual layer stack builder below.',
           type: 'practice_zindex_stack',
           codeSnippet: 'const [item] = elements.splice(index, 1);\nelements.push(item); // Brings to front'
         }
@@ -958,7 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
-        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
+        dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = '<button class="btn-top btn-primary" id="dlgOkBtn">Acknowledge</button>';
         customDialogModal.classList.remove('hidden');
 
@@ -978,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
-        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
+        dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgCancelBtn">Cancel</button>
           <button class="btn-top btn-primary" id="dlgYesBtn">Proceed</button>
@@ -1006,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
         dialogInput.value = defaultValue;
-        if (dialogInputGroup) dialogInputGroup.classList.remove('hidden');
+        dialogInputGroup.classList.remove('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgPromptCancel">Cancel</button>
           <button class="btn-top btn-primary" id="dlgPromptOk">Submit</button>
@@ -1032,7 +1032,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dialogIcon.innerText = '⚠️';
         dialogTitle.innerText = 'Unsaved Changes';
         dialogMessage.innerText = 'You have unsaved changes in your project. Do you want to save first, discard changes, or stay?';
-        if (dialogInputGroup) dialogInputGroup.classList.add('hidden');
+        dialogInputGroup.classList.add('hidden');
         dialogFooter.innerHTML = `
           <button class="btn-top" id="dlgStayBtn">Stay Here</button>
           <button class="btn-top" id="dlgDiscardBtn" style="color:#ff6b6b">Discard</button>
@@ -3214,6 +3214,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let interactiveHtml = '';
 
+    // ================= UNIQUE LAB INTERACTION PER PAGE TYPE =================
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -3298,7 +3299,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
             <button class="btn-top" id="shapePillBtn">💊 Capsule</button>
             <button class="btn-top" id="shapeDiamondBtn">💠 Diamond</button>
-            <button class="btn-top" id="shapeHexagonBtn">⡡ Hexagon</button>
+            <button class="btn-top" id="shapeHexagonBtn">⬡ Hexagon</button>
             <button class="btn-top" id="shapeCircleBtn">⚪ Circle</button>
           </div>
         </div>
@@ -3708,6 +3709,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let boxPos = 30;
       const evaluateCollision = (pos) => {
         boxMov.style.left = `${pos}px`;
+        // Target box static is at [180, 260]
         const isIntersecting = pos + 80 > 180;
         if (isIntersecting) {
           boxMov.style.background = '#ff0077';
