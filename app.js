@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function markDirty() { isDirty = true; }
   function markClean() { isDirty = false; }
 
+  // Clipboard buffer for copying styles between elements
+  let clipboardStyles = null;
+
   window.addEventListener('beforeunload', (e) => {
     if (isDirty) {
       e.preventDefault();
@@ -74,8 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 glowColor: '#9d4edd',
                 opacity: 1,
                 rotation: 0,
+                // Granular Animation Engine Settings
                 animation: 'pulse',
                 animDuration: 1.5,
+                animDelay: 0,
+                animIteration: 'infinite',
+                animEasing: 'ease-in-out',
+                animDirection: 'alternate',
+                animTrigger: 'ambient',
+                tooltip: 'Primary call-to-action button for initiating workflows',
                 codeMode: 'blocks',
                 customJs: "app.showAlert('Running script on: ' + element.innerText);\napp.playBeep();",
                 logic: {
@@ -161,12 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const addBlockStepBtn = document.getElementById('addBlockStepBtn');
   const realJsInput = document.getElementById('realJsInput');
 
-  const elementContextMenu = document.getElementById('elementContextMenu');
-  const ctxDuplicate = document.getElementById('ctxDuplicate');
-  const ctxBringFront = document.getElementById('ctxBringFront');
-  const ctxSendBack = document.getElementById('ctxSendBack');
-  const ctxOpenCode = document.getElementById('ctxOpenCode');
-  const ctxDelete = document.getElementById('ctxDelete');
+  // Extended Context Menu References
+  let elementContextMenu = document.getElementById('elementContextMenu');
 
   const startMenuToggleBtn = document.getElementById('startMenuToggleBtn');
   const startMenuPopup = document.getElementById('startMenuPopup');
@@ -200,6 +206,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const trackMenu = document.getElementById('trackMenu');
   const courseStage = document.getElementById('courseStage');
+
+  // ================= 2-SECOND HOVER TOOLTIP SYSTEM =================
+  const tooltipElem = document.createElement('div');
+  tooltipElem.className = 'app-tooltip hidden';
+  document.body.appendChild(tooltipElem);
+
+  let hoverTimer = null;
+
+  function setupTooltips(node, model) {
+    node.addEventListener('mouseenter', (e) => {
+      const desc = model.tooltip || `Layer: ${model.name} (${model.type})`;
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+
+      hoverTimer = setTimeout(() => {
+        tooltipElem.innerText = desc;
+        tooltipElem.style.left = `${clientX + 14}px`;
+        tooltipElem.style.top = `${clientY + 14}px`;
+        tooltipElem.classList.remove('hidden');
+      }, 2000);
+    });
+
+    node.addEventListener('mousemove', (e) => {
+      if (!tooltipElem.classList.contains('hidden')) {
+        tooltipElem.style.left = `${e.clientX + 14}px`;
+        tooltipElem.style.top = `${e.clientY + 14}px`;
+      }
+    });
+
+    node.addEventListener('mouseleave', () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      tooltipElem.classList.add('hidden');
+    });
+
+    node.addEventListener('mousedown', () => {
+      if (hoverTimer) clearTimeout(hoverTimer);
+      tooltipElem.classList.add('hidden');
+    });
+  }
 
   function applyGlobalSettings() {
     document.documentElement.setAttribute('data-theme', userSettings.theme);
@@ -273,6 +318,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const AppLab = {
     alert: (message, title = 'Notice', icon = '🔔') => {
       return new Promise((resolve) => {
+        if (!dialogIcon || !dialogTitle || !dialogMessage || !customDialogModal) {
+          alert(message);
+          resolve();
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -289,6 +339,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     confirm: (message, title = 'Confirm Action', icon = '❓') => {
       return new Promise((resolve) => {
+        if (!customDialogModal) {
+          resolve(confirm(message));
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -312,6 +366,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prompt: (message, defaultValue = '', title = 'Input Required', icon = '✏️') => {
       return new Promise((resolve) => {
+        if (!customDialogModal) {
+          resolve(prompt(message, defaultValue));
+          return;
+        }
         dialogIcon.innerText = icon;
         dialogTitle.innerText = title;
         dialogMessage.innerText = message;
@@ -577,130 +635,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let initialPages = [{ id: 'screen_1', name: 'Home Screen', elements: [] }];
 
-      if (template === 'starter_app') {
-        initialPages = [{
-          id: 'screen_1',
-          name: 'Landing Page',
-          elements: [
-            {
-              id: 'elem_lbl_' + Date.now(),
-              name: 'App Header',
-              type: 'label',
-              x: 40,
-              y: 60,
-              width: 260,
-              height: 40,
-              text: 'Welcome to ' + title,
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 22,
-              fontWeight: '700',
-              letterSpacing: 0,
-              lineHeight: 1.2,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 0,
-              textColor: '#ffffff',
-              bgColor: 'transparent',
-              borderColor: 'transparent',
-              borderWidth: 0,
-              borderStyle: 'solid',
-              shape: 'rect',
-              borderRadius: 0,
-              backdropBlur: 0,
-              glowSize: 0,
-              glowColor: '#9d4edd',
-              opacity: 1,
-              rotation: 0,
-              animation: 'slideUp',
-              animDuration: 0.8,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [] }
-            },
-            {
-              id: 'elem_btn_' + Date.now(),
-              name: 'Primary Button',
-              type: 'button',
-              x: 85,
-              y: 320,
-              width: 170,
-              height: 48,
-              text: 'Get Started',
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: 15,
-              fontWeight: '600',
-              letterSpacing: 0.5,
-              lineHeight: 1.2,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 8,
-              textColor: '#ffffff',
-              bgColor: '#7b2cbf',
-              borderColor: '#9d4edd',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              shape: 'pill',
-              borderRadius: 9999,
-              backdropBlur: 0,
-              glowSize: 18,
-              glowColor: '#9d4edd',
-              opacity: 1,
-              rotation: 0,
-              animation: 'pulse',
-              animDuration: 1.5,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [{ type: 'alert', target: '', value: 'Button clicked!' }] }
-            }
-          ]
-        }];
-      } else if (template === 'card_feed') {
-        initialPages = [{
-          id: 'screen_1',
-          name: 'Feed Screen',
-          elements: [
-            {
-              id: 'elem_card_' + Date.now(),
-              name: 'Feed Card',
-              type: 'card',
-              x: 20,
-              y: 90,
-              width: 300,
-              height: 200,
-              text: 'Exclusive Creator Content Card\nExplore rich UI layout structures.',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              fontWeight: '400',
-              letterSpacing: 0,
-              lineHeight: 1.5,
-              textTransform: 'none',
-              textDecoration: 'none',
-              textAlign: 'center',
-              padding: 16,
-              textColor: '#f3f3f7',
-              bgColor: 'rgba(255, 255, 255, 0.05)',
-              borderColor: 'rgba(255, 255, 255, 0.12)',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              shape: 'rounded',
-              borderRadius: 16,
-              backdropBlur: 20,
-              glowSize: 10,
-              glowColor: 'rgba(157, 78, 221, 0.3)',
-              opacity: 1,
-              rotation: 0,
-              animation: 'scalePop',
-              animDuration: 0.8,
-              codeMode: 'blocks',
-              customJs: '',
-              logic: { event: 'click', actions: [] }
-            }
-          ]
-        }];
-      }
-
       currentProject = {
         id: 'proj_' + Date.now(),
         projectName: title,
@@ -712,7 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       activeScreenId = currentProject.pages[0].id;
-      activeElementId = currentProject.pages[0].elements[0]?.id || null;
+      activeElementId = null;
       if (currentProjectLabel) currentProjectLabel.innerText = title;
 
       document.querySelectorAll('.device-btn').forEach(b => {
@@ -811,7 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- Dynamic Component Node Builder Engine ---
   function renderCanvas() {
     if (!canvas) return;
     canvas.innerHTML = '';
@@ -822,8 +755,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     page.elements.forEach(el => {
       let node;
-
-      // 1. Specialized Element Generators
       if (el.type === 'button') {
         node = document.createElement('button');
         node.innerText = el.text || 'Button';
@@ -877,13 +808,11 @@ document.addEventListener('DOMContentLoaded', () => {
       node.id = el.id;
       node.className = `placed-item ${el.id === activeElementId ? 'selected' : ''}`;
 
-      // Positioning & Coordinates
       node.style.left = `${el.x}px`;
       node.style.top = `${el.y}px`;
       node.style.width = `${el.width}px`;
       node.style.height = `${el.height}px`;
 
-      // Deep Visual & Typography Styles
       node.style.backgroundColor = el.bgColor;
       node.style.color = el.textColor;
       node.style.borderColor = el.borderColor;
@@ -899,15 +828,33 @@ document.addEventListener('DOMContentLoaded', () => {
       node.style.textDecoration = el.textDecoration || 'none';
       node.style.padding = `${el.padding || 0}px`;
 
-      // Shape Geometry and Contour Effects
       applyShapeAndEffects(node, el);
 
       node.style.opacity = el.opacity !== undefined ? el.opacity : 1;
       node.style.transform = `rotate(${el.rotation || 0}deg)`;
 
+      // Apply Granular Animation Configuration
       if (el.animation && el.animation !== 'none') {
-        node.classList.add(`anim-${el.animation}`);
-        node.style.animationDuration = `${el.animDuration || 1.5}s`;
+        const trigger = el.animTrigger || 'ambient';
+        if (trigger === 'ambient' || trigger === 'mount') {
+          node.classList.add(`anim-${el.animation}`);
+          node.style.animationDuration = `${el.animDuration || 1.5}s`;
+          node.style.animationDelay = `${el.animDelay || 0}s`;
+          node.style.animationIterationCount = el.animIteration || (trigger === 'mount' ? '1' : 'infinite');
+          node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
+          node.style.animationDirection = el.animDirection || 'normal';
+        } else if (trigger === 'hover') {
+          node.addEventListener('mouseenter', () => {
+            node.classList.add(`anim-${el.animation}`);
+            node.style.animationDuration = `${el.animDuration || 1.5}s`;
+            node.style.animationIterationCount = el.animIteration || '1';
+            node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
+            node.style.animationDirection = el.animDirection || 'normal';
+          });
+          node.addEventListener('mouseleave', () => {
+            node.classList.remove(`anim-${el.animation}`);
+          });
+        }
       }
 
       if (!isPreviewMode) {
@@ -916,6 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
         attachContextMenu(node, el);
       }
 
+      setupTooltips(node, el);
       attachRuntimeExecution(node, el);
 
       node.addEventListener('click', (e) => {
@@ -925,6 +873,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (el.type === 'toggle') {
           el.isChecked = !el.isChecked;
           renderCanvas();
+        }
+
+        // Trigger on-click animation if configured
+        if (el.animation && el.animation !== 'none' && el.animTrigger === 'click') {
+          node.classList.remove(`anim-${el.animation}`);
+          void node.offsetWidth; // Force Reflow
+          node.classList.add(`anim-${el.animation}`);
+          node.style.animationDuration = `${el.animDuration || 1.5}s`;
+          node.style.animationIterationCount = el.animIteration || '1';
+          node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
+          node.style.animationDirection = el.animDirection || 'normal';
         }
       });
 
@@ -987,29 +946,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function attachContextMenu(node, model) {
-    node.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      selectElement(model.id);
-      contextTargetElementId = model.id;
+  // ================= EXPANDED CONTEXT MENU ENGINE =================
+  function buildExpandedContextMenu() {
+    if (!elementContextMenu) {
+      elementContextMenu = document.createElement('div');
+      elementContextMenu.id = 'elementContextMenu';
+      elementContextMenu.className = 'context-menu hidden';
+      document.body.appendChild(elementContextMenu);
+    }
 
-      if (elementContextMenu) {
-        elementContextMenu.style.left = `${e.clientX}px`;
-        elementContextMenu.style.top = `${e.clientY}px`;
-        elementContextMenu.classList.remove('hidden');
-      }
-    });
+    elementContextMenu.innerHTML = `
+      <div class="context-item" id="ctxDuplicate">📋 Duplicate Element</div>
+      <div class="context-item" id="ctxCopyStyle">🎨 Copy Style / Properties</div>
+      <div class="context-item" id="ctxPasteStyle">🖌️ Paste Style / Properties</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxBringFront">🔼 Bring to Front</div>
+      <div class="context-item" id="ctxSendBack">🔽 Send to Back</div>
+      <div class="context-item" id="ctxLayerUp">⬆️ Step Layer Up (+1)</div>
+      <div class="context-item" id="ctxLayerDown">⬇️ Step Layer Down (-1)</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxCenterH">↔️ Center Horizontally</div>
+      <div class="context-item" id="ctxCenterV">↕️ Center Vertically</div>
+      <div class="context-item" id="ctxCenterBoth">🎯 Center on Screen</div>
+      <div class="context-separator"></div>
+      <div class="context-item" id="ctxPlayAnim">▶️ Play Animation Trigger</div>
+      <div class="context-item" id="ctxOpenCode">⚡ Open in Code Lab</div>
+      <div class="context-separator"></div>
+      <div class="context-item ctx-danger" id="ctxDelete">🗑️ Delete Element</div>
+    `;
+
+    bindContextMenuActions();
   }
 
-  window.addEventListener('click', (e) => {
-    if (elementContextMenu && !elementContextMenu.contains(e.target)) {
-      elementContextMenu.classList.add('hidden');
-    }
-  });
-
-  if (ctxDuplicate) {
-    ctxDuplicate.addEventListener('click', () => {
+  function bindContextMenuActions() {
+    // 1. Duplicate
+    document.getElementById('ctxDuplicate')?.addEventListener('click', () => {
       const page = getCurrentPage();
       const target = page.elements.find(i => i.id === contextTargetElementId);
       if (target) {
@@ -1022,12 +993,64 @@ document.addEventListener('DOMContentLoaded', () => {
         markDirty();
         selectElement(clone.id);
       }
-      if (elementContextMenu) elementContextMenu.classList.add('hidden');
+      elementContextMenu.classList.add('hidden');
     });
-  }
 
-  if (ctxBringFront) {
-    ctxBringFront.addEventListener('click', () => {
+    // 2. Copy Style
+    document.getElementById('ctxCopyStyle')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target) {
+        clipboardStyles = {
+          bgColor: target.bgColor,
+          textColor: target.textColor,
+          borderColor: target.borderColor,
+          borderWidth: target.borderWidth,
+          borderStyle: target.borderStyle,
+          shape: target.shape,
+          borderRadius: target.borderRadius,
+          fontSize: target.fontSize,
+          fontFamily: target.fontFamily,
+          fontWeight: target.fontWeight,
+          letterSpacing: target.letterSpacing,
+          lineHeight: target.lineHeight,
+          textTransform: target.textTransform,
+          textDecoration: target.textDecoration,
+          textAlign: target.textAlign,
+          padding: target.padding,
+          backdropBlur: target.backdropBlur,
+          glowSize: target.glowSize,
+          glowColor: target.glowColor,
+          opacity: target.opacity,
+          animation: target.animation,
+          animDuration: target.animDuration,
+          animDelay: target.animDelay,
+          animIteration: target.animIteration,
+          animEasing: target.animEasing,
+          animDirection: target.animDirection,
+          animTrigger: target.animTrigger
+        };
+        AppLab.alert('Element styling copied to clipboard buffer!', 'Style Copied', '🎨');
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    // 3. Paste Style
+    document.getElementById('ctxPasteStyle')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target && clipboardStyles) {
+        Object.assign(target, JSON.parse(JSON.stringify(clipboardStyles)));
+        markDirty();
+        renderCanvas();
+        buildInspector();
+        AppLab.alert('Pasted styles to active element!', 'Style Applied', '🖌️');
+      } else if (!clipboardStyles) {
+        AppLab.alert('No styles copied yet! Copy a style from an element first.', 'Clipboard Empty', '⚠️');
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    // 4. Layer Ordering: Front & Back
+    document.getElementById('ctxBringFront')?.addEventListener('click', () => {
       const page = getCurrentPage();
       const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
       if (idx >= 0) {
@@ -1037,12 +1060,10 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCanvas();
         renderLayersTree();
       }
-      if (elementContextMenu) elementContextMenu.classList.add('hidden');
+      elementContextMenu.classList.add('hidden');
     });
-  }
 
-  if (ctxSendBack) {
-    ctxSendBack.addEventListener('click', () => {
+    document.getElementById('ctxSendBack')?.addEventListener('click', () => {
       const page = getCurrentPage();
       const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
       if (idx >= 0) {
@@ -1052,20 +1073,93 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCanvas();
         renderLayersTree();
       }
-      if (elementContextMenu) elementContextMenu.classList.add('hidden');
+      elementContextMenu.classList.add('hidden');
     });
-  }
 
-  if (ctxOpenCode) {
-    ctxOpenCode.addEventListener('click', () => {
+    // 5. Layer Ordering: Step Up & Down (+1 / -1)
+    document.getElementById('ctxLayerUp')?.addEventListener('click', () => {
+      const page = getCurrentPage();
+      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+      if (idx >= 0 && idx < page.elements.length - 1) {
+        const temp = page.elements[idx];
+        page.elements[idx] = page.elements[idx + 1];
+        page.elements[idx + 1] = temp;
+        markDirty();
+        renderCanvas();
+        renderLayersTree();
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    document.getElementById('ctxLayerDown')?.addEventListener('click', () => {
+      const page = getCurrentPage();
+      const idx = page.elements.findIndex(i => i.id === contextTargetElementId);
+      if (idx > 0) {
+        const temp = page.elements[idx];
+        page.elements[idx] = page.elements[idx - 1];
+        page.elements[idx - 1] = temp;
+        markDirty();
+        renderCanvas();
+        renderLayersTree();
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    // 6. Canvas Alignments
+    document.getElementById('ctxCenterH')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target && canvas) {
+        target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+        markDirty();
+        renderCanvas();
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    document.getElementById('ctxCenterV')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target && canvas) {
+        target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+        markDirty();
+        renderCanvas();
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    document.getElementById('ctxCenterBoth')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target && canvas) {
+        target.x = Math.max(0, Math.round((canvas.offsetWidth - target.width) / 2));
+        target.y = Math.max(0, Math.round((canvas.offsetHeight - target.height) / 2));
+        markDirty();
+        renderCanvas();
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    // 7. Play Animation Live
+    document.getElementById('ctxPlayAnim')?.addEventListener('click', () => {
+      const target = getActiveElementModel();
+      if (target && target.animation && target.animation !== 'none') {
+        const node = document.getElementById(target.id);
+        if (node) {
+          node.classList.remove(`anim-${target.animation}`);
+          void node.offsetWidth;
+          node.classList.add(`anim-${target.animation}`);
+        }
+      }
+      elementContextMenu.classList.add('hidden');
+    });
+
+    // 8. Open In Code Lab
+    document.getElementById('ctxOpenCode')?.addEventListener('click', () => {
       activeElementId = contextTargetElementId;
-      if (elementContextMenu) elementContextMenu.classList.add('hidden');
+      elementContextMenu.classList.add('hidden');
       switchStudioSubpage('code');
     });
-  }
 
-  if (ctxDelete) {
-    ctxDelete.addEventListener('click', () => {
+    // 9. Delete Element
+    document.getElementById('ctxDelete')?.addEventListener('click', () => {
       const page = getCurrentPage();
       page.elements = page.elements.filter(i => i.id !== contextTargetElementId);
       if (activeElementId === contextTargetElementId) activeElementId = null;
@@ -1073,9 +1167,38 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCanvas();
       renderLayersTree();
       buildInspector();
-      if (elementContextMenu) elementContextMenu.classList.add('hidden');
+      elementContextMenu.classList.add('hidden');
     });
   }
+
+  buildExpandedContextMenu();
+
+  function attachContextMenu(node, model) {
+    node.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      selectElement(model.id);
+      contextTargetElementId = model.id;
+
+      if (elementContextMenu) {
+        // Adjust for viewport boundary so menu stays on screen
+        const menuWidth = 200;
+        const menuHeight = 360;
+        const posX = (e.clientX + menuWidth > window.innerWidth) ? (e.clientX - menuWidth) : e.clientX;
+        const posY = (e.clientY + menuHeight > window.innerHeight) ? (e.clientY - menuHeight) : e.clientY;
+
+        elementContextMenu.style.left = `${posX}px`;
+        elementContextMenu.style.top = `${posY}px`;
+        elementContextMenu.classList.remove('hidden');
+      }
+    });
+  }
+
+  window.addEventListener('click', (e) => {
+    if (elementContextMenu && !elementContextMenu.contains(e.target)) {
+      elementContextMenu.classList.add('hidden');
+    }
+  });
 
   function attachRuntimeExecution(node, model) {
     node.addEventListener(model.logic?.event === 'hover' ? 'mouseenter' : 'click', () => {
@@ -1143,11 +1266,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 1. Deep UI, Typography, Border & Spacing Customization
+    // 1. Style & UI Tab
     if (propertiesTab) {
-      // Component-specific extra settings markup
       let extraComponentControls = '';
-
       if (el.type === 'slider' || el.type === 'progress') {
         extraComponentControls = `
           <div class="control-row">
@@ -1185,6 +1306,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="control-group">
           <label>Layer Label Identifier</label>
           <input type="text" class="control-input" id="propName" value="${el.name}">
+        </div>
+
+        <div class="control-group">
+          <label>Tooltip Description (2s Hover)</label>
+          <input type="text" class="control-input" id="propTooltip" value="${el.tooltip || ''}" placeholder="Description shown on hover...">
         </div>
 
         <div class="control-group">
@@ -1280,7 +1406,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="btn-top" style="color:#ff6b6b; margin-top:14px;" id="delElemBtn">Remove Element</button>
       `;
 
-      // Mount Custom Selects
       createCustomSelect(
         document.getElementById('propFontContainer'),
         fontOptions,
@@ -1352,7 +1477,6 @@ document.addEventListener('DOMContentLoaded', () => {
         (val) => { el.borderStyle = val; markDirty(); renderCanvas(); }
       );
 
-      // Component-Specific Selects
       if (el.type === 'image') {
         const fitOpts = [
           { label: 'Cover (Crop)', value: 'cover' },
@@ -1382,8 +1506,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('propCurVal').oninput = (e) => { el.currentVal = parseInt(e.target.value) || 50; markDirty(); renderCanvas(); };
       }
 
-      // Input Event Listeners
       document.getElementById('propName').oninput = (e) => { el.name = e.target.value; markDirty(); renderLayersTree(); };
+      document.getElementById('propTooltip').oninput = (e) => { el.tooltip = e.target.value; markDirty(); };
       document.getElementById('propText').oninput = (e) => { el.text = e.target.value; markDirty(); renderCanvas(); };
       document.getElementById('propFontSize').oninput = (e) => { el.fontSize = parseInt(e.target.value) || 14; markDirty(); renderCanvas(); };
       document.getElementById('propLetterSpacing').oninput = (e) => { el.letterSpacing = parseFloat(e.target.value) || 0; markDirty(); renderCanvas(); };
@@ -1475,48 +1599,136 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('propRotation').oninput = (e) => { el.rotation = parseInt(e.target.value); markDirty(); renderCanvas(); };
     }
 
-    // 4. Standard Animation Tab
+    // 4. Enhanced Animation Tab (Maximum Customizability)
     if (animationsTab) {
       animationsTab.innerHTML = `
         <div class="control-group">
-          <label>Animation Style</label>
+          <label>Animation Preset</label>
           <div id="animStyleContainer"></div>
         </div>
 
         <div class="control-group" style="margin-top: 6px;">
-          <label>Duration (Seconds)</label>
-          <input type="number" step="0.1" min="0.1" max="10" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
+          <label>Animation Trigger Condition</label>
+          <div id="animTriggerContainer"></div>
         </div>
 
-        <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 10px;">▶️ Test Animation Live</button>
+        <div class="control-row" style="margin-top: 6px;">
+          <div class="control-group">
+            <label>Duration (Seconds)</label>
+            <input type="number" step="0.1" min="0.1" max="20" class="control-input" id="propAnimDur" value="${el.animDuration || 1.5}">
+          </div>
+          <div class="control-group">
+            <label>Start Delay (Seconds)</label>
+            <input type="number" step="0.1" min="0" max="10" class="control-input" id="propAnimDelay" value="${el.animDelay || 0}">
+          </div>
+        </div>
+
+        <div class="control-row">
+          <div class="control-group">
+            <label>Repeats / Loop Mode</label>
+            <div id="animIterContainer"></div>
+          </div>
+          <div class="control-group">
+            <label>Direction Mode</label>
+            <div id="animDirectionContainer"></div>
+          </div>
+        </div>
+
+        <div class="control-group" style="margin-top: 6px;">
+          <label>Timing / Easing Curve</label>
+          <div id="animEasingContainer"></div>
+        </div>
+
+        <button class="btn-top btn-primary" id="replayAnimBtn" style="margin-top: 14px;">▶️ Test Animation Trigger</button>
       `;
 
+      // Preset Options
       const animOpts = [
         { label: '🚫 None', value: 'none' },
         { label: '✨ Fade In', value: 'fadeIn' },
         { label: '⬆️ Slide Up', value: 'slideUp' },
         { label: '💥 Scale Pop', value: 'scalePop' },
-        { label: '💓 Pulse (Loop)', value: 'pulse' },
-        { label: '🏀 Bounce (Loop)', value: 'bounce' },
-        { label: '🎈 Float (Loop)', value: 'float' },
-        { label: '🔄 Spin (Loop)', value: 'spin' },
-        { label: '🔮 Glow Pulse (Loop)', value: 'glowPulse' },
+        { label: '💓 Pulse', value: 'pulse' },
+        { label: '🏀 Bounce', value: 'bounce' },
+        { label: '🎈 Float', value: 'float' },
+        { label: '🔄 Spin', value: 'spin' },
+        { label: '🔮 Glow Pulse', value: 'glowPulse' },
         { label: '📳 Shake', value: 'shake' }
       ];
-
       createCustomSelect(
         document.getElementById('animStyleContainer'),
         animOpts,
         el.animation || 'none',
-        (val) => {
-          el.animation = val;
-          markDirty();
-          renderCanvas();
-        }
+        (val) => { el.animation = val; markDirty(); renderCanvas(); }
       );
 
+      // Trigger Options
+      const triggerOpts = [
+        { label: '🔁 Ambient Constant Loop', value: 'ambient' },
+        { label: '🚀 On Screen Load / Mount', value: 'mount' },
+        { label: '🖱️ On Mouse Hover', value: 'hover' },
+        { label: '👆 On Click / Tap', value: 'click' }
+      ];
+      createCustomSelect(
+        document.getElementById('animTriggerContainer'),
+        triggerOpts,
+        el.animTrigger || 'ambient',
+        (val) => { el.animTrigger = val; markDirty(); renderCanvas(); }
+      );
+
+      // Iteration Options
+      const iterOpts = [
+        { label: '🔁 Infinite Loop', value: 'infinite' },
+        { label: '1 Time Only', value: '1' },
+        { label: '2 Times', value: '2' },
+        { label: '3 Times', value: '3' },
+        { label: '5 Times', value: '5' }
+      ];
+      createCustomSelect(
+        document.getElementById('animIterContainer'),
+        iterOpts,
+        el.animIteration || 'infinite',
+        (val) => { el.animIteration = val; markDirty(); renderCanvas(); }
+      );
+
+      // Direction Options
+      const directionOpts = [
+        { label: 'Normal (Forward)', value: 'normal' },
+        { label: 'Reverse (Backward)', value: 'reverse' },
+        { label: 'Alternate (Ping-Pong)', value: 'alternate' },
+        { label: 'Alternate Reverse', value: 'alternate-reverse' }
+      ];
+      createCustomSelect(
+        document.getElementById('animDirectionContainer'),
+        directionOpts,
+        el.animDirection || 'normal',
+        (val) => { el.animDirection = val; markDirty(); renderCanvas(); }
+      );
+
+      // Easing Curve Options
+      const easingOpts = [
+        { label: 'Smooth (Ease-In-Out)', value: 'ease-in-out' },
+        { label: 'Linear (Constant Speed)', value: 'linear' },
+        { label: 'Snappy Entry (Ease-Out)', value: 'ease-out' },
+        { label: 'Dramatic Acceleration (Ease-In)', value: 'ease-in' },
+        { label: 'Bouncy Spring (Tactile)', value: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+      ];
+      createCustomSelect(
+        document.getElementById('animEasingContainer'),
+        easingOpts,
+        el.animEasing || 'ease-in-out',
+        (val) => { el.animEasing = val; markDirty(); renderCanvas(); }
+      );
+
+      // Numeric inputs
       document.getElementById('propAnimDur').oninput = (e) => {
         el.animDuration = parseFloat(e.target.value) || 1.5;
+        markDirty();
+        renderCanvas();
+      };
+
+      document.getElementById('propAnimDelay').oninput = (e) => {
+        el.animDelay = parseFloat(e.target.value) || 0;
         markDirty();
         renderCanvas();
       };
@@ -1525,8 +1737,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const node = document.getElementById(el.id);
         if (node && el.animation !== 'none') {
           node.classList.remove(`anim-${el.animation}`);
-          void node.offsetWidth;
+          void node.offsetWidth; // Force Reflow
           node.classList.add(`anim-${el.animation}`);
+          node.style.animationDuration = `${el.animDuration || 1.5}s`;
+          node.style.animationDelay = `${el.animDelay || 0}s`;
+          node.style.animationIterationCount = el.animIteration || '1';
+          node.style.animationTimingFunction = el.animEasing || 'ease-in-out';
+          node.style.animationDirection = el.animDirection || 'normal';
         }
       };
     }
@@ -1718,7 +1935,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!type) return;
       const rect = canvas.getBoundingClientRect();
 
-      // Factory settings per element type
       let defaultWidth = 140;
       let defaultHeight = 44;
       let defaultText = 'Click Me';
@@ -1830,11 +2046,17 @@ document.addEventListener('DOMContentLoaded', () => {
         rotation: 0,
         animation: 'none',
         animDuration: 1.5,
+        animDelay: 0,
+        animIteration: 'infinite',
+        animEasing: 'ease-in-out',
+        animDirection: 'normal',
+        animTrigger: 'ambient',
         minVal: 0,
         maxVal: 100,
         currentVal: defaultCurrentVal,
         isChecked: defaultIsChecked,
         imageFit: 'cover',
+        tooltip: `${type.charAt(0).toUpperCase() + type.slice(1)} Component`,
         codeMode: 'blocks',
         customJs: '',
         logic: { event: 'click', actions: [] }
@@ -1975,9 +2197,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ================= EXPANDED 8-TRACK MULTI-PAGE CURRICULUM =================
-  let activeTrackId = 'track_shapes';
-  let currentCoursePageIndex = 0;
-
   const courseTracks = [
     {
       id: 'track_canvas',
@@ -2392,7 +2611,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCourseWorkspace() {
     if (!trackMenu || !courseStage) return;
 
-    // 1. Render Left Track Items
     trackMenu.innerHTML = '';
     courseTracks.forEach(track => {
       const item = document.createElement('div');
@@ -2409,7 +2627,6 @@ document.addEventListener('DOMContentLoaded', () => {
       trackMenu.appendChild(item);
     });
 
-    // 2. Render Active Track Page
     renderActiveCoursePage();
   }
 
@@ -2579,7 +2796,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Pagination Click Bindings
     document.querySelectorAll('.page-dot').forEach(dot => {
       dot.onclick = () => {
         currentCoursePageIndex = parseInt(dot.dataset.pageIdx);
@@ -2609,7 +2825,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Copy Snippet Buttons
     document.querySelectorAll('.btn-copy-code').forEach(btn => {
       btn.onclick = () => {
         const text = decodeURIComponent(btn.dataset.code);
@@ -2619,7 +2834,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     });
 
-    // Practice Lab 1: Canvas Coordinates
     const chip = document.getElementById('canvasLabChip');
     if (chip) {
       document.getElementById('moveChipLeft').onclick = () => {
@@ -2635,7 +2849,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 2: Geometric Shapes
     const shapeChip = document.getElementById('courseShapeChip');
     if (shapeChip) {
       document.getElementById('shapePillBtn').onclick = () => {
@@ -2661,7 +2874,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 3: Block Simulator
     const blockSimChip = document.getElementById('blockSimChip');
     if (blockSimChip) {
       document.getElementById('runBlockSimBtn').onclick = () => {
@@ -2681,7 +2893,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 4: JavaScript Sandbox
     const runJsBtn = document.getElementById('runCourseJsBtn');
     if (runJsBtn) {
       runJsBtn.onclick = () => {
@@ -2697,7 +2908,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 5: Live Data Binding
     const applyBindingBtn = document.getElementById('applyBindingBtn');
     if (applyBindingBtn) {
       applyBindingBtn.onclick = () => {
@@ -2709,7 +2919,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 6: Performance vs Quality
     const perfChip = document.getElementById('perfTargetChip');
     if (perfChip) {
       document.getElementById('perfToggleQuality').onclick = () => {
@@ -2724,7 +2933,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Practice Lab 7: Motion Keyframe Tester
     const animChip = document.getElementById('courseAnimChip');
     if (animChip) {
       const setChipAnim = (animClass, label) => {
@@ -2738,7 +2946,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('animShakeBtn').onclick = () => setChipAnim('shake', '📳 Shaking');
     }
 
-    // Practice Lab 8: Web Audio Synthesizer
     const audioChip = document.getElementById('audioVisualizerChip');
     if (audioChip) {
       const playTone = (freq, duration, type = 'sine') => {
@@ -2779,7 +2986,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
     }
 
-    // Interactive Quiz Option Clicks
     if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
