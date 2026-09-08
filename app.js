@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Comic Sans MS (Playful)', value: "'Comic Sans MS', cursive, sans-serif" }
   ];
 
-  // ================= EXPANDED 8-TRACK RICH TUTORIAL CURRICULUM =================
+  // ================= EXPANDED 8-TRACK CURRICULUM (5+ PAGES PER TOPIC) =================
   let activeTrackId = 'track_layout';
   let currentCoursePageIndex = 0;
 
@@ -173,6 +173,37 @@ document.addEventListener('DOMContentLoaded', () => {
             correctIndex: 1,
             explanation: 'Math.max(0, x) safeguards against negative-overflow past the left/top edges, while Math.min stops the layer from disappearing off the right/bottom borders.'
           }
+        },
+        {
+          title: 'Multi-Device Viewport Scaling',
+          tag: 'Responsive Architecture',
+          desc: 'When targeting phones, tablets, or desktop views, relative layout anchors help components adapt dynamically. Elements use pixel coordinates bounded by the current viewport frame width and height.',
+          type: 'practice_canvas',
+          codeSnippet: '// Centering an element programmatically:\nelement.x = Math.round((deviceFrame.clientWidth - element.width) / 2);\nelement.y = Math.round((deviceFrame.clientHeight - element.height) / 2);'
+        },
+        {
+          title: 'Safe Margins & Collision Detection',
+          tag: 'Precision Geometry',
+          desc: 'Bounding box collision testing prevents layered components from overlapping unintentionally. The algorithm evaluates overlapping axes via AABB (Axis-Aligned Bounding Box) logic.',
+          type: 'practice_canvas',
+          codeSnippet: 'function checkCollision(r1, r2) {\n  return !(r2.x > r1.x + r1.w || r2.x + r2.w < r1.x || r2.y > r1.y + r1.h || r2.y + r2.h < r1.y);\n}'
+        },
+        {
+          title: 'Z-Index Stack Hierarchy',
+          tag: 'Layer Ordering',
+          desc: 'Canvas layers are painted in array sequence. The first element in the pages array is rendered on the bottom floor, while the final element sits at the very top of the stack.',
+          type: 'quiz',
+          quiz: {
+            question: 'How does bringing a layer to the front affect its index in project data?',
+            options: [
+              'It moves the element object to the end of the elements array',
+              'It assigns a negative z-index value',
+              'It duplicates the layer automatically',
+              'It locks the coordinates to zero'
+            ],
+            correctIndex: 0,
+            explanation: 'In DOM rendering pipelines, elements appended last in the array naturally render on top of previous sibling nodes.'
+          }
         }
       ]
     },
@@ -204,6 +235,37 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             correctIndex: 1,
             explanation: 'The clip-path cuts off standard box-shadows outside the polygon bounds. The CSS filter: drop-shadow() function generates shadows along the actual alpha contour.'
+          }
+        },
+        {
+          title: 'Diamond Geometry Math',
+          tag: 'Matrix Coordinates',
+          desc: 'A diamond shape is plotted using four coordinate vertices: top-center (50% 0%), right-center (100% 50%), bottom-center (50% 100%), and left-center (0% 50%).',
+          type: 'practice_shapes',
+          codeSnippet: '/* Diamond Geometry */\nclip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);'
+        },
+        {
+          title: 'Pill & Capsule Curvature',
+          tag: 'Border Radii',
+          desc: 'A capsule or pill contour is generated using an ultra-high border-radius (e.g. 9999px). The browser clamps the corner curvature to exactly half of the element height.',
+          type: 'practice_shapes',
+          codeSnippet: '/* Capsule Geometry */\nborder-radius: 9999px;\nclip-path: none;\nbox-shadow: 0 0 20px rgba(157, 78, 221, 0.5);'
+        },
+        {
+          title: 'Vector Performance Analysis',
+          tag: 'GPU Shading Quiz',
+          desc: 'Evaluate the processing overhead between geometric clipping and border radius smoothing.',
+          type: 'quiz',
+          quiz: {
+            question: 'Which styling method requires less GPU computation during smooth 60fps canvas dragging?',
+            options: [
+              'Standard border-radius with box-shadow',
+              'Complex 12-point polygon clip-paths with multiple drop-shadow filters',
+              'Both require the exact same amount of GPU cycles',
+              'Neither uses the GPU at all'
+            ],
+            correctIndex: 0,
+            explanation: 'Standard border-radius is handled directly by optimized compositor primitives, while complex polygon filters demand per-pixel alpha mask re-rasterization.'
           }
         }
       ]
@@ -237,6 +299,37 @@ document.addEventListener('DOMContentLoaded', () => {
             correctIndex: 1,
             explanation: 'AppLab guards every target update with existence checks (e.g. if (target) target.innerText = val), preventing null pointer exceptions.'
           }
+        },
+        {
+          title: 'Screen Routing Pipelines',
+          tag: 'Navigation Stack',
+          desc: 'Page navigation blocks update the activeScreenId state variable, instantly triggering canvas re-rendering to display the target screen layers.',
+          type: 'practice_blocks',
+          codeSnippet: '// Screen Navigation Trigger:\naction: { type: "navigate", target: "screen_dashboard" };\n// Runtime execution:\nactiveScreenId = action.target;\nrenderCanvas();'
+        },
+        {
+          title: 'Dynamic Style Mutation',
+          tag: 'Reactive Properties',
+          desc: 'Action blocks can update layer background colors, border tones, and text strings on external target elements across the canvas simultaneously.',
+          type: 'practice_blocks',
+          codeSnippet: '// Target element mutation:\nconst target = document.getElementById(action.target);\nif (target) {\n  target.style.backgroundColor = action.value;\n}'
+        },
+        {
+          title: 'Trigger Event Types',
+          tag: 'Logic Quiz',
+          desc: 'Review the operational differences between pointer events in visual scripting.',
+          type: 'quiz',
+          quiz: {
+            question: 'Which trigger fires immediately when a cursor hovers over a component layer?',
+            options: [
+              'click',
+              'hover (mouseenter)',
+              'keydown',
+              'mount'
+            ],
+            correctIndex: 1,
+            explanation: 'The hover trigger listens to mouseenter events, running block logic as soon as the pointer crosses into the bounding box.'
+          }
         }
       ]
     },
@@ -252,6 +345,44 @@ document.addEventListener('DOMContentLoaded', () => {
           desc: 'Custom JavaScript runs in a scoped sandbox providing element, app, and canvas arguments. This enables procedural graphics, sound synthesis, and external network interactions.',
           type: 'practice_js',
           codeSnippet: '// Interactive Sandbox Script:\napp.showAlert("Welcome: " + element.innerText);\napp.playBeep();\nelement.style.transform = "scale(1.1) rotate(-5deg)";'
+        },
+        {
+          title: 'Sandboxed Scope Security',
+          tag: 'Runtime Isolation',
+          desc: 'Scripts execute inside an isolated Function constructor instance, giving developers access to safe app helper APIs without risking the host studio session.',
+          type: 'practice_js',
+          codeSnippet: 'const scriptFn = new Function("element", "app", "canvas", model.customJs);\nscriptFn(node, appApi, canvasNode);'
+        },
+        {
+          title: 'Procedural Audio API Hooks',
+          tag: 'Sound Generation',
+          desc: 'AppLab provides built-in synthesizer hooks like app.playBeep() to allow creators to trigger procedural tactile audio without downloading MP3 sound files.',
+          type: 'practice_js',
+          codeSnippet: '// Trigger audio cue:\napp.playBeep();\nelement.style.backgroundColor = "#ff0077";'
+        },
+        {
+          title: 'Handling Runtime Errors',
+          tag: 'Error Shielding Quiz',
+          desc: 'Learn how sandboxed script exceptions are intercepted and displayed.',
+          type: 'quiz',
+          quiz: {
+            question: 'What happens when a creator scripts invalid JavaScript syntax in Code Lab?',
+            options: [
+              'The editor catches the error in a try/catch block and displays a modal dialog',
+              'The entire browser tab terminates',
+              'All project local storage is wiped',
+              'The script is automatically uploaded to GitHub'
+            ],
+            correctIndex: 0,
+            explanation: 'Runtime execution is enclosed in a try/catch block that intercepts the Error object and presents a clean alert dialog with the line error.'
+          }
+        },
+        {
+          title: 'Screen Switching via Code',
+          tag: 'Custom Routing',
+          desc: 'In custom JS mode, creators can invoke app.navigateTo(screenId) to conditionally direct users between multi-page screens.',
+          type: 'practice_js',
+          codeSnippet: 'if (element.dataset.verified === "true") {\n  app.navigateTo("screen_dashboard");\n} else {\n  app.showAlert("Verification required!");\n}'
         }
       ]
     },
@@ -267,6 +398,44 @@ document.addEventListener('DOMContentLoaded', () => {
           desc: 'Connecting user text inputs directly to display headers gives users immediate visual validation. Try updating the input in the lab below.',
           type: 'practice_binding',
           codeSnippet: 'input.addEventListener("input", (e) => {\n  const val = e.target.value;\n  targetChip.innerText = val || "Placeholder";\n  targetChip.classList.add("anim-pulse");\n});'
+        },
+        {
+          title: 'Sanitizing Bound Text Content',
+          tag: 'Data Integrity',
+          desc: 'Always bind text using textContent or innerText rather than innerHTML to prevent script injection when rendering untrusted user strings.',
+          type: 'practice_binding',
+          codeSnippet: '// Safe binding:\ntargetLayer.innerText = userInputField.value;\n// Unsafe:\ntargetLayer.innerHTML = userInputField.value; // Vulnerable to XSS'
+        },
+        {
+          title: 'Debounced State Updates',
+          tag: 'Performance Engineering',
+          desc: 'Debouncing high-frequency keystrokes delays expensive rendering passes until the user pauses typing for a specified number of milliseconds.',
+          type: 'practice_binding',
+          codeSnippet: 'let debounceTimer;\ninput.oninput = () => {\n  clearTimeout(debounceTimer);\n  debounceTimer = setTimeout(() => updateState(input.value), 250);\n};'
+        },
+        {
+          title: 'Reactive Text Transform',
+          tag: 'Data Formatting',
+          desc: 'Bound state can be piped through formatting transforms like toUpperCase(), string truncations, or currency formatting before hitting the canvas display.',
+          type: 'practice_binding',
+          codeSnippet: 'targetLayer.innerText = `$${parseFloat(val || 0).toFixed(2)}`;'
+        },
+        {
+          title: 'Data Binding Principles',
+          tag: 'Reactivity Quiz',
+          desc: 'Test your understanding of model-view synchronization.',
+          type: 'quiz',
+          quiz: {
+            question: 'Why is textContent preferred over innerHTML for live state mirroring?',
+            options: [
+              'It renders characters faster and prevents malicious HTML/script execution',
+              'It makes the font size 50% larger',
+              'It automatically converts strings to numerical floats',
+              'It enables CSS keyframe animations'
+            ],
+            correctIndex: 0,
+            explanation: 'textContent treats all user characters as raw string literals, preventing cross-site scripting (XSS) and executing with minimal DOM parsing overhead.'
+          }
         }
       ]
     },
@@ -282,6 +451,44 @@ document.addEventListener('DOMContentLoaded', () => {
           desc: 'Backdrop blur involves multiple convolution blur passes over pixels rendered behind the element. Toggle between Quality and Performance mode to observe the computational trade-off.',
           type: 'practice_perf',
           codeSnippet: '/* Quality: GPU Convolution Blur */\nbackdrop-filter: blur(24px);\n/* Performance: Zero Shader Overhead */\nbackdrop-filter: none;\nbackground: rgba(18, 12, 34, 0.95);'
+        },
+        {
+          title: 'Hardware Acceleration Promoters',
+          tag: 'Compositor Layers',
+          desc: 'Properties like transform: translateZ(0) and will-change: transform prompt the browser to isolate the element on its own dedicated GPU composite layer.',
+          type: 'practice_perf',
+          codeSnippet: 'will-change: transform, opacity;\ntransform: translateZ(0);'
+        },
+        {
+          title: 'Fill Rate Bottlenecks',
+          tag: 'Rasterization Performance',
+          desc: 'Overdraw occurs when several semi-transparent blurred layers overlap on top of each other, forcing the GPU to calculate blur passes repeatedly for the same pixel.',
+          type: 'practice_perf',
+          codeSnippet: '// Keep overlapping blurred layers to a maximum of 2 for stable mobile FPS'
+        },
+        {
+          title: 'Quality vs Performance Modes',
+          tag: 'Profiling Quiz',
+          desc: 'Review how performance profiles are managed in production app builders.',
+          type: 'quiz',
+          quiz: {
+            question: 'Which setting drastically reduces GPU power consumption on low-end mobile devices?',
+            options: [
+              'Increasing backdrop-filter to 50px',
+              'Switching to Performance Mode to disable heavy convolution blurs',
+              'Adding 10 box shadows per layer',
+              'Using 4K resolution images on tiny icons'
+            ],
+            correctIndex: 1,
+            explanation: 'Disabling backdrop-filter replaces multi-pass shader blurs with flat or semi-transparent background colors, dramatically dropping GPU load.'
+          }
+        },
+        {
+          title: 'Compositor Paint Invalidation',
+          tag: 'Frame Budget',
+          desc: 'Animating layout properties like width and height forces CPU reflow and repaint. Animating transform and opacity bypasses reflow entirely.',
+          type: 'practice_perf',
+          codeSnippet: '/* Fast (GPU compositor only) */\ntransform: scale(1.05);\n/* Slow (forces CPU reflow & relayout) */\nwidth: 150px;'
         }
       ]
     },
@@ -297,6 +504,44 @@ document.addEventListener('DOMContentLoaded', () => {
           desc: 'Linear easing feels rigid and robotic. Easing curves like cubic-bezier(0.16, 1, 0.3, 1) mimic natural spring physics with rapid snap entry and soft deceleration.',
           type: 'practice_anim',
           codeSnippet: 'transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);\nanimation: scalePop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);'
+        },
+        {
+          title: 'Animation Triggers (Ambient vs Event)',
+          tag: 'Trigger Conditions',
+          desc: 'Ambient animations loop infinitely in the background, whereas mount triggers fire once upon entering the screen, and click triggers fire on user taps.',
+          type: 'practice_anim',
+          codeSnippet: '/* Ambient Loop */\nanimation-iteration-count: infinite;\n/* Event Pulse */\nanimation-iteration-count: 1;'
+        },
+        {
+          title: 'Keyframe Easing Mathematical Curves',
+          tag: 'Physics Curves',
+          desc: 'The cubic-bezier function takes four parameters: (x1, y1, x2, y2) representing the two control handle tangents of a cubic polynomial curve.',
+          type: 'practice_anim',
+          codeSnippet: '/* Snappy iOS-style spring curve */\ntransition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);'
+        },
+        {
+          title: 'Motion Design Accessibility',
+          tag: 'Accessibility & Safety',
+          desc: 'Users with vestibular conditions can experience motion sensitivity. Supporting prefers-reduced-motion ensures safe viewing across all platforms.',
+          type: 'practice_anim',
+          codeSnippet: '@media (prefers-reduced-motion: reduce) {\n  .anim-pulse, .anim-spin { animation: none !important; }\n}'
+        },
+        {
+          title: 'Motion Choreography Quiz',
+          tag: 'Timing Quiz',
+          desc: 'Test your understanding of UI motion principles.',
+          type: 'quiz',
+          quiz: {
+            question: 'What is the optimal animation duration range for micro-interactions like button clicks?',
+            options: [
+              '150ms to 350ms',
+              '3000ms to 5000ms',
+              '0ms (no duration)',
+              '10 to 15 seconds'
+            ],
+            correctIndex: 0,
+            explanation: 'Micro-interactions between 150ms and 350ms feel snappy, tactile, and responsive without dragging out the user interface workflow.'
+          }
         }
       ]
     },
@@ -312,6 +557,44 @@ document.addEventListener('DOMContentLoaded', () => {
           desc: 'The native Web Audio API allows synthesizing rich interface audio procedurally using sine and triangle oscillator nodes, eliminating heavy external MP3 download overhead.',
           type: 'practice_audio',
           codeSnippet: 'const ctx = new AudioContext();\nconst osc = ctx.createOscillator();\nconst gain = ctx.createGain();\nosc.connect(gain); gain.connect(ctx.destination);\ngain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);'
+        },
+        {
+          title: 'Waveform Profiles (Sine, Square, Saw)',
+          tag: 'Acoustic Timbre',
+          desc: 'Sine waves produce soft pure tones, triangle waves sound warm and wooden, while sawtooth and square waves output punchy digital buzzy timbres suitable for alerts.',
+          type: 'practice_audio',
+          codeSnippet: 'osc.type = "sine";     // Smooth click\nosc.type = "triangle"; // Warm chime\nosc.type = "sawtooth"; // Warning buzzer'
+        },
+        {
+          title: 'Synthesizing Musical Chords',
+          tag: 'Polyphonic Audio',
+          desc: 'Playing multiple frequencies simultaneously or in rapid arpeggio (such as C5 523Hz followed by G5 784Hz) signals success and positive confirmation.',
+          type: 'practice_audio',
+          codeSnippet: '// Arpeggio success chord:\nplayTone(523, 0.15);\nsetTimeout(() => playTone(784, 0.25), 120);'
+        },
+        {
+          title: 'Audio Gain Envelopes (ADSR)',
+          tag: 'Sound Dynamics',
+          desc: 'Abruptly cutting off audio oscillators creates harsh popping noises. Using exponentialRampToValueAtTime gently ramps the gain volume down to zero.',
+          type: 'practice_audio',
+          codeSnippet: 'gain.gain.setValueAtTime(0.2, ctx.currentTime);\ngain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);'
+        },
+        {
+          title: 'Web Audio Architecture Quiz',
+          tag: 'Audio DSP Quiz',
+          desc: 'Review Web Audio synthesis mechanics.',
+          type: 'quiz',
+          quiz: {
+            question: 'Why is procedural sound synthesis preferable to loading MP3 files for micro-interactions?',
+            options: [
+              'Zero network load, instant latency-free playback, and dynamic parameter pitch changes',
+              'MP3 files are completely banned in modern browsers',
+              'Procedural audio makes the computer screen brighter',
+              'AudioContext does not require any CPU cycles'
+            ],
+            correctIndex: 0,
+            explanation: 'Procedural synthesis generates sound waves mathematically on the fly, eliminating asset loading latency and reducing bundle sizes to 0KB.'
+          }
         }
       ]
     }
@@ -2941,7 +3224,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let interactiveHtml = '';
 
-    // Track 1: Precision Clamping Lab
     if (page.type === 'practice_canvas') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
@@ -2961,9 +3243,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 2: Vector Polygon Contour Generator
-    else if (page.type === 'practice_shapes') {
+    } else if (page.type === 'practice_shapes') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -2981,9 +3261,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 3: Event Dispatch & Sequential Pipeline
-    else if (page.type === 'practice_blocks') {
+    } else if (page.type === 'practice_blocks') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -2999,9 +3277,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 4: Sandbox Script Engine Runner
-    else if (page.type === 'practice_js') {
+    } else if (page.type === 'practice_js') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3017,9 +3293,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 5: Two-Way Data Binding Mirror
-    else if (page.type === 'practice_binding') {
+    } else if (page.type === 'practice_binding') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3035,9 +3309,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 6: GPU Shader Profiler
-    else if (page.type === 'practice_perf') {
+    } else if (page.type === 'practice_perf') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3054,9 +3326,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 7: Keyframe Motion Choreographer
-    else if (page.type === 'practice_anim') {
+    } else if (page.type === 'practice_anim') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3075,9 +3345,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Track 8: Web Audio Procedural Synthesizer
-    else if (page.type === 'practice_audio') {
+    } else if (page.type === 'practice_audio') {
       interactiveHtml = `
         <div class="lab-card" style="background: rgba(18, 12, 34, 0.7); border: 1px solid rgba(157,78,221,0.3); border-radius: 12px; padding: 16px; margin: 16px 0;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -3094,9 +3362,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `;
-    } 
-    // Interactive Quizzes
-    else if (page.type === 'quiz' && page.quiz) {
+    } else if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const optsHtml = q.options.map((opt, i) => `
         <button class="quiz-option-btn" data-opt-idx="${i}" style="width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 8px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #fff; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">
@@ -3422,9 +3688,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (page.type === 'quiz' && page.quiz) {
       const q = page.quiz;
       const feedbackBox = document.getElementById('quizFeedbackBox');
-      document.querySelectorAll('.quiz-option-btn').forEach(btn => {
-        btn.onclick = () => {
-          const chosenIdx = parseInt(btn.dataset.optIdx);
+      document.querySelectorAll('.quiz-option-btn').forEach(optBtn => {
+        optBtn.onclick = () => {
+          const chosenIdx = parseInt(optBtn.dataset.optIdx);
           document.querySelectorAll('.quiz-option-btn').forEach(b => {
             b.disabled = true;
             b.style.cursor = 'default';
@@ -3433,8 +3699,8 @@ document.addEventListener('DOMContentLoaded', () => {
           if (feedbackBox) feedbackBox.style.display = 'block';
 
           if (chosenIdx === q.correctIndex) {
-            btn.style.background = 'rgba(46, 213, 115, 0.2)';
-            btn.style.borderColor = '#2ed573';
+            optBtn.style.background = 'rgba(46, 213, 115, 0.2)';
+            optBtn.style.borderColor = '#2ed573';
             if (feedbackBox) {
               feedbackBox.style.background = 'rgba(46, 213, 115, 0.15)';
               feedbackBox.style.border = '1px solid rgba(46, 213, 115, 0.3)';
@@ -3442,8 +3708,8 @@ document.addEventListener('DOMContentLoaded', () => {
               feedbackBox.innerHTML = `<strong>✅ Correct!</strong> ${q.explanation}`;
             }
           } else {
-            btn.style.background = 'rgba(255, 71, 87, 0.2)';
-            btn.style.borderColor = '#ff4757';
+            optBtn.style.background = 'rgba(255, 71, 87, 0.2)';
+            optBtn.style.borderColor = '#ff4757';
             const correctBtn = document.querySelector(`[data-opt-idx="${q.correctIndex}"]`);
             if (correctBtn) {
               correctBtn.style.background = 'rgba(46, 213, 115, 0.2)';
